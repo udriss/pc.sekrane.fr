@@ -7,8 +7,8 @@ export async function POST(request: Request) {
   const { password } = await request.json();
   const hash = crypto.createHash('sha256').update(password).digest('hex');
   if (hash === STORED_HASH) {
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Connexion réussie ROUTE PAGE' });
   } else {
-    return NextResponse.json({ success: false, message: 'Mot de passe incorrect' }, { status: 401 });
+    return NextResponse.json({ success: false, message: 'Mot de passe incorrect ROUTE PAGE' }, { status: 401 });
   }
 }

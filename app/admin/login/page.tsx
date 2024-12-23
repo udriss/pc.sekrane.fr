@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,17 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  useEffect(() => {
+    const isAuthenticated = sessionStorage.getItem("adminAuth");
+    if (isAuthenticated) {
+      router.push("/admin");
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(""); // Reset error message
+    console.log("Submitting password:", password);
     const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: {
@@ -21,8 +30,10 @@ export default function AdminLoginPage() {
       body: JSON.stringify({ password }),
     });
     const data = await res.json();
+    console.log("Response data:", data);
     if (data.success) {
       sessionStorage.setItem("adminAuth", "true");
+      console.log("Redirecting to /admin");
       router.push("/admin");
     } else {
       setError(data.message || "Mot de passe incorrect");
