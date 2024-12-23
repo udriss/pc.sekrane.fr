@@ -10,4 +10,3 @@ export async function GET(request: Request, { params }: { params: { courseId: st
     return NextResponse.json({ error: 'Course not found' }, { status: 404 });
   }
 }
-

@@ -1,21 +1,17 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { CourseCard } from "@/components/course-card";
-import { Course } from "@/lib/data";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
+    async function fetchCourses() {
+      const res = await fetch("/api/courses");
+      const data = await res.json();
+      setCourses(data.courses);
+    }
     fetchCourses();
   }, []);
-
-  const fetchCourses = async () => {
-    const res = await fetch("/api/courses");
-    const data = await res.json();
-    setCourses(data.courses);
-  };
 
   return (
     <div className="container py-8">

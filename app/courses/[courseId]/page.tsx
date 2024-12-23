@@ -1,18 +1,25 @@
-import { courses } from "@/lib/data";
+import { useEffect, useState } from "react";
 import { ActivityList } from "@/components/activity-list";
 import { notFound } from "next/navigation";
 
-export function generateStaticParams() {
-  return courses.map((course) => ({
-    courseId: course.id,
-  }));
-}
-
 export default function CoursePage({ params }: { params: { courseId: string } }) {
-  const course = courses.find((c) => c.id === params.courseId);
+  const [course, setCourse] = useState(null);
+
+  useEffect(() => {
+    async function fetchCourse() {
+      const res = await fetch(`/api/courses/${params.courseId}`);
+      if (res.status === 404) {
+        notFound();
+      } else {
+        const data = await res.json();
+        setCourse(data.course);
+      }
+    }
+    fetchCourse();
+  }, [params.courseId]);
 
   if (!course) {
-    notFound();
+    return <div>Loading...</div>;
   }
 
   return (
