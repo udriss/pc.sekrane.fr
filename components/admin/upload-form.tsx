@@ -1,5 +1,4 @@
-
-import { courses as coursesData, Course } from "@/lib/data";
+import { Course } from "@/lib/data";
 import { useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
@@ -71,9 +70,9 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
     });
 
     if (res.ok) {
-      const newCourse = await res.json();
+      const data = await res.json();
       setSuccessMessageAddCourse("Cours ajouté avec succès.");
-      setCourses([...courses, newCourse]);
+      setCourses(data.courses);
       setNewCourseTitle("");
       setNewCourseDescription("");
     } else {
@@ -99,9 +98,9 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
     });
 
     if (res.ok) {
+      const data = await res.json();
       setSuccessMessageDeleteCourse("Cours supprimé avec succès.");
-      const updatedCourses = courses.filter(course => course.id !== courseToDelete);
-      setCourses(updatedCourses);
+      setCourses(data.courses);
     } else {
       setError("Erreur lors de la suppression du cours.");
     }
@@ -117,8 +116,8 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
               <SelectValue placeholder="Sélectionner un cours" />
             </SelectTrigger>
             <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={uuidv4()} value={course.id}>
+              {courses && courses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
                   {course.title}
                 </SelectItem>
               ))}
@@ -170,8 +169,8 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
               <SelectValue placeholder="Sélectionner un cours à supprimer" />
             </SelectTrigger>
             <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={uuidv4()} value={course.id}>
+              {courses && courses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
                   {course.title}
                 </SelectItem>
               ))}

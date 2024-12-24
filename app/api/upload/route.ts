@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
-import { courses } from '@/lib/data';
+import { courses, Course } from '@/lib/data';
 import { writeFileSync } from 'fs';
 
 export async function POST(request: Request) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     console.log("File written to disk:", filePath);
 
     // Update the course data
-    const course = courses.find(c => c.id === courseId);
+    const course = courses.find((c: Course) => c.id === courseId);
     if (course) {
       const newActivity = {
         id: `${Date.now()}`,
@@ -35,6 +35,8 @@ export async function POST(request: Request) {
         pdfUrl: `/pdfs/${courseId}/${fileName}`,
       };
       course.activities.push(newActivity);
+
+      
 
       // Write updated courses data to data.ts
       const updatedData = `export const courses = ${JSON.stringify(courses, null, 2)};`;

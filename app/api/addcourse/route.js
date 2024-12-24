@@ -33,21 +33,21 @@ export interface Activity {
   id: string;
   title: string;
   pdfUrl: string;
-};
+}
 
 export interface Course {
   id: string;
   title: string;
   description: string;
   activities: Activity[];
-};
+}
 
-export const courses = ${JSON.stringify(courses, null, 2)};
+export const courses: Course[] = ${JSON.stringify(courses, null, 2)};
 `;
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
     console.log("Data written to data.ts");
 
-    return NextResponse.json({ success: true, course: newCourse });
+    return NextResponse.json({ success: true, courses });
   } catch (error) {
     console.error("Error adding course:", error);
     return NextResponse.json(

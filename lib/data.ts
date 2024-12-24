@@ -1,3 +1,4 @@
+
 export interface Activity {
   id: string;
   title: string;
@@ -13,27 +14,21 @@ export interface Course {
 
 export const courses: Course[] = [
   {
-    "id": "1735004384895",
-    "title": "azss",
-    "description": "q",
+    "id": "1735056025955",
+    "title": "wwww",
+    "description": "w",
     "activities": []
   },
   {
-    "id": "1735004405074",
-    "title": "qkslleh",
-    "description": "aaaaaa",
-    "activities": []
-  },
-  {
-    "id": "1735004411313",
-    "title": "asasasas",
-    "description": "aaa",
-    "activities": []
-  },
-  {
-    "id": "1735004432209",
-    "title": "jbqfjg",
+    "id": "1735056375896",
+    "title": "aaaaaq",
     "description": "qq",
+    "activities": []
+  },
+  {
+    "id": "1735056401749",
+    "title": "qqqqwwhqfkH",
+    "description": "",
     "activities": []
   }
 ];
