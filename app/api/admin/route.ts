@@ -1,16 +1,32 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import CryptoJS from 'crypto-js';
 
-const STORED_HASH = '4f47b88398cd61d116ca3d13172a631999c6ab2798136f465f19fee7b2359974'; // SHA-256 de "Va058pt!"
+const SECRET_KEY = process.env.SECRET_KEY;
+const STORED_HASH = process.env.STORED_HASH;
+
+if (!SECRET_KEY) {
+  throw new Error('SECRET_KEY is not defined');
+}
+
+if (!STORED_HASH) {
+  throw new Error('STORED_HASH is not defined');
+}
+
+console.log('API SECRET_KEY:', SECRET_KEY);
 
 export async function POST(request: Request) {
   const { password } = await request.json();
-  const hash = crypto.createHash('sha256').update(password).digest('hex');
+  const hash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
   if (hash === STORED_HASH) {
+    const token = jwt.sign({ role: 'admin' }, SECRET_KEY as string, { expiresIn: '1h' });
+    console.log('Generated Token:', token);
+
     const response = NextResponse.json({ success: true, message: 'Connexion réussie (route page)' });
-    response.cookies.set('adminAuth', 'true', { httpOnly: true, path: '/' });
+    response.cookies.set('adminAuth', token, { httpOnly: true, secure: true, path: '/' });
+    
     return response;
   } else {
-    return NextResponse.json({ success: false, message: 'Mot de passe incorrect' }, { status: 401 });
+    return NextResponse.json({ success: false, message: 'Mot de passe incorrect (route page)' }, { status: 401 });
   }
 }

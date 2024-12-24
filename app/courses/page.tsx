@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CourseCard } from "@/components/course-card";
+import { CourseCard } from "@/components/courses/course-card";
 import { Course } from "@/lib/data";
 
 export default function CoursesPage() {

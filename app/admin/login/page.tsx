@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); // Reset error message
-    const res = await fetch('/api/admin/auth', {
+    const res = await fetch('/api/admin/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
       console.log("Redirecting to /admin");
       router.push("/admin");
     } else {
-      setError(data.message || "Mot de passe incorrect");
+      setError(data.message || "Mot de passe incorrect (admin/login/page.tsx)");
     }
   };
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/admin/header";
+import { Header } from "@/components/admin/admin-header";
 import { UploadForm } from "@/components/admin/upload-form";
 import { courses as initialCourses, Course } from "@/lib/data";
 

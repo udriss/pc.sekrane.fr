@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { courses } from '@/lib/data';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { dataTemplate } from "@/lib/data-template";
 
 export async function POST(request) {
   try {
@@ -28,22 +29,8 @@ export async function POST(request) {
     }
 
     // Write updated courses data to data.ts
-    const updatedData = `
-export interface Activity {
-  id: string;
-  title: string;
-  pdfUrl: string;
-}
-
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  activities: Activity[];
-}
-
-export const courses: Course[] = ${JSON.stringify(courses, null, 2)};
-`;
+    const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
+    const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
     console.log("Data written to data.ts");
 

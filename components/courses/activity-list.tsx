@@ -14,12 +14,12 @@ export function ActivityList({ activities }: ActivityListProps) {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="flex flex-wrap max-w-[600px] gap-4">
       {activities.map((activity) => (
         <Button
           key={activity.id}
           variant="outline"
-          className="w-full justify-start"
+          className="inline-flex items-center justify-start"
           onClick={() => handleActivityClick(activity.pdfUrl)}
         >
           <FileText className="mr-2 h-4 w-4" />

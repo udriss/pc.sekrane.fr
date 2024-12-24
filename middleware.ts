@@ -1,20 +1,33 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
-  const adminAuth = request.cookies.get('adminAuth')?.value;
+const SECRET_KEY = new TextEncoder().encode(process.env.SECRET_KEY);
 
-  // Protéger toutes les pages d'administration
-  if (request.nextUrl.pathname.startsWith('/admin') && request.nextUrl.pathname !== '/admin/login') {
-    if (!adminAuth) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
+export async function middleware(request: NextRequest) {
+  const token = request.cookies.get('adminAuth')?.value;
+  const url = request.nextUrl.clone();
+
+  // Exclure la page de login du contrôle
+  if (url.pathname === '/admin/login') {
+    return NextResponse.next();
   }
 
-  // Éviter de rediriger si l'utilisateur est déjà sur la page de connexion
-  if (request.nextUrl.pathname === '/admin/login' && adminAuth) {
-    return NextResponse.redirect(new URL('/admin', request.url));
+  if (!token) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
-  return NextResponse.next();
+  try {
+    // Vérifier le token via “jose”
+    const { payload } = await jwtVerify(token, SECRET_KEY);
+    // Si la vérification réussit, laisser passer
+    console.log('Admin Authenticated:', payload);
+    return NextResponse.next();
+  } catch (error) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
 }
+
+export const config = {
+  matcher: ['/admin/:path*'],
+};

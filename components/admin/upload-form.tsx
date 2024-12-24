@@ -1,6 +1,5 @@
 import { Course } from "@/lib/data";
 import { useState } from "react";
-import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,6 +13,7 @@ interface UploadFormProps {
 export function UploadForm({ courses, setCourses }: UploadFormProps) {
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [ActivityTitle, setActivityTitle] = useState<string>("");
   const [newCourseTitle, setNewCourseTitle] = useState<string>("");
   const [newCourseDescription, setNewCourseDescription] = useState<string>("");
   const [courseToDelete, setCourseToDelete] = useState<string>("");
@@ -25,14 +25,15 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCourse || !file) {
-      setError("Veuillez sélectionner un cours et un fichier.");
+    if (!selectedCourse || !file || !ActivityTitle) {
+      setError("Veuillez sélectionner un cours, un fichier et entrer le nom de l'activité.");
       return;
     }
 
     const formData = new FormData();
     formData.append("courseId", selectedCourse);
     formData.append("file", file);
+    formData.append("ActivityTitle", ActivityTitle);
 
     const res = await fetch("/api/upload", {
       method: "POST",
@@ -46,6 +47,8 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
         course.id === selectedCourse ? { ...course, activities: [...course.activities, data.activity] } : course
       ) as Course[];
       setCourses(updatedCourses);
+      setActivityTitle(""); // Reset activity name
+      setFile(null); // Reset file input
     } else {
       setError("Échec du téléchargement du fichier.");
     }
@@ -125,6 +128,15 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
           </Select>
         </div>
         <div className="space-y-2">
+          <label className="text-sm font-medium">Nom de l'activité</label>
+          <Input
+            type="text"
+            value={ActivityTitle}
+            onChange={(e) => setActivityTitle(e.target.value)}
+            placeholder="Entrez le nom de l'activité"
+          />
+        </div>
+        <div className="space-y-2">
           <label className="text-sm font-medium">Sélectionner un fichier</label>
           <Input
             type="file"
@@ -133,7 +145,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
         {successMessageAddFile && <p className="text-sm text-green-500">{successMessageAddFile}</p>}
-        <Button type="submit" disabled={!selectedCourse || !file} className="w-full">
+        <Button type="submit" disabled={!selectedCourse || !file || !ActivityTitle} className="w-full">
           Télécharger
         </Button>
       </form>

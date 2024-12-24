@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { courses } from '@/lib/data';
 import { writeFileSync, unlinkSync, existsSync, rmdirSync } from 'fs';
 import { join } from 'path';
+import { dataTemplate } from "@/lib/data-template";
 
 export async function DELETE(request, { params }) {
   try {
@@ -32,21 +33,7 @@ export async function DELETE(request, { params }) {
     courses.splice(courseIndex, 1);
 
     // Écrire les données mises à jour dans data.ts
-    const updatedData = `
-export interface Activity {
-  id: string;
-  title: string;
-  pdfUrl: string;
-}
-
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  activities: Activity[];
-}
-
-export const courses: Course[] = ${JSON.stringify(courses, null, 2)};`;
+    const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
     console.log("Data written to data.ts");
 
