@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { courses } from '@/lib/data';
-import { writeFileSync, unlinkSync, existsSync } from 'fs';
+import { writeFileSync, unlinkSync, existsSync, rmdirSync } from 'fs';
 import { join } from 'path';
 
 export async function DELETE(request, { params }) {
@@ -13,6 +13,9 @@ export async function DELETE(request, { params }) {
     }
 
     const course = courses[courseIndex];
+    const courseDir = join(process.cwd(), 'public/pdfs', courseId);
+
+    // Supprimer les fichiers PDF associés
     course.activities.forEach(activity => {
       const filePath = join(process.cwd(), 'public', activity.pdfUrl);
       if (existsSync(filePath)) {
@@ -20,9 +23,15 @@ export async function DELETE(request, { params }) {
       }
     });
 
+    // Supprimer le dossier du cours
+    if (existsSync(courseDir)) {
+      rmdirSync(courseDir, { recursive: true });
+    }
+
+    // Supprimer le cours de la liste
     courses.splice(courseIndex, 1);
 
-    // Write updated courses data to data.ts
+    // Écrire les données mises à jour dans data.ts
     const updatedData = `export const courses = ${JSON.stringify(courses, null, 2)};`;
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
     console.log("Data written to data.ts");

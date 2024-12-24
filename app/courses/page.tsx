@@ -22,7 +22,7 @@ export default function CoursesPage() {
       <h1 className="text-3xl font-bold mb-8">Cours disponibles</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => (
-          <CourseCard key={course.id} course={course} />
+          <CourseCard key={`course-${course.id}`} course={course} />
         ))}
       </div>
     </div>

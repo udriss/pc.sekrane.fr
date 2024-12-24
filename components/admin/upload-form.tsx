@@ -1,7 +1,7 @@
-"use client";
 
+import { courses as coursesData, Course } from "@/lib/data";
 import { useState } from "react";
-import { Course } from "@/lib/data";
+import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -20,6 +20,9 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
   const [courseToDelete, setCourseToDelete] = useState<string>("");
   const [deleteFiles, setDeleteFiles] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [successMessageAddFile, setSuccessMessageAddFile] = useState<string>("");
+  const [successMessageAddCourse, setSuccessMessageAddCourse] = useState<string>("");
+  const [successMessageDeleteCourse, setSuccessMessageDeleteCourse] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,11 +42,10 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
 
     if (res.ok) {
       const data = await res.json();
-      alert("Fichier téléchargé avec succès.");
-      // Mettre à jour les cours avec la nouvelle activité
-      const updatedCourses = courses.map(course => 
+      setSuccessMessageAddFile("Fichier téléchargé avec succès.");
+      const updatedCourses = courses.map(course =>
         course.id === selectedCourse ? { ...course, activities: [...course.activities, data.activity] } : course
-      );
+      ) as Course[];
       setCourses(updatedCourses);
     } else {
       setError("Échec du téléchargement du fichier.");
@@ -70,7 +72,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
 
     if (res.ok) {
       const newCourse = await res.json();
-      alert("Cours ajouté avec succès.");
+      setSuccessMessageAddCourse("Cours ajouté avec succès.");
       setCourses([...courses, newCourse]);
       setNewCourseTitle("");
       setNewCourseDescription("");
@@ -86,7 +88,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
       return;
     }
 
-    const res = await fetch(`/api/deletecourse`, {
+    const res = await fetch(`/api/deletecourse/${courseToDelete}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -97,7 +99,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
     });
 
     if (res.ok) {
-      alert("Cours supprimé avec succès.");
+      setSuccessMessageDeleteCourse("Cours supprimé avec succès.");
       const updatedCourses = courses.filter(course => course.id !== courseToDelete);
       setCourses(updatedCourses);
     } else {
@@ -116,7 +118,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
             </SelectTrigger>
             <SelectContent>
               {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
+                <SelectItem key={uuidv4()} value={course.id}>
                   {course.title}
                 </SelectItem>
               ))}
@@ -131,6 +133,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
+        {successMessageAddFile && <p className="text-sm text-green-500">{successMessageAddFile}</p>}
         <Button type="submit" disabled={!selectedCourse || !file} className="w-full">
           Télécharger
         </Button>
@@ -153,6 +156,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
+        {successMessageAddCourse && <p className="text-sm text-green-500">{successMessageAddCourse}</p>}
         <Button type="submit" disabled={!newCourseTitle} className="w-full">
           Ajouter le cours
         </Button>
@@ -167,7 +171,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
             </SelectTrigger>
             <SelectContent>
               {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
+                <SelectItem key={uuidv4()} value={course.id}>
                   {course.title}
                 </SelectItem>
               ))}
@@ -183,6 +187,7 @@ export function UploadForm({ courses, setCourses }: UploadFormProps) {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
+        {successMessageDeleteCourse && <p className="text-sm text-green-500">{successMessageDeleteCourse}</p>}
         <Button type="submit" disabled={!courseToDelete} className="w-full">
           Supprimer le cours
         </Button>

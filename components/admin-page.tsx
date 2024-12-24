@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { courses } from "@/lib/data";
+import { courses as initialCourses, Course } from "@/lib/data";
 import { Header } from "@/components/admin/header";
 import { UploadForm } from "@/components/admin/upload-form";
 
 export default function AdminPage() {
   const router = useRouter();
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem("adminAuth");
@@ -24,7 +25,7 @@ export default function AdminPage() {
   return (
     <div className="container py-8">
       <Header onLogout={handleLogout} />
-      <UploadForm courses={courses} />
+      <UploadForm courses={courses} setCourses={setCourses} />
     </div>
   );
 }
