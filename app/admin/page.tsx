@@ -31,9 +31,15 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container py-8">
-      <Header onLogout={handleLogout} />
-      <UploadForm courses={courses} />
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="w-full max-w-[600px]">
+        <Header onLogout={handleLogout} />
+      </div>
+      <div className="flex-grow flex justify-center items-center w-full">
+        <div className="min-w-[600px]">
+          <UploadForm courses={courses} setCourses={setCourses} />
+        </div>
+      </div>
     </div>
   );
 }

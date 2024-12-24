@@ -21,7 +21,6 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); // Reset error message
-    console.log("Submitting password:", password);
     const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: {

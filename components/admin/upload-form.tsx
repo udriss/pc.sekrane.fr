@@ -9,9 +9,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 
 interface UploadFormProps {
   courses: Course[];
+  setCourses: (courses: Course[]) => void;
 }
 
-export function UploadForm({ courses }: UploadFormProps) {
+export function UploadForm({ courses, setCourses }: UploadFormProps) {
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [newCourseTitle, setNewCourseTitle] = useState<string>("");
@@ -37,7 +38,13 @@ export function UploadForm({ courses }: UploadFormProps) {
     });
 
     if (res.ok) {
+      const data = await res.json();
       alert("Fichier téléchargé avec succès.");
+      // Mettre à jour les cours avec la nouvelle activité
+      const updatedCourses = courses.map(course => 
+        course.id === selectedCourse ? { ...course, activities: [...course.activities, data.activity] } : course
+      );
+      setCourses(updatedCourses);
     } else {
       setError("Échec du téléchargement du fichier.");
     }
@@ -50,7 +57,7 @@ export function UploadForm({ courses }: UploadFormProps) {
       return;
     }
 
-    const res = await fetch("/api/courses", {
+    const res = await fetch("/api/addcourse", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +69,11 @@ export function UploadForm({ courses }: UploadFormProps) {
     });
 
     if (res.ok) {
+      const newCourse = await res.json();
       alert("Cours ajouté avec succès.");
+      setCourses([...courses, newCourse]);
+      setNewCourseTitle("");
+      setNewCourseDescription("");
     } else {
       setError("Échec de l'ajout du cours.");
     }
@@ -75,7 +86,7 @@ export function UploadForm({ courses }: UploadFormProps) {
       return;
     }
 
-    const res = await fetch(`/api/courses/${courseToDelete}`, {
+    const res = await fetch(`/api/deletecourse`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -87,8 +98,10 @@ export function UploadForm({ courses }: UploadFormProps) {
 
     if (res.ok) {
       alert("Cours supprimé avec succès.");
+      const updatedCourses = courses.filter(course => course.id !== courseToDelete);
+      setCourses(updatedCourses);
     } else {
-      setError("Échec de la suppression du cours.");
+      setError("Erreur lors de la suppression du cours.");
     }
   };
 

@@ -1,8 +1,9 @@
 import { join } from 'path';
 import { writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
-import { courses } from '@/lib/data'; // Importer les données de data.ts
+import { courses, Course } from '@/lib/data'; // Importer les données de data.ts
 import { writeFileSync } from 'fs';
+
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     console.log("File written to disk:", filePath);
 
     // Update course data
-    const course = courses.find(c => c.id === courseId);
+    const course = courses.find((c: Course) => c.id === courseId);
     if (!course) {
       console.error("Course not found:", courseId);
       return NextResponse.json(
