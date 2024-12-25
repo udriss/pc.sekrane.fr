@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const ActivitySchema = new mongoose.Schema({
   title: String,
-  pdfUrl: String,
+  fileUrl: String,
 });
 
 const CourseSchema = new mongoose.Schema({

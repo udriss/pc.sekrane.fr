@@ -1,50 +1,49 @@
-import { join } from 'path';
-import { mkdir, writeFile } from 'fs/promises';
-import { NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { courses, Course } from '@/lib/data';
-import { writeFileSync } from 'fs';
 import { dataTemplate } from "@/lib/data-template";
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const formData = await request.formData();
+    const formData = await req.formData();
     const courseId = formData.get('courseId') as string;
     const file = formData.get('file') as File;
     const ActivityTitle = formData.get('ActivityTitle') as string;
 
-    if (!courseId || !file) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
-    }
-
-    const courseDir = join(process.cwd(), 'public/pdfs', courseId);
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = join(courseDir, fileName);
-
-    // Create directory if it doesn't exist
-    await mkdir(courseDir, { recursive: true });
-
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    await writeFile(filePath, uint8Array);
-    console.log("File written to disk:", filePath);
-
-    // Update the course data
-    const course = courses.find((c: Course) => c.id === courseId);
+    const course = courses.find(course => course.id === courseId);
     if (course) {
+      const fileName = `${Date.now()}-${file.name}`;
+      let filePath = '';
+
+      // Determine the directory based on the file type
+      if (file.name.endsWith('.ipynb')) {
+        filePath = path.join(process.cwd(), 'public', courseId, 'notebook', fileName);
+      } else if (file.name.endsWith('.pdf')) {
+        filePath = path.join(process.cwd(), 'public', courseId, 'pdf', fileName);
+      } else {
+        filePath = path.join(process.cwd(), 'public', courseId, 'autre', fileName);
+      }
+
+      // Ensure the directory exists
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+      // Write the file to the appropriate directory
+      const fileBuffer = await file.arrayBuffer();
+      await fs.writeFile(filePath, Buffer.from(fileBuffer));
+
       const newActivity = {
         id: `${Date.now()}`,
         name: file.name,
         title: ActivityTitle,
-        pdfUrl: `/pdfs/${courseId}/${fileName}`,
+        fileUrl: `/${courseId}/${file.name.endsWith('.ipynb') ? 'notebook' : file.name.endsWith('.pdf') ? 'pdf' : 'autre'}/${fileName}`,
       };
       course.activities.push(newActivity);
 
-      
-
-      // Write updated courses data to data.ts
+      // Write the updated courses data to data.ts
       const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
-      writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
-      console.log("Data written to data.ts");
+      const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
+      await fs.writeFile(dataPath, updatedData, 'utf8');
 
       return NextResponse.json({ success: true, activity: newActivity });
     } else {
@@ -52,9 +51,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: `Error uploading file: ${(error as Error).message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

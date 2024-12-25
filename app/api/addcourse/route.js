@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { courses } from '@/lib/data';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import path from 'path';
 import { join } from 'path';
 import { dataTemplate } from "@/lib/data-template";
 
@@ -22,7 +23,7 @@ export async function POST(request) {
     courses.push(newCourse);
 
     // Create a new directory for the course
-    const courseDir = join(process.cwd(), 'public/pdfs', newCourse.id);
+    const courseDir = join(process.cwd(), 'public', newCourse.id);
     if (!existsSync(courseDir)) {
       mkdirSync(courseDir, { recursive: true });
       console.log(`Directory created: ${courseDir}`);
@@ -32,7 +33,7 @@ export async function POST(request) {
     const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
     const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
-    console.log("Data written to data.ts");
+    console.log("Data written to ", dataPath);
 
     return NextResponse.json({ success: true, courses });
   } catch (error) {

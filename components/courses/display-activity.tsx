@@ -10,6 +10,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [course, setCourse] = useState<Course | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [jupyterList, setJupyterList] = useState('');
 
   useEffect(() => {
     async function unwrapParams() {
@@ -36,6 +37,19 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     fetchCourse();
   }, [courseId]);
 
+  useEffect(() => {
+    fetch('/api/jupyter-list')
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error('Error fetching Jupyter list:', data.error);
+        } else {
+          setJupyterList(data.output);
+        }
+      })
+      .catch(error => console.error('Error fetching Jupyter list:', error));
+  }, []);
+
   if (!course) {
     return <div>Loading...</div>;
   }
@@ -45,6 +59,11 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
       <div className="w-full max-w-[800px]">
         <ActivityHeader title={course.title} description={course.description} />
       </div>
+      <div>
+      <h1>Jupyter Server List</h1>
+      <pre>{jupyterList}</pre>
+      <br />
+    </div>
       <div className="flex flex-col items-center justify-center">
         <ActivityList activities={course.activities} />
       </div>
@@ -61,7 +80,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
             >
               <option value="">-- Sélectionner un fichier --</option>
               {course.activities && course.activities.map((activity) => (
-                <option key={activity.pdfUrl} value={activity.pdfUrl}>{activity.title}</option>
+                <option key={activity.fileUrl} value={activity.fileUrl}>{activity.title}</option>
               ))}
             </select>
           </div>

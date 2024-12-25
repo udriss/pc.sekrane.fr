@@ -3,7 +3,7 @@ export interface Activity {
   id: string;
   name: string;
   title: string;
-  pdfUrl: string;
+  fileUrl: string;
 }
 
 export interface Course {

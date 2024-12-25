@@ -14,11 +14,11 @@ export async function DELETE(request, { params }) {
     }
 
     const course = courses[courseIndex];
-    const courseDir = join(process.cwd(), 'public/pdfs', courseId);
+    const courseDir = join(process.cwd(), 'public', courseId);
 
     // Supprimer les fichiers PDF associés
     course.activities.forEach(activity => {
-      const filePath = join(process.cwd(), 'public', activity.pdfUrl);
+      const filePath = join(process.cwd(), 'public', activity.fileUrl);
       if (existsSync(filePath)) {
         unlinkSync(filePath);
       }
