@@ -4,7 +4,7 @@ import { exec } from 'child_process';
 
 export async function GET() {
   return new Promise((resolve) => {
-    exec('sudo -u idr /var/www/physnet.sekrane.fr/scripts/run_jupyter_list.sh', (error, stdout, stderr) => {
+    exec('sudo -u idr env PYTHONWARNINGS=ignore /var/www/physnet.sekrane.fr/scripts/run_jupyter_list.sh', (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing command: ${error.message}`);
         resolve(NextResponse.json({ error: error.message }, { status: 500 }));
@@ -24,5 +24,5 @@ export async function GET() {
         }
       }
     });
-  });
+  }).then(response => response as Response);
 }

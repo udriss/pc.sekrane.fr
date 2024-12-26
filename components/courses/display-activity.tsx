@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import { Course } from "@/lib/data";
 import { ActivityList } from "@/components/courses/activity-list";
@@ -9,8 +9,10 @@ import ActivityHeader from "@/components/courses/activity-header";
 export default function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [jupyterList, setJupyterList] = useState('');
+  const [selectedFileLeft, setSelectedFileLeft] = useState<string | null>(null);
+  const [selectedFileRight, setSelectedFileRight] = useState<string | null>(null);
+  const [showSideBySide, setShowSideBySide] = useState<boolean>(false);
+  const [lastClickedType, setLastClickedType] = useState<string | null>(null); // Store last clicked type
 
   useEffect(() => {
     async function unwrapParams() {
@@ -28,73 +30,76 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
           notFound();
         } else {
           const data = await res.json();
-          console.log("Fetched course data:", data.course); // Debugging line
-          console.log("Course activities:", data.course.activities); // Debugging line
-          setCourse(data.course);
+          if (data && data.course) {
+            console.log("Fetched course data:", data.course); // Debugging line
+            console.log("Course activities:", data.course.activities); // Debugging line
+            setCourse(data.course);
+          } else {
+            console.error("Invalid course data:", data);
+          }
         }
       }
     }
     fetchCourse();
   }, [courseId]);
 
-  useEffect(() => {
-    fetch('/api/jupyter-list')
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          console.error('Error fetching Jupyter list:', data.error);
-        } else {
-          setJupyterList(data.output);
-        }
-      })
-      .catch(error => console.error('Error fetching Jupyter list:', error));
-  }, []);
+  const handleSelectActivity = (fileUrl: string, type: string) => {
+    if (type === 'ipynb') {
+      setSelectedFileRight(fileUrl);
+    } else {
+      setSelectedFileLeft(fileUrl);
+    }
+    setLastClickedType(type);
+  };
+
+  const handleToggleSideBySide = (show: boolean) => {
+    setShowSideBySide(show);
+  };
 
   if (!course) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <div className="w-full max-w-[800px]">
+    <div className="min-h-screen flex flex-col w-full max-w-[1400px] mx-auto">
+      <div>
         <ActivityHeader title={course.title} description={course.description} />
       </div>
-      <div>
-      <h1>Jupyter Server List</h1>
-      <pre>{jupyterList}</pre>
-      <br />
-    </div>
-      <div className="flex flex-col items-center justify-center">
-        <ActivityList activities={course.activities} />
+
+      <div className="grid grid-cols-4">
+      <div className="flex flex-row p-4 col-span-3">
+        <ActivityList 
+          activities={course.activities} 
+          onSelectActivity={handleSelectActivity} 
+          onToggleSideBySide={handleToggleSideBySide} 
+        />
       </div>
-      <div className="flex-grow flex justify-center items-start w-full">
-        <div className="min-w-[800px]">
-          <div className="mt-8">
-            <label htmlFor="fileSelect" className="block mb-2">Choisir un fichier à prévisualiser</label>
-            <select
-              id="fileSelect"
-              className="block w-full p-2 border rounded"
-              onChange={(e) => {
-                setSelectedFile(e.target.value);
-              }}
-            >
-              <option value="">-- Sélectionner un fichier --</option>
-              {course.activities && course.activities.map((activity) => (
-                <option key={activity.fileUrl} value={activity.fileUrl}>{activity.title}</option>
-              ))}
-            </select>
-          </div>
-          {selectedFile && (
-            <div className="mt-8 flex justify-center" style={{ height: '700px', width: '100%', overflowY: 'scroll' }}>
-              <iframe
-                src={selectedFile}
-                style={{ width: '100%', height: '100%' }}
-                frameBorder="0"
-              ></iframe>
-            </div>
+
+
+      <div className="flex flex-row col-span-1 justify-center items-center">
+        <label className="checkboxSwitch">
+          <input
+            type="checkbox"
+            checked={showSideBySide}
+            onChange={(e) => setShowSideBySide(e.target.checked)}
+          />
+          <span className="checkboxSlider"></span>
+        </label>
+      </div>
+      </div>     
+      <div className="mt-8 flex justify-center" style={{ height: '700px', width: '100%', overflowY: 'scroll' }}>
+        <div style={{ width: showSideBySide ? '50%' : !showSideBySide && lastClickedType !== 'ipynb' && selectedFileLeft ? '100%' : '0%', height: '100%', display: selectedFileLeft && (showSideBySide || lastClickedType !== 'ipynb') ? 'block' : 'none' }}>
+          {selectedFileLeft && (
+            <iframe src={selectedFileLeft} style={{ width: '100%', height: '100%' }} frameBorder="0"></iframe>
+          )}
+        </div>
+        <div style={{ width: showSideBySide ? '50%' : !showSideBySide && lastClickedType === 'ipynb' && selectedFileRight ? '100%' : '0%', height: '100%', display: selectedFileRight && (showSideBySide || lastClickedType === 'ipynb') ? 'block' : 'none' }}>
+          {selectedFileRight && (
+            <iframe src={selectedFileRight} style={{ width: '100%', height: '100%' }} frameBorder="0"></iframe>
           )}
         </div>
       </div>
     </div>
   );
 }
+
