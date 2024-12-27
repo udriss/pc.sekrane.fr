@@ -7,7 +7,7 @@ import { courses } from '@/lib/data';
 
 export async function POST(req: Request) {
   try {
-    const { courseId } = await req.json();
+    const { courseId, userName } = await req.json();
 
     // Find the course by ID
     const course = courses.find(course => course.id === courseId);
@@ -22,10 +22,11 @@ export async function POST(req: Request) {
     }
 
     const originalFileName = path.basename(notebookFile.fileUrl, '.ipynb');
-    const uniqueId = uuidv4().replace(/-/g, '').substring(0, 10);
+    const uniqueId = uuidv4().replace(/-/g, '').substring(0, 5);
     
     // Create new directory path
-    const newDirName = `${originalFileName}-${uniqueId}`;
+    const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const newDirName = `${originalFileName}-${sanitizedUserName}-${uniqueId}`;
     const jupyterWorkDir = path.join(process.cwd(), 'public', 'jupyterServerWork');
     const newDirPath = path.join(jupyterWorkDir, newDirName);
 
@@ -49,7 +50,6 @@ export async function POST(req: Request) {
       if (stderr) {
         console.error(`stderr: ${stderr}`);
       }
-      console.log(`stdout: ${stdout}`);
     });
 
     // Return the directory path for Jupyter server

@@ -82,6 +82,13 @@
 }
 
 
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
 
 /* Ajoutez ce CSS dans votre fichier de styles global ou dans un fichier CSS importé */
 .checkboxSwitch {
@@ -131,4 +138,12 @@ input:checked + .checkboxSlider:before {
   transform: translateX(80%);
   background-color: rgb(7, 243, 7);
   border: solid 2px #000000;
+}
+
+
+.headerAdmin {
+  border: solid 2px rgb(196, 1, 1);
+  color: black;
+  margin: 0;
+  padding: 5px;
 }

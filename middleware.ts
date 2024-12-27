@@ -21,7 +21,6 @@ export async function middleware(request: NextRequest) {
     // Vérifier le token via “jose”
     const { payload } = await jwtVerify(token, SECRET_KEY);
     // Si la vérification réussit, laisser passer
-    console.log('Admin Authenticated:', payload);
     return NextResponse.next();
   } catch (error) {
     return NextResponse.redirect(new URL('/admin/login', request.url));

@@ -1,46 +1,51 @@
+import { promises as fs } from 'fs';
+import path, { join } from 'path';
 import { NextResponse } from 'next/server';
-import { courses } from '@/lib/data';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import path from 'path';
-import { join } from 'path';
-import { dataTemplate } from "@/lib/data-template";
+import { courses, classes } from '@/lib/data';
+import { dataTemplate } from '@/lib/data-template';
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const { title, description } = await request.json();
+    const { title, description, classe } = await req.json();
 
-    if (!title) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    // Generate a new course ID
+    const timestamp = Date.now().toString().substring(5); // Supprime les 5 premiers caractères
+    const newCourseId = `${Date.now()}`;
+    const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_');
+    let courseDir = join(process.cwd(), 'public', sanitizedTitle);
+
+    // Check if the directory already exists and add a suffix if necessary
+    let suffix = 2;
+    while (await fs.access(courseDir).then(() => true).catch(() => false)) {
+      courseDir = join(process.cwd(), 'public', `${sanitizedTitle}_(${suffix})`);
+      suffix++;
     }
 
+    // Create the new course directory
+    await fs.mkdir(courseDir, { recursive: true });
+
+    // Create the new course object
     const newCourse = {
-      id: `${Date.now()}`,
+      id: newCourseId,
       title,
-      description: description || "",
-      activities: []
+      description,
+      classe,
+      activities: [],
     };
 
+    // Add the new course to the courses array
     courses.push(newCourse);
 
-    // Create a new directory for the course
-    const courseDir = join(process.cwd(), 'public', newCourse.id);
-    if (!existsSync(courseDir)) {
-      mkdirSync(courseDir, { recursive: true });
-      console.log(`Directory created: ${courseDir}`);
-    }
-
-    // Write updated courses data to data.ts
-    const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
+    // Write the updated courses data to data.ts
+    const updatedData = dataTemplate
+      .replace('__CLASSES__', JSON.stringify(classes, null, 2))
+      .replace('__COURSES__', JSON.stringify(courses, null, 2));
     const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
-    writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
-    console.log("Data written to ", dataPath);
+    await fs.writeFile(dataPath, updatedData, 'utf8');
 
-    return NextResponse.json({ success: true, courses });
+    return NextResponse.json({ success: true, course: newCourse });
   } catch (error) {
-    console.error("Error adding course:", error);
-    return NextResponse.json(
-      { error: `Error adding course: ${error.message}` },
-      { status: 500 }
-    );
+    console.error('Error adding course:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

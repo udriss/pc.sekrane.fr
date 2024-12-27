@@ -3,6 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { GraduationCap } from "lucide-react";
 import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 
 export default function Home() {
   return (
@@ -11,7 +18,7 @@ export default function Home() {
         <GraduationCap className="w-16 h-16 mx-auto text-primary" />
         <h1 className="text-4xl font-bold tracking-tight">Plan de travail et activités</h1>
         <p className="text-xl text-muted-foreground">
-          Accédez à vos cours et activités en quelques clics. Organisez votre apprentissage efficacement.
+          Site web de M. Sekrane
         </p>
         <Link href="/courses">
           <Button size="lg" className="mt-6">
@@ -19,6 +26,23 @@ export default function Home() {
           </Button>
         </Link>
       </div>
+{/*       <div className="mt-8 w-full max-w-4xl">
+        <Carousel>
+          <CarouselPrevious />
+          <CarouselContent>
+            <CarouselItem>
+              <div className="embla__slide">Slide 1</div>
+            </CarouselItem>
+            <CarouselItem>
+              <div className="embla__slide">Slide 2</div>
+            </CarouselItem>
+            <CarouselItem>
+              <div className="embla__slide">Slide 3</div>
+              </CarouselItem>
+            </CarouselContent>
+          <CarouselNext />
+        </Carousel>
+      </div> */}
     </div>
   );
 }

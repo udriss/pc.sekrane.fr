@@ -29,10 +29,8 @@ export default function AdminLoginPage() {
       body: JSON.stringify({ password }),
     });
     const data = await res.json();
-    console.log("Response data:", data);
     if (data.success) {
       sessionStorage.setItem("adminAuth", "true");
-      console.log("Redirecting to /admin");
       router.push("/admin");
     } else {
       setError(data.message || "Mot de passe incorrect (admin/login/page.tsx)");

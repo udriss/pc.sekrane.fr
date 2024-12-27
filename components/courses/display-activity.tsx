@@ -31,8 +31,6 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
         } else {
           const data = await res.json();
           if (data && data.course) {
-            console.log("Fetched course data:", data.course); // Debugging line
-            console.log("Course activities:", data.course.activities); // Debugging line
             setCourse(data.course);
           } else {
             console.error("Invalid course data:", data);

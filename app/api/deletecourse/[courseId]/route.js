@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { courses } from '@/lib/data';
+import { courses, classes } from '@/lib/data';
 import { writeFileSync, unlinkSync, existsSync, rmdirSync } from 'fs';
 import { join } from 'path';
 import { dataTemplate } from "@/lib/data-template";
@@ -33,9 +33,10 @@ export async function DELETE(request, { params }) {
     courses.splice(courseIndex, 1);
 
     // Écrire les données mises à jour dans data.ts
-    const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
+    const updatedData = dataTemplate
+    .replace('__CLASSES__', JSON.stringify(classes, null, 2))
+    .replace('__COURSES__', JSON.stringify(courses, null, 2));
     writeFileSync(join(process.cwd(), 'lib/data.ts'), updatedData);
-    console.log("Data written to data.ts");
 
     return NextResponse.json({ success: true, courses, message: 'Course deleted successfully' });
   } catch (error) {

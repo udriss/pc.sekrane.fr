@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { courses, Course } from '@/lib/data';
+import { courses, Course, classes } from '@/lib/data';
 import { dataTemplate } from "@/lib/data-template";
 import { NextResponse } from 'next/server';
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     const course = courses.find(course => course.id === courseId);
     if (course) {
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${file.name}`;
       let filePath = '';
 
       // Determine the directory based on the file type
@@ -25,27 +25,40 @@ export async function POST(req: Request) {
         filePath = path.join(process.cwd(), 'public', courseId, 'autre', fileName);
       }
 
+      // Check if the file already exists and add a suffix if necessary
+      let newFilePath = filePath;
+      let suffix = 1;
+      const fileExtension = path.extname(fileName);
+      const baseFileName = path.basename(fileName, fileExtension);
+
+      while (await fs.access(newFilePath).then(() => true).catch(() => false)) {
+        suffix++;
+        newFilePath = path.join(path.dirname(filePath), `${baseFileName}_${suffix}${fileExtension}`);
+      }
+
       // Ensure the directory exists
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await fs.mkdir(path.dirname(newFilePath), { recursive: true });
 
       // Write the file to the appropriate directory
       const fileBuffer = await file.arrayBuffer();
-      await fs.writeFile(filePath, Buffer.from(fileBuffer));
+      await fs.writeFile(newFilePath, Buffer.from(fileBuffer));
 
       const newActivity = {
         id: `${Date.now()}`,
-        name: file.name,
+        name: path.basename(newFilePath),
         title: ActivityTitle,
-        fileUrl: `/${courseId}/${file.name.endsWith('.ipynb') ? 'notebook' : file.name.endsWith('.pdf') ? 'pdf' : 'autre'}/${fileName}`,
+        fileUrl: `/${courseId}/${file.name.endsWith('.ipynb') ? 'notebook' : file.name.endsWith('.pdf') ? 'pdf' : 'autre'}/${path.basename(newFilePath)}`,
       };
       course.activities.push(newActivity);
 
       // Write the updated courses data to data.ts
-      const updatedData = dataTemplate.replace('__COURSES__', JSON.stringify(courses, null, 2));
+      const updatedData = dataTemplate
+          .replace('__CLASSES__', JSON.stringify(classes, null, 2))
+          .replace('__COURSES__', JSON.stringify(courses, null, 2));
       const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
       await fs.writeFile(dataPath, updatedData, 'utf8');
 
-      return NextResponse.json({ success: true, activity: newActivity });
+      return NextResponse.json({ success: true, activity: newActivity, fileName: path.basename(newFilePath) });
     } else {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }

@@ -22,20 +22,12 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
-        <ChartProvider>
-          <CarouselProvider>
-            <FormProvider>
-              <ToggleGroupProvider>
-                <header className="border-b">
-                  <div className="container flex h-16 items-center">
-                    <MainNav />
-                  </div>
-                </header>
-                <main>{children}</main>
-              </ToggleGroupProvider>
-            </FormProvider>
-          </CarouselProvider>
-        </ChartProvider>
+        <header className="border-b">
+          <div className="container flex h-16 mx-auto px-4">
+            <MainNav />
+            </div>
+            </header>
+          <main>{children}</main>
       </body>
     </html>
   );

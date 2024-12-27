@@ -12,14 +12,11 @@ export async function GET() {
         console.error(`Command stderr: ${stderr}`);
         resolve(NextResponse.json({ error: stderr }, { status: 500 }));
       } else {
-        console.log(`Command stdout: ${stdout}`);
         const tokenMatch = stdout.match(/token=([^\s]+)/);
         if (tokenMatch) {
           const token = tokenMatch[1];
-          console.log(`Extracted token: ${token}`);
           resolve(NextResponse.json({ token }, { status: 200 }));
         } else {
-          console.log('No token found in stdout');
           resolve(NextResponse.json({ error: 'No token found' }, { status: 500 }));
         }
       }

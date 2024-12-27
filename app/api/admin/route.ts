@@ -13,14 +13,11 @@ if (!STORED_HASH) {
   throw new Error('STORED_HASH is not defined');
 }
 
-console.log('API SECRET_KEY:', SECRET_KEY);
-
 export async function POST(request: Request) {
   const { password } = await request.json();
   const hash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
   if (hash === STORED_HASH) {
     const token = jwt.sign({ role: 'admin' }, SECRET_KEY as string, { expiresIn: '1h' });
-    console.log('Generated Token:', token);
 
     const response = NextResponse.json({ success: true, message: 'Connexion réussie (route page)' });
     response.cookies.set('adminAuth', token, { httpOnly: true, secure: true, path: '/' });
