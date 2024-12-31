@@ -1,5 +1,7 @@
 import CoursePage from "@/components/courses/display-activity";
 
+export const dynamic = "force-dynamic";
+
 export default function CoursePageWrapper({ params }: { params: Promise<{ courseId: string }> }) {
   
     return (

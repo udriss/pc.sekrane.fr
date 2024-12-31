@@ -12,7 +12,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem("adminAuth");
+    const isAuthenticated = document.cookie.includes("adminAuth");
     if (isAuthenticated) {
       router.push("/admin");
     }
@@ -20,20 +20,23 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // Reset error message
-    const res = await fetch('/api/admin/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      sessionStorage.setItem("adminAuth", "true");
-      router.push("/admin");
-    } else {
-      setError(data.message || "Mot de passe incorrect (admin/login/page.tsx)");
+    setError("");
+    try {
+      const res = await fetch('/api/admin/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = '/admin'; // Force page reload
+      } else {
+        setError(data.message || "Erreur de connexion");
+      }
+    } catch (error) {
+      setError("Erreur de connexion");
     }
   };
 

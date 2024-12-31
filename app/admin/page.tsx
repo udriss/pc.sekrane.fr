@@ -12,25 +12,31 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem("adminAuth");
+    fetch('/api/courses')
+      .then((res) => res.json())
+      .then((data) => setCourses(data.courses));
+  }, []);
+  
+  useEffect(() => {
+    const isAuthenticated = document.cookie.includes("adminAuth");
     if (!isAuthenticated) {
       router.push("/admin/login");
     }
   }, [router]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem("adminAuth");
+    document.cookie = "adminAuth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push("/admin/login");
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center m-8">
       <br></br>
-      <div className="w-full max-w-[600px]">
+      <div className="w-full max-w-[400px]">
         <Header onLogout={handleLogout} />
       </div>
       <br></br>
-      <div className="flex-grow flex justify-center items-center w-full min-w-[1200px]  m-4">
+      <div className="flex-grow flex justify-center items-center w-full max-w-[1200px] min-w-[1200px]  m-4">
           <UploadForm courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />
       </div>
     </div>

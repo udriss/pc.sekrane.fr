@@ -24,7 +24,7 @@ export default function NotFound() {
   if (!mounted) {
     return (
       <div className="container py-8 text-center">
-        <h2 className="text-3xl font-bold mb-4">Chargement...</h2>
+        <h2 className="text-3xl font-bold mb-4">Chargement.................</h2>
       </div>
     );
   }

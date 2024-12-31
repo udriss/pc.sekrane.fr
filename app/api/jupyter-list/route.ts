@@ -4,7 +4,7 @@ import { exec } from 'child_process';
 
 export async function GET() {
   return new Promise((resolve) => {
-    exec('sudo -u idr env PYTHONWARNINGS=ignore /var/www/physnet.sekrane.fr/scripts/run_jupyter_list.sh', (error, stdout, stderr) => {
+    exec('sudo -u idr env PYTHONWARNINGS=ignore /home/idr/miniconda3/envs/envOne/bin/jupyter-server list', (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing command: ${error.message}`);
         resolve(NextResponse.json({ error: error.message }, { status: 500 }));
@@ -13,9 +13,11 @@ export async function GET() {
         resolve(NextResponse.json({ error: stderr }, { status: 500 }));
       } else {
         const tokenMatch = stdout.match(/token=([^\s]+)/);
+        //console.log(`stdout jupyter-list route: ${stdout}`);
         if (tokenMatch) {
           const token = tokenMatch[1];
           resolve(NextResponse.json({ token }, { status: 200 }));
+          console.log(`Token: ${token}`);
         } else {
           resolve(NextResponse.json({ error: 'No token found' }, { status: 500 }));
         }

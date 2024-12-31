@@ -29,13 +29,17 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [successMessageAddCourse, setSuccessMessageAddCourse] = useState<string>('');
   const [successMessageAddClasse, setSuccessMessageAddClasse] = useState<string>('');
   const [warningAddClasse, setWarningAddClasse] = useState<string>('');
+  const [warningAddFile, setWarningAddFile] = useState<string>('');
+  const [warningAddCourse, setWarningAddCourse] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleAddFile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCourse || !file || !ActivityTitle) {
-      setErrorAddFile('Sélectionnez un cours, un fichier et entrer le nom de l\'activité !');
+      setErrorAddFile('');
+      setWarningAddFile('Sélectionnez un cours, un fichier et entrer le nom de l\'activité !');
+      setSuccessMessageAddFile('');
       return;
     }
 
@@ -51,6 +55,8 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
 
     if (res.ok) {
       const data = await res.json();
+      setErrorAddFile('');
+      setWarningAddFile('');
       setSuccessMessageAddFileName(`${data.fileName}`);
       setSuccessMessageAddFile(`Fichier téléchargé avec succès avec le nom : `);
       const updatedCourses = courses.map(course =>
@@ -60,6 +66,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       resetForm(); // Reset form after successful upload
     } else {
       setErrorAddFile('Échec du téléchargement du fichier.');
+      setWarningAddFile('');
       setSuccessMessageAddFile(''); // Reset success message
     }
   };
@@ -68,7 +75,6 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
     setSelectedCourse('');
     setActivityTitle('');
     setFile(null);
-    setErrorAddFile('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -77,7 +83,9 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCourseTitle || !newCourseClasse) {
-      setErrorAddCourse('Entrez un titre de cours et sélectionnez une classe !');
+      setErrorAddCourse('');
+      setWarningAddCourse('Entrez un titre de cours et sélectionnez une classe !');
+      setSuccessMessageAddCourse('');
       return;
     }
 
@@ -95,13 +103,18 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
 
     if (res.ok) {
       const data = await res.json();
+      setErrorAddCourse('');
+      setWarningAddCourse('');
       setSuccessMessageAddCourse('Cours ajouté avec succès.');
+
       setCourses(data.courses);
       setNewCourseTitle('');
       setNewCourseDescription('');
       setNewCourseClasse('');
     } else {
       setErrorAddCourse('Échec de l\'ajout du cours.');
+      setWarningAddCourse('');
+      setSuccessMessageAddCourse('');
     }
   };
 
@@ -109,6 +122,8 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
     e.preventDefault();
     if (!newClasse) {
       setErrorAddClasse('Entrez le nom de la nouvelle classe !');
+      setWarningAddClasse(''); // Reset warning
+      setSuccessMessageAddClasse('');
       return;
     }
 
@@ -124,21 +139,25 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
 
     const data = await res.json();
     if (res.status === 200) {
-      setSuccessMessageAddClasse('Classe ajoutée avec succès.');
       setClasses(data.classes);
       setNewClasse('');
+      setErrorAddClasse('');
       setWarningAddClasse(''); // Reset warning
+      setSuccessMessageAddClasse('Classe ajoutée avec succès.');
     } else if (res.status === 400) {
+      setErrorAddClasse('');
       setWarningAddClasse(data.warning);
       setSuccessMessageAddClasse(''); // Reset success message
     } else {
       setErrorAddClasse('Échec de l\'ajout de la classe.');
+      setWarningAddClasse(''); // Reset warning
+      setSuccessMessageAddClasse(''); // Reset success message
     }
   };
 
   return (
     <Card className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleAddFile} className="space-y-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Sélectionner un cours</label>
           <Select value={selectedCourse} onValueChange={setSelectedCourse}>
@@ -171,13 +190,14 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
           />
         </div>
+        {warningAddFile && <WarningMessage message={warningAddFile} />}
         {errorAddFile && <ErrorMessage message={errorAddFile} />}
         {successMessageAddFile && 
         <> 
         <SuccessMessage message={successMessageAddFile} />
         <span className="text-sm text-green-500">{successMessageAddFileName}</span>
         </>}
-        <Button type="submit" disabled={!selectedCourse || !file || !ActivityTitle} className="w-full">
+        <Button type="submit" className="w-full">
           Télécharger
         </Button>
       </form>
@@ -213,6 +233,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             </SelectContent>
           </Select>
         </div>
+        {warningAddCourse && <WarningMessage message={warningAddCourse} />}
         {errorAddCourse && <ErrorMessage message={errorAddCourse} />}
         {successMessageAddCourse && <SuccessMessage message={successMessageAddCourse} />}
         <Button type="submit" className="w-full">

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import { Course, Classe } from '@/lib/data';
+import { useEffect } from 'react';
 
 interface ModificationsAdminProps {
   courses: Course[];
@@ -28,6 +29,15 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
   const [successMessageDeleteClasse, setSuccessMessageDeleteClasse] = useState<string>('');
   const [warningDeleteClasse, setWarningDeleteClasse] = useState<string>('');
 
+  useEffect(() => {
+    if (selectedCourse) {
+      const updatedCourse = courses.find((course) => course.id === selectedCourse);
+      if (updatedCourse) {
+        setFiles(updatedCourse.activities.map((activity) => activity.fileUrl));
+      }
+    }
+  }, [selectedCourse, courses]);
+
   const handleCourseChange = (courseId: string) => {
     setSelectedCourse(courseId);
     setErrorDeleteFile('');
@@ -50,12 +60,14 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
 
     if (res.ok) {
       const data = await res.json();
+      setErrorDeleteFile('');
       setSuccessMessageDeleteFile('Fichier supprimé avec succès.');
       setFiles(data.files);
       setCourses(data.courses);
       setConfirmDelete(null);
     } else {
       setErrorDeleteFile('Erreur lors de la suppression du fichier.');
+      setSuccessMessageDeleteFile('');
     }
   };
 
@@ -66,7 +78,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
   const handleDeleteCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!courseToDelete) {
-      setErrorDeleteCourse('Veuillez sélectionner un cours à supprimer.');
+      setErrorDeleteCourse('Sélectionnez un cours à supprimer !');
+      setSuccessMessageDeleteCourse('');
       return;
     }
 
@@ -82,40 +95,52 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
 
     if (res.ok) {
       const data = await res.json();
+      setErrorDeleteCourse(''); // Reset error message
       setSuccessMessageDeleteCourse('Cours supprimé avec succès.');
       setCourses(data.courses);
     } else {
-      setErrorDeleteCourse('Erreur lors de la suppression du cours.');
+      setErrorDeleteCourse('Erreur lors de la suppression du cours.'); 
+      setSuccessMessageDeleteCourse('');
     }
   };
 
   const handleDeleteClasse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClasseToDelete) {
-      setErrorDeleteClasse('Veuillez sélectionner une classe à supprimer.');
+      setWarningDeleteClasse('Sélectionnez une classe à supprimer !');
+      setErrorDeleteClasse('');
+      setSuccessMessageDeleteClasse(''); // Reset success message
       return;
     }
 
-    const res = await fetch(`/api/deleteclasse/${selectedClasseToDelete}`, {
+    const res = await fetch(`/api/deletecourse/${courseToDelete}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        deleteFiles,
+      }),
     });
 
     if (res.ok) {
       const data = await res.json();
+      setWarningDeleteClasse(''); // Reset warning
+      setErrorDeleteClasse('');
       setSuccessMessageDeleteClasse('Classe supprimée avec succès.');
+      
       setClasses(data.classes);
       setCourses(data.courses);
-      setWarningDeleteClasse(''); // Reset warning
     } else {
       const errorData = await res.json();
       if (res.status === 403 && errorData.error === 'La classe "Autre" ne peut pas être supprimée.') {
         setWarningDeleteClasse(errorData.error);
-        setSuccessMessageDeleteClasse(''); // Reset success message
+        setErrorDeleteClasse('');
+        setSuccessMessageDeleteClasse('');
       } else {
+        setWarningDeleteClasse(''); // Reset warning
         setErrorDeleteClasse(errorData.error || 'Erreur lors de la suppression de la classe.');
+        setSuccessMessageDeleteClasse('');
       }
     }
   };
@@ -143,7 +168,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
         {errorDeleteClasse && <ErrorMessage message={errorDeleteClasse} />}
         {warningDeleteClasse && <WarningMessage message={warningDeleteClasse} />}
         {successMessageDeleteClasse && <SuccessMessage message={successMessageDeleteClasse} />}
-        <Button type="submit" disabled={!selectedClasseToDelete} className="w-full">
+        <Button type="submit" className="w-full">
           Supprimer la classe
         </Button>
       </form>
@@ -164,14 +189,19 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Supprimer les fichiers associés</label>
-          <Input
+        <div className="flex flex-row col-span-1 justify-center items-center">
+        <label className="checkboxSwitch">
+        <Input
+            className="col-span-1"
             type="checkbox"
             checked={deleteFiles}
             onChange={(e) => setDeleteFiles(e.target.checked)}
           />
-        </div>
+          <span className="checkboxSlider checkboxSliderAdmin"></span>
+        
+        </label> 
+        <p className='ml-4'>Supprimer les fichiers associés</p>
+      </div>
         {errorDeleteCourse && <ErrorMessage message={errorDeleteCourse} />}
         {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
         <Button type="submit" disabled={!courseToDelete} className="w-full">

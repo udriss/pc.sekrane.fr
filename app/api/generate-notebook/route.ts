@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
+import { existsSync, mkdirSync, promises as fs } from 'fs';
+import { join } from 'path';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
@@ -8,6 +9,8 @@ import { courses } from '@/lib/data';
 export async function POST(req: Request) {
   try {
     const { courseId, userName } = await req.json();
+    const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');
+
 
     // Find the course by ID
     const course = courses.find(course => course.id === courseId);
@@ -20,13 +23,31 @@ export async function POST(req: Request) {
     if (!notebookFile) {
       return NextResponse.json({ error: 'Notebook file not found' }, { status: 404 });
     }
+    
+    // Vérifier si le dossier jupyterServerWork existe, sinon le créer
+    if (!existsSync(jupyterServerWork)) {
+      mkdirSync(jupyterServerWork, { recursive: true });
+      exec(`chown -R www-data:idr ${jupyterServerWork}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error changing ownership for ${jupyterServerWork}: ${error.message}`);
+          return NextResponse.json({ error: 'Error changing ownership for ${jupyterServerWork}' }, { status: 500 });
+        }
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+        }
+      });
+    }
+
+    
+
+    
 
     const originalFileName = path.basename(notebookFile.fileUrl, '.ipynb');
     const uniqueId = uuidv4().replace(/-/g, '').substring(0, 5);
     
     // Create new directory path
-    const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const newDirName = `${originalFileName}-${sanitizedUserName}-${uniqueId}`;
+    const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
+    const newDirName = `${originalFileName}-${uniqueId}-${sanitizedUserName}`;
     const jupyterWorkDir = path.join(process.cwd(), 'public', 'jupyterServerWork');
     const newDirPath = path.join(jupyterWorkDir, newDirName);
 
@@ -42,7 +63,7 @@ export async function POST(req: Request) {
     await fs.writeFile(newFilePath, fileContent);
 
     // Change ownership of the new directory and files to 'ubuntu' user and group
-    exec(`chown -R idr:idr ${newDirPath}`, (error, stdout, stderr) => {
+    exec(`chown -R www-data:idr ${newDirPath} && chmod -R 0770 ${newDirPath}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error changing ownership: ${error.message}`);
         return NextResponse.json({ error: 'Error changing ownership' }, { status: 500 });
@@ -50,7 +71,9 @@ export async function POST(req: Request) {
       if (stderr) {
         console.error(`stderr: ${stderr}`);
       }
+      console.log(`stdout generate-notebook: ${stdout}`);
     });
+
 
     // Return the directory path for Jupyter server
     return NextResponse.json({ 

@@ -134,9 +134,15 @@ input:checked + .checkboxSlider {
   border: solid 2px #000000;
 }
 
-input:checked + .checkboxSlider:before {
+input:checked + .checkboxSliderEleve:before {
   transform: translateX(80%);
-  background-color: rgb(7, 243, 7);
+  background-color: rgb(1, 155, 1);
+  border: solid 2px #000000;
+}
+
+input:checked + .checkboxSliderAdmin:before  {
+  transform: translateX(80%);
+  background-color: rgb(238, 112, 62);
   border: solid 2px #000000;
 }
 
@@ -146,4 +152,16 @@ input:checked + .checkboxSlider:before {
   color: black;
   margin: 0;
   padding: 5px;
+}
+
+.app-container {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+.fade-out {
+  opacity: 0;
 }

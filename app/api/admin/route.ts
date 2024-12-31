@@ -19,11 +19,16 @@ export async function POST(request: Request) {
   if (hash === STORED_HASH) {
     const token = jwt.sign({ role: 'admin' }, SECRET_KEY as string, { expiresIn: '1h' });
 
-    const response = NextResponse.json({ success: true, message: 'Connexion réussie (route page)' });
-    response.cookies.set('adminAuth', token, { httpOnly: true, secure: true, path: '/' });
+    const response = NextResponse.json({ success: true, message: 'Connexion réussie' });
+    response.cookies.set('adminAuth', token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production', 
+      path: '/', 
+      sameSite: 'strict' 
+    });
     
     return response;
   } else {
-    return NextResponse.json({ success: false, message: 'Mot de passe incorrect (route page)' }, { status: 401 });
+    return NextResponse.json({ success: false, message: 'Mot de passe incorrect' }, { status: 401 });
   }
 }

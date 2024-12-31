@@ -5,19 +5,17 @@ import { CourseCard } from "@/components/courses/course-card";
 import { Course, courses as initialCourses } from "@/lib/data";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
+export const dynamic = "force-dynamic";
+
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedClasse, setSelectedClasse] = useState<string>("");
+  const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
-    fetchCourses();
+    fetch('/api/courses')
+      .then((res) => res.json())
+      .then((data) => setCourses(data.courses));
   }, []);
-
-  const fetchCourses = async () => {
-    const res = await fetch("/api/courses");
-    const data = await res.json();
-    setCourses(data.courses);
-  };
 
   const classes = Array.from(new Set(initialCourses.map(course => course.classe)));
 
