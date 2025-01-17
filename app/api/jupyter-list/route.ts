@@ -1,4 +1,4 @@
-// filepath: /var/www/physnet.sekrane.fr/app/api/jupyter-list/route.ts
+// filepath: /app/api/jupyter-list/route.ts
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 
@@ -17,7 +17,7 @@ export async function GET() {
         if (tokenMatch) {
           const token = tokenMatch[1];
           resolve(NextResponse.json({ token }, { status: 200 }));
-          console.log(`Token: ${token}`);
+          // console.log(`Token: ${token}`);
         } else {
           resolve(NextResponse.json({ error: 'No token found' }, { status: 500 }));
         }

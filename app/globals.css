@@ -83,11 +83,12 @@
 
 
 .container {
+  margin-top: 4rem;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 /* Ajoutez ce CSS dans votre fichier de styles global ou dans un fichier CSS importé */
@@ -164,4 +165,57 @@ input:checked + .checkboxSliderAdmin:before  {
 
 .fade-out {
   opacity: 0;
+}
+
+
+.pdf-content {
+  padding: 2rem;
+  background: white;
+  box-shadow: 0 0 10px rgba(203, 75, 75, 0.83);
+  border-radius: 4px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.gutter-custom {
+  background-color: #04b619a9;
+  transition: background-color 0.2s;
+  border-radius: 15px;
+  cursor: 'col-resize',
+}
+
+.gutter-custom:hover {
+  background-color: #35a191c2;
+}
+
+
+.split-container {
+  display: flex;
+  transition: all 0.3s ease-in-out;
+}
+
+.split-container > * {
+  transition: flex-basis 0.3s ease-in-out;
+}
+
+.inputNameActivityList::placeholder {
+  color: #e102029e !important;
+  text-align: center;
+}
+.inputNameActivityList:hover::placeholder {
+  color: #d70909c1 !important;
+}
+
+.inputNameActivityList:focus::placeholder {
+  color: #d7090988 !important;
+}
+.inputNameActivityLis:focus {
+  border: solid 2px #d70909 !important;
+  border-radius: 5px !important;
+  text-align: center !important;
+}
+
+.inputNameActivityList {
+  text-align: center;
+  border: solid 2px #d70909 !important;
 }

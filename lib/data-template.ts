@@ -1,4 +1,6 @@
 export const dataTemplate = `
+// ICI
+
   export interface Activity {
     id: string;
     name: string;
@@ -11,12 +13,14 @@ export const dataTemplate = `
     title: string;
     description: string;
     classe: string;
+    theClasseId: string;
     activities: Activity[];
   }
 
   export interface Classe {
     id: string;
     name: string;
+    associated_courses: string[];
   }
 
   export const classes: Classe[] = __CLASSES__;

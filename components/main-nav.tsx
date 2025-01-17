@@ -7,7 +7,6 @@ import { Book } from "lucide-react";
 
 export function MainNav() {
   const pathname = usePathname();
-
   return (
     <nav className="flex items-center space-x-6">
       <Link

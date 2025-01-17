@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/admin/admin-header";
-import { UploadForm } from "@/components/admin/upload-form";
 import { courses as initialCourses, classes as initialClasses, Course, Classe } from "@/lib/data";
+import { AdminTabs } from '@/components/admin/AdminTabs';
+
 
 export default function AdminPage() {
   const [courses, setCourses] = useState<Course[]>(initialCourses || []);
@@ -16,6 +17,15 @@ export default function AdminPage() {
       .then((res) => res.json())
       .then((data) => setCourses(data.courses));
   }, []);
+
+  useEffect(() => {
+    fetch('/api/courses')
+      .then((res) => res.json())
+      .then((data) => {
+        setCourses(data.courses);
+        setClasses(data.classes); 
+      });
+  }, []);
   
   useEffect(() => {
     const isAuthenticated = document.cookie.includes("adminAuth");
@@ -24,9 +34,18 @@ export default function AdminPage() {
     }
   }, [router]);
 
-  const handleLogout = () => {
-    document.cookie = "adminAuth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      // Force reload and redirect
+      window.location.href = '/admin/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -36,9 +55,10 @@ export default function AdminPage() {
         <Header onLogout={handleLogout} />
       </div>
       <br></br>
-      <div className="flex-grow flex justify-center items-center w-full max-w-[1200px] min-w-[1200px]  m-4">
-          <UploadForm courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />
-      </div>
+      <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Administration</h1>
+      <AdminTabs />
+    </div>
     </div>
   );
 }

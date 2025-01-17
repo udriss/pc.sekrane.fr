@@ -9,13 +9,15 @@ export async function GET(request: Request) {
     const fileLocation = path.join(process.cwd(), 'public', filePath);
 
     try {
-        const fileContent = await fs.readFile(fileLocation);
-        const mimeType = mime.lookup(fileLocation) || 'application/octet-stream';
-        return new NextResponse(fileContent, {
-            headers: {
-                'Content-Type': mimeType,
-            },
+        const stat = await fs.stat(fileLocation);
+        const fileStream = require('fs').createReadStream(fileLocation);
+
+        const headers = new Headers({
+            'Content-Type': mime.lookup(fileLocation) || 'application/octet-stream',
+            'Content-Length': stat.size.toString(),
         });
+
+        return new Response(fileStream as any, { headers });
     } catch (error) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }

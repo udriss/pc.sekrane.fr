@@ -1,16 +1,12 @@
-import CoursePage from "@/components/courses/display-activity";
+import CoursePage from "@/components/courses/activity-display";
 
 export const dynamic = "force-dynamic";
 
 export default function CoursePageWrapper({ params }: { params: Promise<{ courseId: string }> }) {
   
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="flex-grow flex justify-center items-center w-full">
-          <div className="min-w-[1200px]">
-          <CoursePage params={params} />
-          </div>
-        </div>
+      <div className="container flex-grow flex justify-center items-center w-full">
+        <CoursePage params={params} />
       </div>
     );
 }

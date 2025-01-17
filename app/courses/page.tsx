@@ -1,50 +1,138 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CourseCard } from "@/components/courses/course-card";
-import { Course, courses as initialCourses } from "@/lib/data";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Course } from "@/lib/data";
+import Select from "@mui/material/Select";
+import { MenuItem } from "@mui/material";
+import Cookies from 'js-cookie';
 
 export const dynamic = "force-dynamic";
 
 export default function CoursesPage() {
   const [selectedClasse, setSelectedClasse] = useState<string>("");
   const [courses, setCourses] = useState<Course[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/courses')
+    // Load saved class from cookie
+    const savedClasse = Cookies.get('selectedClasse');
+    if (savedClasse) {
+      setSelectedClasse(savedClasse);
+    }
+
+    fetch("/api/courses")
       .then((res) => res.json())
-      .then((data) => setCourses(data.courses));
+      .then((data: { courses: Course[] }) => {
+        setCourses(data.courses);
+        const uniqueClasses = Array.from(
+          new Set(data.courses.map((course: Course) => course.classe))
+        );
+        setClasses(uniqueClasses);
+      });
   }, []);
 
-  const classes = Array.from(new Set(initialCourses.map(course => course.classe)));
+  const handleClasseChange = (value: string) => {
+    setSelectedClasse(value);
+    Cookies.set('selectedClasse', value, { expires: 365 }); // Cookie expires in 1 year
+    selectRef.current?.querySelector('input')?.blur();
+  };
 
   const filteredCourses = selectedClasse
-    ? courses.filter(course => course.classe === selectedClasse)
+    ? courses.filter((course) => course.classe === selectedClasse)
     : [];
+
+  filteredCourses.sort((a, b) => a.classe.localeCompare(b.classe));
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Cours disponibles</h1>
-      <div className="mb-4">
-        <Select value={selectedClasse} onValueChange={setSelectedClasse}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner une classe" />
-          </SelectTrigger>
-          <SelectContent>
-            {classes.map(classe => (
-              <SelectItem key={classe} value={classe}>
-                {classe}
-              </SelectItem>
-            ))}
-          </SelectContent>
+      <div className="mb-4 flex items-center justify-center">
+        <Select
+          ref={selectRef}
+          value={selectedClasse}
+          onChange={(e) => handleClasseChange(e.target.value as string)}
+          onOpen={() => setIsSelectOpen(true)}
+          onClose={() => setIsSelectOpen(false)}
+          displayEmpty
+          MenuProps={{
+            PaperProps: {
+              sx: {
+                ul: {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                },
+                borderRadius: '12px',
+                display: 'flex',
+                justifyContent: 'center',
+                textAlign: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                width: '400px',
+                bgcolor: 'rgba(53, 53, 53, 0.63)',
+                backdropFilter: 'blur(6px)',
+                minWidth: '300px',
+                '& .MuiMenuItem-root': {
+                  display: 'flex',
+                  fontWeight: 'bold',
+                  justifyContent: 'center',
+                  bgcolor: 'transparent',
+                  width: 'fit-content',
+                  textAlign: 'center',
+                  '&.Mui-selected': {
+                    width: 'fit-content',
+                    borderRadius: '12px',
+                    color: 'black',
+                    fontWeight: 'bold',
+                    backgroundColor: 'rgb(109 173 243) !important'
+                  },
+                  '&:hover': {
+                    borderRadius: '12px',
+                    backgroundColor: 'rgb(0, 0, 0)'
+                  }
+                }
+              }
+            }
+          }}
+          sx={{
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderRadius: '12px',
+              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit'),
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit'),
+            },
+            '.MuiOutlinedInput-notchedOutline': {
+              borderRadius: '12px',
+              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit')
+            }
+          }}
+        >
+          <MenuItem sx={{ display: 'flex', justifyContent: 'center' }}
+            value="" 
+          >
+            <span className="text-gray-400">Sélectionner une classe</span>
+          </MenuItem>
+          {classes.map((classe) => (
+            <MenuItem sx={{ display: 'flex', justifyContent: 'center' }}
+              key={classe} 
+              value={classe}
+            >
+              {classe}
+            </MenuItem>
+          ))}
         </Select>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredCourses.map((course) => (
-          <CourseCard key={`course-${course.id}`} course={course} />
-        ))}
-      </div>
+      {selectedClasse && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map((course) => (
+            <CourseCard key={`course-${course.id}`} course={course} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

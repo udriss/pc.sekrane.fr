@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -20,6 +20,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [newCourseTitle, setNewCourseTitle] = useState<string>('');
   const [newCourseDescription, setNewCourseDescription] = useState<string>('');
   const [newCourseClasse, setNewCourseClasse] = useState<string>('');
+  const [selectedClasseId, setSelectedClasseId] = useState(null);
   const [newClasse, setNewClasse] = useState<string>('');
   const [errorAddFile, setErrorAddFile] = useState<string>('');
   const [errorAddCourse, setErrorAddCourse] = useState<string>('');
@@ -31,14 +32,27 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [warningAddClasse, setWarningAddClasse] = useState<string>('');
   const [warningAddFile, setWarningAddFile] = useState<string>('');
   const [warningAddCourse, setWarningAddCourse] = useState<string>('');
+  const [selectedClassFilter, setSelectedClassFilter] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const fetchRes = await fetch('/api/courses');
+      const freshData = await fetchRes.json();
+      setCourses(freshData.courses);
+      setClasses(freshData.classes);
+    };
+
+    fetchData();
+  }, []);
 
   const handleAddFile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCourse || !file || !ActivityTitle) {
       setErrorAddFile('');
-      setWarningAddFile('Sélectionnez un cours, un fichier et entrer le nom de l\'activité !');
+      setWarningAddFile('Sélectionnez un cours, un fichier et entrez le nom de l\'activité !');
       setSuccessMessageAddFile('');
       return;
     }
@@ -89,6 +103,14 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       return;
     }
 
+    const selectedClasse = classes.find((classe: Classe) => classe.name === newCourseClasse);
+    if (!selectedClasse) {
+      setErrorAddCourse('Classe sélectionnée non valide.');
+      setWarningAddCourse('');
+      setSuccessMessageAddCourse('');
+      return;
+    }
+    console.log("selectedClasse in admin-gen : ", selectedClasse);
     const res = await fetch('/api/addcourse', {
       method: 'POST',
       headers: {
@@ -98,6 +120,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
         title: newCourseTitle,
         description: newCourseDescription,
         classe: newCourseClasse,
+        theClasseId : selectedClasse.id
       }),
     });
 
@@ -105,9 +128,10 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       const data = await res.json();
       setErrorAddCourse('');
       setWarningAddCourse('');
-      setSuccessMessageAddCourse('Cours ajouté avec succès.');
+      setSuccessMessageAddCourse(`Cours "${newCourseTitle}" ajouté avec succès.`);
 
       setCourses(data.courses);
+      setClasses(data.classes);
       setNewCourseTitle('');
       setNewCourseDescription('');
       setNewCourseClasse('');
@@ -143,7 +167,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       setNewClasse('');
       setErrorAddClasse('');
       setWarningAddClasse(''); // Reset warning
-      setSuccessMessageAddClasse('Classe ajoutée avec succès.');
+      setSuccessMessageAddClasse(`Classe "${newClasse}" ajoutée avec succès.`);
     } else if (res.status === 400) {
       setErrorAddClasse('');
       setWarningAddClasse(data.warning);
@@ -156,20 +180,36 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   };
 
   return (
-    <Card className="p-6">
+    <>
+    <Card title='Ajouter une nouvelle activité' defaultExpanded={true} className="p-4">
       <form onSubmit={handleAddFile} className="space-y-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Sélectionner un cours</label>
+          <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner une classe" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes && classes.map((classe) => (
+                <SelectItem key={classe.id} value={classe.id}>
+                  {classe.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
           <Select value={selectedCourse} onValueChange={setSelectedCourse}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un cours" />
             </SelectTrigger>
             <SelectContent>
-              {courses && courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
+              {courses && courses
+                .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+                .map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -183,7 +223,6 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Sélectionner un fichier</label>
           <Input
             type="file"
             ref={fileInputRef}
@@ -201,10 +240,11 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           Télécharger
         </Button>
       </form>
+      </Card>
 
+      <Card title='Ajouter un nouveau cours' defaultExpanded={true} className="p-4 mt-4">
       <form onSubmit={handleAddCourse} className="space-y-6 mt-8">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Ajouter un nouveau cours</label>
           <Input
             type="text"
             value={newCourseTitle}
@@ -222,14 +262,19 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
               <SelectValue placeholder="Sélectionner une classe" />
             </SelectTrigger>
             <SelectContent>
-              {classes
-              .slice() // Crée une copie du tableau pour éviter de muter l'original
-              .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10)) // Trie les classes par ID
-              .map((classe) => (
-                <SelectItem key={classe.id} value={classe.name}>
-                  {classe.name}
+              {classes && Array.isArray(classes) ? (
+                [...classes]
+                  .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10))
+                  .map((classe) => (
+                    <SelectItem key={classe.id} value={classe.name}>
+                      {classe.name}
+                    </SelectItem>
+                  ))
+              ) : (
+                <SelectItem value="loading" disabled>
+                  Chargement des classes...
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -240,10 +285,10 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           Ajouter le cours
         </Button>
       </form>
-
+      </Card>
+      <Card className="p-6 mt-4" defaultExpanded={false}  title='Ajouter une nouvelle classe'>
       <form onSubmit={handleAddClasse} className="space-y-6 mt-8">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Ajouter une nouvelle classe</label>
           <Input
             type="text"
             value={newClasse}
@@ -259,5 +304,6 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
         </Button>
       </form>
     </Card>
+    </>
   );
 }

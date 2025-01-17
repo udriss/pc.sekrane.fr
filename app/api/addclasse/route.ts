@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const maxId = classes.reduce((max, classe) => Math.max(max, parseInt(classe.id, 10)), 0);
   const newId = (maxId + 1).toString();
 
-  const newClasse: Classe = { id: newId, name };
+  const newClasse: Classe = { id: newId, name, associated_courses:[]  };
   classes.push(newClasse);
 
   // Write updated classes data to data.ts

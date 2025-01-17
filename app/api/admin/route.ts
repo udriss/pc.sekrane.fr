@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import CryptoJS from 'crypto-js';
+import { NextResponse } from 'next/server'
+import { SignJWT } from 'jose'
+import CryptoJS from 'crypto-js'
 
-const SECRET_KEY = process.env.SECRET_KEY;
-const STORED_HASH = process.env.STORED_HASH;
+const STORED_HASH = process.env.STORED_HASH as string
+const SECRET_KEY = new TextEncoder().encode(process.env.SECRET_KEY as string)
 
-if (!SECRET_KEY) {
-  throw new Error('SECRET_KEY is not defined');
+
+if (!process.env.SECRET_KEY) {
+  throw new Error('JWT_SECRET is not defined');
 }
 
 if (!STORED_HASH) {
@@ -14,21 +15,42 @@ if (!STORED_HASH) {
 }
 
 export async function POST(request: Request) {
-  const { password } = await request.json();
-  const hash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-  if (hash === STORED_HASH) {
-    const token = jwt.sign({ role: 'admin' }, SECRET_KEY as string, { expiresIn: '1h' });
-
-    const response = NextResponse.json({ success: true, message: 'Connexion réussie' });
-    response.cookies.set('adminAuth', token, { 
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
-      path: '/', 
-      sameSite: 'strict' 
-    });
+  try {
+    const { password, rememberMe } = await request.json();
+    const hashedPassword = CryptoJS.SHA256(password).toString();
     
-    return response;
-  } else {
-    return NextResponse.json({ success: false, message: 'Mot de passe incorrect' }, { status: 401 });
+    if (hashedPassword === STORED_HASH) {
+      const token = await new SignJWT({ role: 'admin' })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime(rememberMe ? '7d' : '24h')
+        .sign(SECRET_KEY);
+
+      const response = NextResponse.json({ 
+        success: true,
+        message: 'Connexion réussie' 
+      });
+
+      response.cookies.set({
+        name: 'adminAuth',
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 : 24 * 60 * 60
+      });
+
+      return response;
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Mot de passe incorrect' },
+      { status: 401 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: 'Erreur serveur' },
+      { status: 500 }
+    );
   }
 }

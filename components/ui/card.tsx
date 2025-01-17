@@ -1,20 +1,42 @@
 import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'rounded-lg border bg-card text-card-foreground shadow-sm',
-      className
-    )}
-    {...props}
-  />
-));
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  title?: string;
+  defaultExpanded?: boolean;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, title, defaultExpanded = true, children, ...props }, ref) => {
+    const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'rounded-lg border bg-card text-card-foreground shadow-sm',
+          className
+        )}
+        {...props}
+      >
+        {title && (
+          <div
+            className="flex justify-between items-center p-3 cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <h2 className="text-xl font-semibold">{title}</h2>
+            <span>{isExpanded ? 
+              <ChevronDown className="h-5 w-5 transition-transform" /> : 
+              <ChevronRight className="h-5 w-5 transition-transform" />
+            }</span>
+          </div>
+        )}
+        {(!title || isExpanded) && children}
+      </div>
+    )
+  }
+);
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
@@ -60,7 +82,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  <div ref={ref} className={cn('p-3 pt-0', className)} {...props} />
 ));
 CardContent.displayName = 'CardContent';
 

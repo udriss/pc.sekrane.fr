@@ -8,7 +8,7 @@ import { courses } from '@/lib/data';
 
 export async function POST(req: Request) {
   try {
-    const { courseId, userName } = await req.json();
+    const { courseId, userName, sendFileUrl } = await req.json();
     const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');
 
 
@@ -18,11 +18,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Get the notebook file information from the course
-    const notebookFile = course.activities.find(activity => activity.fileUrl.endsWith('.ipynb'));
+    const notebookFile = courses
+      .flatMap(course => course.activities)
+      .find(activity => activity.fileUrl === sendFileUrl);
+
     if (!notebookFile) {
       return NextResponse.json({ error: 'Notebook file not found' }, { status: 404 });
     }
+
     
     // Vérifier si le dossier jupyterServerWork existe, sinon le créer
     if (!existsSync(jupyterServerWork)) {
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
     
 
     const originalFileName = path.basename(notebookFile.fileUrl, '.ipynb');
-    const uniqueId = uuidv4().replace(/-/g, '').substring(0, 5);
+    const uniqueId = uuidv4().replace(/-/g, '').substring(0, 3);
     
     // Create new directory path
     const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
@@ -71,7 +74,6 @@ export async function POST(req: Request) {
       if (stderr) {
         console.error(`stderr: ${stderr}`);
       }
-      console.log(`stdout generate-notebook: ${stdout}`);
     });
 
 

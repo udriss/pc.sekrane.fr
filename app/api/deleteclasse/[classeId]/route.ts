@@ -30,13 +30,17 @@ export async function DELETE(req: NextRequest) {
   if (associatedCourses.length > 0) {
     let otherClasse = classes.find(classe => classe.name === 'Autre');
     if (!otherClasse) {
-      otherClasse = { id: '0', name: 'Autre' };
+      otherClasse = { id: '0', name: 'Autre', associated_courses: [] };
       classes.push(otherClasse);
     }
 
     // Transférer les cours associés à la classe "Autre"
     associatedCourses.forEach(course => {
       course.classe = 'Autre';
+      course.theClasseId = '0';
+      if (otherClasse) {
+        otherClasse.associated_courses.push(course.id); // Ajouter l'ID du cours à la liste des cours associés
+      }
     });
   }
 

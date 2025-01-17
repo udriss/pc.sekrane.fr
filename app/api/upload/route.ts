@@ -13,7 +13,14 @@ export async function POST(req: Request) {
 
     const course = courses.find(course => course.id === courseId);
     if (course) {
-      const fileName = `${file.name}`;
+      const sanitizeFileName = (str: string) => {
+        return str
+          .normalize('NFD')                     // Decompose characters into base + diacritical marks
+          .replace(/[\u0300-\u036f]/g, '')     // Remove diacritical marks
+          .replace(/[^a-zA-Z0-9.-]/g, '_');    // Replace any remaining special chars with underscore
+      };
+      
+      const fileName = sanitizeFileName(file.name);
       let filePath = '';
 
       // Determine the directory based on the file type
@@ -57,8 +64,7 @@ export async function POST(req: Request) {
           .replace('__COURSES__', JSON.stringify(courses, null, 2));
       const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
       await fs.writeFile(dataPath, updatedData, 'utf8');
-
-      return NextResponse.json({ success: true, activity: newActivity, fileName: path.basename(newFilePath) });
+      return NextResponse.json({ success: true, activity: newActivity, fileName: path.basename(newFilePath), classes, courses });
     } else {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
