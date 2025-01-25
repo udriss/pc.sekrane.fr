@@ -1,48 +1,173 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useMediaQuery } from "@mui/material";
+import { Book, Menu } from "lucide-react";
+import { 
+  Navbar, 
+  NavbarBrand, 
+  NavbarContent, 
+  NavbarMenu,
+  NavbarMenuItem,
+  NavbarItem, 
+  NavbarMenuToggle, 
+  Link,
+  Button } from "@nextui-org/react";
 import { cn } from "@/lib/utils";
-import { Book } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 
 export function MainNav() {
   const pathname = usePathname();
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const menuItems = [
+    { href: "/", name: "Accueil" },
+    { href: "/courses", name: "Lycée" },
+    { href: "/but/optique", name: "BUT" },
+  ];
+
+  if (isMobile) {
+    return (
+      <>
+        <button
+          onClick={() => setIsSideMenuOpen(!isSideMenuOpen)}
+          className="fixed top-4 right-4 z-50 p-2 rounded-full 
+            bg-white/20 backdrop-blur-lg shadow-lg
+            hover:bg-white/30 transition-all duration-300
+            ring-4 ring-white/10 ring-offset-0"
+        >
+          <Menu
+            size={42}
+            strokeWidth={1.5}
+            className={`transition-transform duration-300 ${
+              isSideMenuOpen ? "rotate-90" : "rotate-0"
+            }`}
+          />
+        </button>
+
+        {/* Side Menu */}
+        <div
+          className={`fixed inset-y-0 right-0 w-64 
+            bg-white/10 backdrop-blur-xl
+            border border-white/10
+            shadow-[_8px_32px_0_rgba(0,0,0,0.37)]
+            transform transition-transform duration-300 ease-in-out z-40
+            ${isSideMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+        >
+          <div className="mt-20 p-6 space-y-4">
+            <div className="space-y-4 mt-8">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block px-4 py-2 text-center rounded-lg transition-colors duration-200 ${
+                    pathname === item.href
+                      ? "bg-black/90 text-gray-100 font-bold text-2xl hover:backdrop-blur-xl"
+                      : "text-gray-500 font-bold text-2xl hover:bg-gray-50"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Overlay */}
+        {isSideMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30"
+            onClick={() => setIsSideMenuOpen(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Navigation for larger screens
   return (
-    <nav className="flex items-center space-x-6">
-      <Link
-        href="/"
-        className="flex items-center space-x-2"
-      >
-        <Book className="h-6 w-6" />
-        <span className="font-bold">Plan de travail</span>
-      </Link>
-      <Link
-        href="/"
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-primary",
-          pathname === "/" ? "text-primary" : "text-muted-foreground"
-        )}
-      >
-        Accueil
-      </Link>
-      <Link
-        href="/courses"
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-primary",
-          pathname === "/courses" ? "text-primary" : "text-muted-foreground"
-        )}
-      >
-        Cours
-      </Link>
-      <Link
-        href="/admin"
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-primary",
-          pathname === "/admin" ? "text-primary" : "text-muted-foreground"
-        )}
-      >
-        Administration
-      </Link>
-    </nav>
+    <Navbar 
+      isBordered 
+      isMenuOpen={isMenuOpen}
+      onMenuOpenChange={setIsMenuOpen}
+      // ajouter "fixed" pour le rendre toujours visible
+      className={`bg-background/40 backdrop-blur-md shadow-sm top-0 z-50 transition-transform duration-150 ease-in-out ${isScrolled ? "-translate-y-full" : "translate-y-0"}`}
+      style={{ 
+        backdropFilter: "blur(20px)", 
+        WebkitBackdropFilter: "blur(10px)", 
+        width: "800px", 
+        margin: "0 auto", 
+        borderRadius: "0 0 1rem 1rem", 
+        height: "4rem", 
+        padding: "1rem 1rem 0rem 1rem"
+      }}
+    >
+      <div className="max-w-[800px] mx-auto w-full flex flex-row justify-between items-center">
+        <NavbarContent className="sm:hidden" justify="start">
+          <NavbarMenuToggle aria-label={isMenuOpen ? "Close menu" : "Open menu"} />
+        </NavbarContent>
+
+        <NavbarBrand className="flex items-center justify-center max-w-[100px]">
+          <Link href="/" color="foreground">
+          <GraduationCap className="w-12 h-12 mx-auto text-primary" />
+          </Link>
+        </NavbarBrand>
+        
+        <NavbarContent 
+          className="hidden sm:flex gap-4" 
+          justify="center"
+        >
+          {menuItems.map((item) => (
+            <NavbarItem 
+              key={item.href} 
+              isActive={pathname === item.href}
+            >
+              <Link 
+                href={item.href}
+                color={pathname === item.href ? "secondary" : "foreground"}
+                className={`px-4 py-1 rounded-full transition-all duration-300 ease-in-out ${
+                  pathname === item.href
+                      ? 'text-gray-100 font-bold text-lg bg-black hover:backdrop-blur-xl'
+                      : 'text-gray-500 font-bold text-lg hover:bg-gray-50'
+                }`}
+              >
+                {item.name}
+              </Link>
+            </NavbarItem>
+          ))}
+        </NavbarContent>
+
+        <NavbarContent className="flex max-w-[100px] w-[100px] justify-center">
+          <NavbarItem>
+            <Button 
+              as={Link} 
+              color="secondary" 
+              href="/admin" 
+              variant="flat"
+              className="font-semibold hover:bg-gradient-to-r hover:from-gray-100/80 hover:by-secondary-600/80 hover:to-gray-100/80 hover:shadow-sm"
+            >
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </Button>
+          </NavbarItem>
+        </NavbarContent>
+      </div>
+      <NavbarMenu>
+        {menuItems.map((item) => (
+          <NavbarMenuItem key={item.href}>
+            <Link
+              href={item.href}
+              color={pathname === item.href ? "secondary" : "foreground"}
+              className={`w-full ${pathname === item.href ? "font-semibold" : ""}`}
+            >
+              {item.name}
+            </Link>
+          </NavbarMenuItem>
+        ))}
+      </NavbarMenu>
+    </Navbar>
   );
 }

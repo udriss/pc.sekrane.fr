@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { classes, Classe, courses } from '@/lib/data';
-import { writeFileSync } from 'fs';
-import path from 'path';
-import { dataTemplate } from '@/lib/data-template';
+import { parseData, updateData } from '@/lib/data-utils';
 
 export async function POST(req: NextRequest) {
   const { name } = await req.json();
+
+  const { classes, courses } = await parseData();
 
   // Vérifier si une classe avec le même nom existe déjà
   const existingClasse = classes.find(classe => classe.name.toLowerCase() === name.toLowerCase());
@@ -17,15 +16,11 @@ export async function POST(req: NextRequest) {
   const maxId = classes.reduce((max, classe) => Math.max(max, parseInt(classe.id, 10)), 0);
   const newId = (maxId + 1).toString();
 
-  const newClasse: Classe = { id: newId, name, associated_courses:[]  };
+  const newClasse = { id: newId, name, associated_courses: [] };
   classes.push(newClasse);
 
-  // Write updated classes data to data.ts
-  const updatedData = dataTemplate
-    .replace('__CLASSES__', JSON.stringify(classes, null, 2))
-    .replace('__COURSES__', JSON.stringify(courses, null, 2));
-  const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
-  writeFileSync(dataPath, updatedData);
+  // Write updated classes data to data.json
+  await updateData(classes, courses);
 
   return NextResponse.json({ classes }, { status: 200 });
 }

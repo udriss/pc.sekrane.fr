@@ -1,0 +1,427 @@
+{
+  "classes": [
+    {
+      "id": "0",
+      "name": "Autre",
+      "associated_courses": [],
+      "toggleVisibilityClasse": true
+    },
+    {
+      "id": "4",
+      "name": "Tle STI2D",
+      "associated_courses": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "18"
+      ],
+      "toggleVisibilityClasse": true
+    },
+    {
+      "id": "5",
+      "name": "SNT",
+      "associated_courses": [
+        "8",
+        "9"
+      ],
+      "toggleVisibilityClasse": true
+    },
+    {
+      "id": "6",
+      "name": "Seconde",
+      "associated_courses": [
+        "10",
+        "11",
+        "12",
+        "13",
+        "14"
+      ],
+      "toggleVisibilityClasse": true
+    },
+    {
+      "id": "7",
+      "name": "1 Spé",
+      "associated_courses": [
+        "15",
+        "16",
+        "17"
+      ],
+      "toggleVisibilityClasse": true
+    }
+  ],
+  "courses": [
+    {
+      "id": "9",
+      "title": "1 - Internet",
+      "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": []
+    },
+    {
+      "id": "8",
+      "title": "8 - IA",
+      "description": "Exploration de l'IA en santé via des dessins, applications en ligne, création de modèles IA, et sensibilisation aux biais des données.",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": [
+        {
+          "id": "1735757430960",
+          "name": "2SNT_IA.pdf",
+          "title": "Parcours d'activités",
+          "fileUrl": "/8/pdf/2SNT_IA.pdf"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Chapitre 1",
+      "description": "Importance des unités et des incertitudes dans les mesures expérimentales, et leur évaluation avec analyse pour renforcer la fiabilité des résultats.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1735943693164",
+          "name": "TSTI_C1_TP1.ipynb",
+          "title": "TP1 — Notebook",
+          "fileUrl": "/2/notebook/TSTI_C1_TP1.ipynb"
+        },
+        {
+          "id": "1737051131472",
+          "name": "TSTI_C1_TP1.pdf",
+          "title": "TP1 — Sujet",
+          "fileUrl": "/2/pdf/TSTI_C1_TP1.pdf"
+        },
+        {
+          "id": "1735871135346",
+          "name": "TSTI_C1_supplement.pdf",
+          "title": "Supplément : équation différentielle",
+          "fileUrl": "/2/pdf/TSTI_C1_supplement.pdf"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Chapitre 2",
+      "description": "Exploration des formes d'énergie, leurs unités, les convertisseurs d'énergie, et les notions de puissance et rendement.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1735915782828",
+          "name": "TSTI_C2_A1_Pyhton.pdf",
+          "title": "TP2 — Sujet",
+          "fileUrl": "/3/pdf/TSTI_C2_A1_Pyhton.pdf"
+        },
+        {
+          "id": "1735943598957",
+          "name": "TST_C2_TP_1.ipynb",
+          "title": "TP2 — Notebook",
+          "fileUrl": "/3/notebook/TST_C2_TP_1.ipynb"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Chapitre 4",
+      "description": "Étude des puissances active et apparente dans les circuits électriques, leurs mesures et leurs applications.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1735919853578",
+          "name": "TSTI_C4_TP1.pdf",
+          "title": "TP4 — Sujet",
+          "fileUrl": "/4/pdf/TSTI_C4_TP1.pdf"
+        },
+        {
+          "id": "1735943459471",
+          "name": "TSTI_C4_TP1.ipynb",
+          "title": "TP4 — Notebook",
+          "fileUrl": "/4/notebook/TSTI_C4_TP1.ipynb"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "T4 Chapitre 1",
+      "description": "Description des mouvements d'un système : référentiels, trajectoires, vecteurs vitesse et variations de mouvements dans l'espace.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1735935491683",
+          "name": "2MVT_aide_chronophys.pdf",
+          "title": "Chronophys : prise en main",
+          "fileUrl": "/10/pdf/2MVT_aide_chronophys.pdf"
+        },
+        {
+          "id": "1735945063974",
+          "name": "2MVT_shoot_vide.ipynb",
+          "title": "Shoot Parfait — Notebook",
+          "fileUrl": "/10/notebook/2MVT_shoot_vide.ipynb"
+        },
+        {
+          "id": "1735949333562",
+          "name": "2MVT_shoot_parfait.pdf",
+          "title": "Shoot Parfait — Sujet",
+          "fileUrl": "/10/pdf/2MVT_shoot_parfait.pdf"
+        },
+        {
+          "id": "1735949931075",
+          "name": "2MVT_vitesse_limite.pdf",
+          "title": "Vitesse limite — Sujet",
+          "fileUrl": "/10/pdf/2MVT_vitesse_limite.pdf"
+        },
+        {
+          "id": "1735949971981",
+          "name": "2MVT_vitesse_lim_vide.ipynb",
+          "title": "Vitesse limite — Notebook",
+          "fileUrl": "/10/notebook/2MVT_vitesse_lim_vide.ipynb"
+        },
+        {
+          "id": "1735950123859",
+          "name": "2MVT_parabolique.avi",
+          "title": "Shoot parfait : parabole.avi",
+          "fileUrl": "/10/autre/2MVT_parabolique.avi"
+        },
+        {
+          "id": "1735952644219",
+          "name": "2MVT_chute_glycerol.avi",
+          "title": "Vitesse limite : chute.avi",
+          "fileUrl": "/10/autre/2MVT_chute_glycerol.avi"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "T4 Chapitre 2",
+      "description": "Étude des forces mécaniques : définition, représentation vectorielle, poids, réactions des supports et interactions gravitationnelles.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": []
+    },
+    {
+      "id": "16",
+      "title": "T1 Chapitre 1",
+      "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1736157814914",
+          "name": "1S_T4_C1_A4.pdf",
+          "title": "Double périodicité (spatiale et temporelle)",
+          "fileUrl": "/16/pdf/1S_T4_C1_A4.pdf"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "title": "T1 Chapitre 4",
+      "description": "Concepts essentiels des réactions chimiques incluant l'évolution des quantités des réactifs et de produits : introduction du tableau d'avancement.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1736153524872",
+          "name": "1S_C4_intro.pdf",
+          "title": "Fabrication de sandwichs",
+          "fileUrl": "/15/pdf/1S_C4_intro.pdf"
+        },
+        {
+          "id": "1737639989000",
+          "name": "1S_C4_fiche_1.ipynb",
+          "title": "Avancement : Python 1",
+          "fileUrl": "/15/notebook/1S_C4_fiche_1.ipynb"
+        },
+        {
+          "id": "1737639999341",
+          "name": "1S_C4_fiche_2.ipynb",
+          "title": "Avancement : Python 2",
+          "fileUrl": "/15/notebook/1S_C4_fiche_2.ipynb"
+        },
+        {
+          "id": "1737640012131",
+          "name": "1S_C4_fiche_3.ipynb",
+          "title": "Avancement : Python 3",
+          "fileUrl": "/15/notebook/1S_C4_fiche_3.ipynb"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Chapitre 6",
+      "description": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1736155906779",
+          "name": "TSTI_C6_A1.pdf",
+          "title": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
+          "fileUrl": "/5/pdf/TSTI_C6_A1.pdf"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Chapitre 7",
+      "description": "Comprendre la combustion complète, ses caractéristiques, les types de combustibles, les équations de réaction et les bilans de matière et énergétique.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1737364519049",
+          "name": "TSTI_C7_Act1.pdf",
+          "title": "AE : combustion complète",
+          "fileUrl": "/6/pdf/TSTI_C7_Act1.pdf"
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "title": "Documents de cours",
+      "description": "Retrouvez tous les documents de cours de votre année de terminale en spécialité Physique chimie et mathématiques.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1735863794003",
+          "name": "TSTI_C1_incertitudes.pdf",
+          "title": "Chapitre 1 — Unités et incertitudes de mesures expérimentales",
+          "fileUrl": "/1/pdf/TSTI_C1_incertitudes.pdf"
+        },
+        {
+          "id": "1735851878754",
+          "name": "TSTI_C2_enjeux_energie.pdf",
+          "title": "Chapitre 2 — L'énergie et ses enjeux",
+          "fileUrl": "/1/pdf/TSTI_C2_enjeux_energie.pdf"
+        },
+        {
+          "id": "1735851918509",
+          "name": "TSTI_C3_piles.pdf",
+          "title": "Chapitre 3 — Énergie chimique et réactions d'oxydoréduction",
+          "fileUrl": "/1/pdf/TSTI_C3_piles.pdf"
+        },
+        {
+          "id": "1735851950038",
+          "name": "TSTI_C4_puissances.pdf",
+          "title": "Chapitre 4 — Puissance active et puissance apparente",
+          "fileUrl": "/1/pdf/TSTI_C4_puissances.pdf"
+        },
+        {
+          "id": "1735851979537",
+          "name": "TSTI_C5_transfert_therm.pdf",
+          "title": "Chapitre 5 — Énergie interne",
+          "fileUrl": "/1/pdf/TSTI_C5_transfert_therm.pdf"
+        },
+        {
+          "id": "1735867147963",
+          "name": "TSTI_C6_changement_etat.pdf",
+          "title": "Chapitre 6 — Changements d'état et transferts thermiques",
+          "fileUrl": "/1/pdf/TSTI_C6_changement_etat.pdf"
+        },
+        {
+          "id": "1735852027323",
+          "name": "TSTI_C7_combustions.pdf",
+          "title": "Chapitre 7 — Combustions complètes",
+          "fileUrl": "/1/pdf/TSTI_C7_combustions.pdf"
+        },
+        {
+          "id": "1735852047003",
+          "name": "TSTI_C8_pH.pdf",
+          "title": "Chapitre 8 — Réactions chimiques acido-basiques",
+          "fileUrl": "/1/pdf/TSTI_C8_pH.pdf"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "title": "Documents de cours",
+      "description": "Retrouvez tous les documents de cours de votre année de seconde en Physique chimie",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737028835331",
+          "name": "2matE_bilan_chap4.pdf",
+          "title": "T1 Chapitre 4 — Le noyau de l'atome",
+          "fileUrl": "/12/pdf/2matE_bilan_chap4.pdf"
+        },
+        {
+          "id": "1737544796445",
+          "name": "2nd_T1_C5_cours_2.pdf",
+          "title": "T1 Chapitre 5 — L’électron dans l’atome",
+          "fileUrl": "/12/pdf/2nd_T1_C5_cours_2.pdf"
+        },
+        {
+          "id": "1737546829601",
+          "name": "2nd_T1_C1_cours_2.pdf",
+          "title": "T1 Chapitre 1 — Identification des espèces chimiques",
+          "fileUrl": "/12/pdf/2nd_T1_C1_cours_2.pdf"
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "title": "T1 Chapitre 5",
+      "description": "Le titrage permet de déterminer précisément la concentration d'une espèce chimique en solution par réaction chimique rapide, totale et unique.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1737011062105",
+          "name": "1S_C5_A1.pdf",
+          "title": "AE : dosage d'un anti mousse",
+          "fileUrl": "/17/pdf/1S_C5_A1.pdf"
+        },
+        {
+          "id": "1737356496655",
+          "name": "1S_C5_A2.pdf",
+          "title": "AE : contrôle qualité d’une solution de bétadine",
+          "fileUrl": "/17/pdf/1S_C5_A2.pdf"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "title": "T1 Chapitre 6",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737502011057",
+          "name": "2nd_T1_C6_config_el_2.ipynb",
+          "title": "Notebook Python",
+          "fileUrl": "/13/notebook/2nd_T1_C6_config_el_2.ipynb"
+        },
+        {
+          "id": "1737502019489",
+          "name": "2nd_T1_C6_lewis_structure_2.pdf",
+          "title": "Modèle de LEWIS, énergie de liaison",
+          "fileUrl": "/13/pdf/2nd_T1_C6_lewis_structure_2.pdf"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "title": "T1 Chapitre 5",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737534191717",
+          "name": "2nd_T1_C5_coches_el_3.pdf",
+          "title": "Couches électroniques",
+          "fileUrl": "/14/pdf/2nd_T1_C5_coches_el_3.pdf"
+        }
+      ]
+    }
+  ]
+}

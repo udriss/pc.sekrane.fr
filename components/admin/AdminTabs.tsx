@@ -1,18 +1,35 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ConnectionsList } from './ConnectionsList';
 import { UploadForm } from './upload-form';
-import { courses as initialCourses, classes as initialClasses, Course, Classe } from "@/lib/data";
+import { Classe, Course } from '@/lib/data';
 
-export function AdminTabs() {
+
+
+export const AdminTabs: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'connections' | 'upload'>('upload');
-  const [courses, setCourses] = useState<Course[]>(initialCourses || []);
-  const [classes, setClasses] = useState<Classe[]>(initialClasses || []);
+  const [classes, setClasses] = useState<Classe[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/getcourses');
+        const data = await response.json();
+        setClasses(data.classes);
+        setCourses(data.courses);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="w-full">
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-        <button
+          <button
             onClick={() => setActiveTab('upload')}
             className={`
               py-4 px-1 border-b-2 font-medium text-sm
@@ -43,4 +60,5 @@ export function AdminTabs() {
       </div>
     </div>
   );
-}
+};
+

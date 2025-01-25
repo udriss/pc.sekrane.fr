@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CourseCard } from "@/components/courses/course-card";
-import { Course } from "@/lib/data";
+import { Course, Classe } from "@/lib/dataTemplate";
 import Select from "@mui/material/Select";
 import { MenuItem } from "@mui/material";
 import Cookies from 'js-cookie';
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default function CoursesPage() {
   const [selectedClasse, setSelectedClasse] = useState<string>("");
   const [courses, setCourses] = useState<Course[]>([]);
-  const [classes, setClasses] = useState<string[]>([]);
+  const [classes, setClasses] = useState<Classe[]>([]);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
@@ -25,12 +25,10 @@ export default function CoursesPage() {
 
     fetch("/api/courses")
       .then((res) => res.json())
-      .then((data: { courses: Course[] }) => {
+      .then((data: { courses: Course[], classes: Classe[] }) => {
         setCourses(data.courses);
-        const uniqueClasses = Array.from(
-          new Set(data.courses.map((course: Course) => course.classe))
-        );
-        setClasses(uniqueClasses);
+        const visibleClasses = data.classes.filter(classe => classe.toggleVisibilityClasse !== false);
+        setClasses(visibleClasses);
       });
   }, []);
 
@@ -50,7 +48,7 @@ export default function CoursesPage() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Cours disponibles</h1>
       <div className="mb-4 flex items-center justify-center">
-        <Select
+      <Select
           ref={selectRef}
           value={selectedClasse}
           onChange={(e) => handleClasseChange(e.target.value as string)}
@@ -72,7 +70,7 @@ export default function CoursesPage() {
                 color: 'white',
                 fontWeight: 'bold',
                 width: '400px',
-                bgcolor: 'rgba(53, 53, 53, 0.63)',
+                bgcolor: 'rgba(53, 53, 53, 0.43)',
                 backdropFilter: 'blur(6px)',
                 minWidth: '300px',
                 '& .MuiMenuItem-root': {
@@ -87,7 +85,7 @@ export default function CoursesPage() {
                     borderRadius: '12px',
                     color: 'black',
                     fontWeight: 'bold',
-                    backgroundColor: 'rgb(109 173 243) !important'
+                    backgroundColor: 'rgb(139, 167, 201) !important'
                   },
                   '&:hover': {
                     borderRadius: '12px',
@@ -114,25 +112,20 @@ export default function CoursesPage() {
           <MenuItem sx={{ display: 'flex', justifyContent: 'center' }}
             value="" 
           >
-            <span className="text-gray-400">Sélectionner une classe</span>
+            <span className="text-blue-800/40">Sélectionner une classe</span>
           </MenuItem>
           {classes.map((classe) => (
-            <MenuItem sx={{ display: 'flex', justifyContent: 'center' }}
-              key={classe} 
-              value={classe}
-            >
-              {classe}
+            <MenuItem key={classe.id} value={classe.name}>
+              {classe.name}
             </MenuItem>
           ))}
         </Select>
       </div>
-      {selectedClasse && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredCourses.map((course) => (
-            <CourseCard key={`course-${course.id}`} course={course} />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredCourses.map((course) => (
+          <CourseCard key={course.id} course={course} />
+        ))}
+      </div>
     </div>
   );
 }

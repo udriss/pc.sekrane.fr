@@ -219,3 +219,12 @@ input:checked + .checkboxSliderAdmin:before  {
   text-align: center;
   border: solid 2px #d70909 !important;
 }
+
+
+ @keyframes bounce-slow {
+   0%, 100% { transform: translateY(0); }
+   50% { transform: translateY(-20px); }
+ } 
+  .animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
+  }

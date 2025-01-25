@@ -9,6 +9,7 @@ import { FaRegFilePdf, FaFileInvoice, FaRegImage, FaPython, FaVideo } from 'reac
 import { toast, Id } from 'react-toastify';
 import { downloadFileWithProgress } from '@/components/courses/donwload-track';
 import { RATE_LIMIT } from '@/lib/rateLimit';
+import { Tooltip } from "@nextui-org/react";
 
 interface ActivityListProps {
   activities: Activity[];
@@ -256,38 +257,44 @@ export function ActivityList({
   return (
     <>
       <div className="flex flex-col items-center">
-        
         {hasIpynb && (
           <div className="mb-4 w-full max-w-[200px]">
-          <Input
-            className="inputNameActivityList"
-            type="text"
-            placeholder="Entrez votre nom"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            onFocus={() => {
-              if (toastId) {
-                toast.dismiss();
-                toast.clearWaitingQueue();
-                setToastId(null);
-              }
-            }}
-          />
+            <Input
+              className="inputNameActivityList"
+              type="text"
+              placeholder="Entrez votre nom"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              onFocus={() => {
+                if (toastId) {
+                  toast.dismiss();
+                  toast.clearWaitingQueue();
+                  setToastId(null);
+                }
+              }}
+            />
           </div>
         )}
         <div className="flex flex-wrap flex-row gap-4">
           {activities
-          .sort((a, b) => a.title.localeCompare(b.title))
           .map((activity) => (
-            <Button
+            <Tooltip 
               key={activity.id}
-              variant="outline"
-              className="inline-flex items-center justify-start"
-              onClick={() => handleActivityClick(activity.fileUrl)}
+              content={activity.title}
+              closeDelay={550}
+              className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
+                rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
+                transition-opacity duration-300"
             >
-              {getFileIcon(activity.name)}
-              {activity.title}
-            </Button>
+              <Button
+                variant="outline"
+                className="inline-flex items-center justify-start w-auto min-w-[150px] max-w-[300px] truncate"
+                onClick={() => handleActivityClick(activity.fileUrl)}
+              >
+                <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
+                <span className="truncate">{activity.title}</span>
+              </Button>
+            </Tooltip>
           ))}
         </div>
       </div>

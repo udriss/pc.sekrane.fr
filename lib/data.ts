@@ -37,7 +37,8 @@
       "1735852668710",
       "1735873561101",
       "1735919772824",
-      "1736155875748"
+      "1736155875748",
+      "1737364460384"
     ]
   },
   {
@@ -70,6 +71,14 @@
 
   export const courses: Course[] = [
   {
+    "id": "1735826771495",
+    "title": "1 - Internet",
+    "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
+    "classe": "SNT",
+    "theClasseId": "5",
+    "activities": []
+  },
+  {
     "id": "1735756065585",
     "title": "8 - IA",
     "description": "Exploration de l'IA en santé via des dessins, applications en ligne, création de modèles IA, et sensibilisation aux biais des données.",
@@ -85,20 +94,18 @@
     ]
   },
   {
-    "id": "1735826771495",
-    "title": "1 - Internet",
-    "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
-    "classe": "SNT",
-    "theClasseId": "5",
-    "activities": []
-  },
-  {
     "id": "1735830910883",
     "title": "Documents de cours",
     "description": "Retrouvez tous les documents de cours de votre année de terminale en spécialité Physique chimie et mathématiques.",
     "classe": "Tle STI2D",
     "theClasseId": "4",
     "activities": [
+      {
+        "id": "1735863794003",
+        "name": "TSTI_C1_incertitudes.pdf",
+        "title": "Chapitre 1 — Unités et incertitudes de mesures expérimentales",
+        "fileUrl": "/1735830910883/pdf/TSTI_C1_incertitudes.pdf"
+      },
       {
         "id": "1735851878754",
         "name": "TSTI_C2_enjeux_energie.pdf",
@@ -124,6 +131,12 @@
         "fileUrl": "/1735830910883/pdf/TSTI_C5_transfert_therm.pdf"
       },
       {
+        "id": "1735867147963",
+        "name": "TSTI_C6_changement_etat.pdf",
+        "title": "Chapitre 6 — Changements d'état et transferts thermiques",
+        "fileUrl": "/1735830910883/pdf/TSTI_C6_changement_etat.pdf"
+      },
+      {
         "id": "1735852027323",
         "name": "TSTI_C7_combustions.pdf",
         "title": "Chapitre 7 — Combustions complètes",
@@ -134,18 +147,6 @@
         "name": "TSTI_C8_pH.pdf",
         "title": "Chapitre 8 — Réactions chimiques acido-basiques",
         "fileUrl": "/1735830910883/pdf/TSTI_C8_pH.pdf"
-      },
-      {
-        "id": "1735863794003",
-        "name": "TSTI_C1_incertitudes.pdf",
-        "title": "Chapitre 1 — Unités et incertitudes de mesures expérimentales",
-        "fileUrl": "/1735830910883/pdf/TSTI_C1_incertitudes.pdf"
-      },
-      {
-        "id": "1735867147963",
-        "name": "TSTI_C6_changement_etat.pdf",
-        "title": "Chapitre 6 — Changements d'état et transferts thermiques",
-        "fileUrl": "/1735830910883/pdf/TSTI_C6_changement_etat.pdf"
       }
     ]
   },
@@ -326,21 +327,6 @@
     ]
   },
   {
-    "id": "1736157779392",
-    "title": "T1 Chapitre 1",
-    "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
-    "classe": "1 Spé",
-    "theClasseId": "7",
-    "activities": [
-      {
-        "id": "1736157814914",
-        "name": "1S_T4_C1_A4.pdf",
-        "title": "Double périodicité (spatiale et temporelle)",
-        "fileUrl": "/1736157779392/pdf/1S_T4_C1_A4.pdf"
-      }
-    ]
-  },
-  {
     "id": "1736765412128",
     "title": "Documents de cours",
     "description": "Retrouvez tous les documents de cours de votre année de seconde en Physique chimie",
@@ -356,6 +342,21 @@
     ]
   },
   {
+    "id": "1736157779392",
+    "title": "T1 Chapitre 1",
+    "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
+    "classe": "1 Spé",
+    "theClasseId": "7",
+    "activities": [
+      {
+        "id": "1736157814914",
+        "name": "1S_T4_C1_A4.pdf",
+        "title": "Double périodicité (spatiale et temporelle)",
+        "fileUrl": "/1736157779392/pdf/1S_T4_C1_A4.pdf"
+      }
+    ]
+  },
+  {
     "id": "1737011020612",
     "title": "T1 Chapitre 5",
     "description": "",
@@ -367,6 +368,27 @@
         "name": "1S_C5_A1.pdf",
         "title": "AE : dosage d'un anti mousse",
         "fileUrl": "/1737011020612/pdf/1S_C5_A1.pdf"
+      },
+      {
+        "id": "1737356496655",
+        "name": "1S_C5_A2.pdf",
+        "title": "AE : contrôle qualité d’une solution de bétadine",
+        "fileUrl": "/1737011020612/pdf/1S_C5_A2.pdf"
+      }
+    ]
+  },
+  {
+    "id": "1737364460384",
+    "title": "Chapitre 7",
+    "description": "",
+    "classe": "Tle STI2D",
+    "theClasseId": "4",
+    "activities": [
+      {
+        "id": "1737364519049",
+        "name": "TSTI_C7_Act1.pdf",
+        "title": "AE : combustion complète",
+        "fileUrl": "/1737364460384/pdf/TSTI_C7_Act1.pdf"
       }
     ]
   }

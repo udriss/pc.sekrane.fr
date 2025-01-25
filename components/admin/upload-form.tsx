@@ -5,7 +5,7 @@ import { Course, Classe } from '@/lib/data';
 
 interface UploadFormProps {
   courses: Course[];
-  setCourses: (courses: Course[]) => void;
+  setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
 }

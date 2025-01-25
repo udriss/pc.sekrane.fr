@@ -6,12 +6,13 @@ import DOMPurify from 'dompurify';
 import ActivityHeader from "@/components/courses/activity-header";
 import { ActivityList } from "@/components/courses/activity-list";
 import { Course } from "@/lib/data";
-import { notFound } from "next/navigation";
+import NotFound from "@/app/not-found";
 import LoadingPage from "@/app/loading";
 import Split from 'react-split';
 import ImageZoom from "@/components/courses/image-zoom";
 import { VideoActions } from "@/components/courses/video-player";
-import FileViewer from '@/components/courses/file-viewer';
+import { useRouter } from 'next/navigation';
+
 
 
 export default function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -27,6 +28,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [splitSizes, setSplitSizes] = useState([50, 50]);
   const [leftFileType, setLeftFileType] = useState<string | null>(null);
   const [iframeKeyLeft, setIframeKeyLeft] = useState(0);
+  const router = useRouter();
 
   const handleFileSelection = (fileUrl: string, fileType: string) => {
     if (fileType !== 'image' && fileType !== 'video' && selectedFileLeft === fileUrl) {
@@ -48,9 +50,11 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   useEffect(() => {
     async function fetchCourse() {
       if (courseId) {
+        console.log('fetching course', courseId);
         const res = await fetch(`/api/courses/${courseId}`);
         if (res.status === 404) {
-          notFound();
+          router.push('/not-found');
+            return;
         } else {
           const data = await res.json();
           if (data && data.course) {
@@ -114,11 +118,11 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const hasIpynb = course.activities.some((activity) => activity.name.endsWith('.ipynb'));
 
   return (
-    <div className="min-h-screen flex flex-col w-full max-w-[1400px] mx-auto">
+    <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1200px] mx-auto px-4 md:px-0">
       <ActivityHeader title={course.title} description={course.description} />
 
-      <div className="grid grid-cols-4">
-        <div className="flex flex-row p-4 col-span-3">
+      <div className="grid grid-cols-1 md:grid-cols-4">
+        <div className={`flex flex-col md:flex-row p-2 md:p-4 ${hasIpynb ? 'col-span-3 md:col-span-3' : 'col-span-4 md:col-span-4'}`}>
           <ActivityList
             activities={course.activities}
             onSelectActivity={handleSelectActivity}
@@ -130,7 +134,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
         </div>
 
         {hasIpynb && (
-          <div className="flex flex-col col-span-1 justify-center items-center">
+          <div className="flex flex-col col-span-1 justify-center items-center p-4">
             <div className="ml-2">
               Double vue
             </div>
@@ -151,10 +155,10 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
         )}
       </div>
 
-      <div className="mt-8 flex justify-center" style={{ height: '1400px', width: '100%', overflowY: 'scroll' }}>
+      <div className="mt-4 md:mt-8 flex justify-center h-[900px] w-full overflow-y-auto">
         {showSideBySide ? (
           <Split
-            className="flex w-full split-containe"
+            className="flex w-full split-container flex-col md:flex-row"
             sizes={[50, 50]}
             minSize={1}
             expandToMin={false}
@@ -163,29 +167,39 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
             snapOffset={1}
             onDrag={handleDrag}
             dragInterval={2}
-            gutter={(index: number, direction: "horizontal" | "vertical") => {
-              const gutter = document.createElement('div');
-              gutter.className = 'gutter-custom';
-              return gutter;
-            }}
+            direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
           >
-            <div style={{ height: '100%', display: selectedFileLeft ? 'block' : 'none' }}>
+            <div className="w-full h-full md:h-auto">
               {leftFileType === 'image' && selectedFileLeft && (
                 <ImageZoom src={selectedFileLeft} />
               )}
               {leftFileType === 'video' && selectedFileLeft && (
                 <VideoActions 
-                fileUrl={selectedFileLeft} 
-                fileName={selectedFileLeft.split('/').pop() || 'video'}
-              />
+                  fileUrl={selectedFileLeft} 
+                  fileName={selectedFileLeft.split('/').pop() || 'video'}
+                />
               )}
               {leftFileType !== 'image' && leftFileType !== 'video' && selectedFileLeft && (
-                <iframe key={iframeKeyLeft} src={selectedFileLeft} style={{ width: '100%', height: '100%' }}></iframe>
+                <div className="w-full h-full relative">
+                  <iframe 
+                    key={iframeKeyLeft} 
+                    src={selectedFileLeft} 
+                    className="w-full h-full absolute inset-0"
+                    style={{border: 'none'}}
+                  />
+                </div>
               )}
             </div>
-            <div style={{ height: '100%', display: selectedFileRight ? 'block' : 'none' }}>
+            <div className="w-full h-full md:h-auto">
               {selectedFileRight && (
-                <iframe ref={iframeRef} src={selectedFileRight} style={{ width: '100%', height: '100%' }}></iframe>
+                <div className="w-full h-full relative">
+                  <iframe 
+                    ref={iframeRef} 
+                    src={selectedFileRight} 
+                    className="w-full h-full absolute inset-0"
+                    style={{border: 'none'}}
+                  />
+                </div>
               )}
             </div>
           </Split>

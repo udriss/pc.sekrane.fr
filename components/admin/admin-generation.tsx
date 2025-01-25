@@ -110,7 +110,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       setSuccessMessageAddCourse('');
       return;
     }
-    console.log("selectedClasse in admin-gen : ", selectedClasse);
+    console.log("selectedClasse in admin-gen : ", selectedClasse.id);
     const res = await fetch('/api/addcourse', {
       method: 'POST',
       headers: {

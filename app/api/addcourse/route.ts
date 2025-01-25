@@ -1,63 +1,43 @@
 // path: /app/api/addcourse/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path, { join } from 'path';
-import { courses, classes } from '@/lib/data';
-import { dataTemplate } from '@/lib/data-template';
+import { parseData, updateData } from '@/lib/data-utils';
 
-export const POST = async (req: NextRequest) => {
-  const { title, description, classe, theClasseId } = await req.json();
-
-  // Generate a new course ID
-  const newCourseId = `${Date.now()}`;
-  let courseDir = join(process.cwd(), 'public', newCourseId);
-
-  //const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_');
-  // Check if the directory already exists and add a suffix if necessary
-  // let suffix = 2;
-  // while (await fs.access(courseDir).then(() => true).catch(() => false)) {
-  //  courseDir = join(process.cwd(), 'public', `${sanitizedTitle}_(${suffix})`);
-  //  suffix++;
-  //}
-
-  // Create the new course directory
-  await fs.mkdir(courseDir, { recursive: true });
-
-  // Create new course object
-  const newCourse = {
-    id: newCourseId,
-    title,
-    description,
-    classe,
-    theClasseId,
-    activities: [],
-  };
-
-  // Add new course to courses array
-  courses.push(newCourse);
-
-  // Find the class and add the course ID to associated_courses
-  const selectedClasse = classes.find(classe => classe.id === theClasseId);
-  if (selectedClasse) {
-    selectedClasse.associated_courses.push(newCourse.id);
-  } else {
-    return NextResponse.json({ error: 'Classe non trouvée.' }, { status: 404 });
-  }
-
-
-  // Update data file
-  const dataFilePath = path.join(process.cwd(), 'lib', 'data.ts');
+export async function POST(req: NextRequest) {
   try {
-    const updatedData = dataTemplate
-      .replace('__CLASSES__', JSON.stringify(classes, null, 2))
-      .replace('__COURSES__', JSON.stringify(courses, null, 2));
-    await fs.writeFile(dataFilePath, updatedData, 'utf-8');
-  } catch (error) {
-    console.error('Failed to update data file:', error);
-    return NextResponse.json({ error: 'Failed to update data file' }, { status: 500 });
-  }
+    const { title, description, classe, theClasseId } = await req.json();
 
-  // Return updated data
-  return NextResponse.json({ courses, classes }, { status: 200 });
-};
+    if (!title || !theClasseId) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+
+    const { classes, courses } = await parseData();
+
+    // Vérifier si une classe avec l'ID fourni existe
+    const existingClasse = classes.find(classe => classe.id === theClasseId);
+    if (!existingClasse) {
+      return NextResponse.json({ error: 'Classe not found' }, { status: 404 });
+    }
+
+    // Trouver l'ID le plus grand et ajouter 1
+    const maxId = courses.reduce((max, course) => Math.max(max, parseInt(course.id, 10)), 0);
+    const newId = (maxId + 1).toString();
+
+    const newCourse = { id: newId, title, description, classe: existingClasse.name, theClasseId: theClasseId, activities: [] };
+    courses.push(newCourse);
+
+    // Ajouter le course.id à la liste associated_courses de la classe concernée
+    if (!existingClasse.associated_courses.includes(newId)) {
+      existingClasse.associated_courses.push(newId);
+    }
+
+    // Write updated data to data.json
+    await updateData(classes, courses);
+
+    return NextResponse.json({ courses, classes }, { status: 200 });
+  } catch (error) {
+    console.error('Error adding course:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

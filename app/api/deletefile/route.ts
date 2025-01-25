@@ -1,44 +1,37 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { NextResponse } from 'next/server';
-import { courses, classes } from '@/lib/data';
-import { dataTemplate } from '@/lib/data-template';
+import { NextRequest, NextResponse } from 'next/server';
+import { parseData, updateData } from '@/lib/data-utils';
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const { fileUrl, courseId } = await req.json();
 
-    // Find the course by ID
-    const course = courses.find(course => course.id === courseId);
-    if (!course) {
+    if (!courseId || !fileUrl) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const { classes, courses } = await parseData();
+
+    // Vérifier si le cours existe
+    const courseIndex = courses.findIndex(course => course.id === courseId);
+    if (courseIndex === -1) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Find the activity by fileUrl
+    // Supprimer le fichier du cours
+    const course = courses[courseIndex];
     const activityIndex = course.activities.findIndex(activity => activity.fileUrl === fileUrl);
     if (activityIndex === -1) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    // Remove the activity from the course
     course.activities.splice(activityIndex, 1);
 
-    // Delete the file from the filesystem
-    const filePath = path.join(process.cwd(), 'public', fileUrl);
-    await fs.unlink(filePath);
+    // Write updated data to data.json
+    await updateData(classes, courses);
 
-    // Write the updated courses data to data.ts
-    const updatedData = dataTemplate
-      .replace('__CLASSES__', JSON.stringify(classes, null, 2))
-      .replace('__COURSES__', JSON.stringify(courses, null, 2));
-    const dataPath = path.join(process.cwd(), 'lib', 'data.ts');
-    await fs.writeFile(dataPath, updatedData, 'utf8');
-
-    // Return the updated list of files and courses
-    const updatedFiles = course.activities.map(activity => activity.fileUrl);
-    return NextResponse.json({ success: true, files: updatedFiles, courses });
+    return NextResponse.json({ courses }, { status: 200 });
   } catch (error) {
     console.error('Error deleting file:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

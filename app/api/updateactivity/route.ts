@@ -1,52 +1,40 @@
-import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-import { courses, classes } from '@/lib/data';
-import { dataTemplate } from '@/lib/data-template';
+import { NextRequest, NextResponse } from 'next/server';
+import { parseData, updateData } from '@/lib/data-utils';
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const { courseId, activityId, newTitle } = await req.json();
 
-    // Find the course
-    const course = courses.find(c => c.id === courseId);
-    if (!course) {
-      return NextResponse.json(
-        { error: 'Course not found' },
-        { status: 404 }
-      );
+    if (!courseId || !activityId || !newTitle) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Find the activity
-    const activity = course.activities.find(a => a.id === activityId);
-    if (!activity) {
-      return NextResponse.json(
-        { error: 'Activity not found' },
-        { status: 404 }
-      );
+    const { classes, courses } = await parseData();
+
+    // Vérifier si le cours existe
+    const courseIndex = courses.findIndex(course => course.id === courseId);
+    if (courseIndex === -1) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Update the title
-    activity.title = newTitle;
+    // Vérifier si l'activité existe
+    const activityIndex = courses[courseIndex].activities.findIndex(activity => activity.id === activityId);
+    if (activityIndex === -1) {
+      return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
+    }
 
-    // Write changes to data.ts
-    const updatedData = dataTemplate
-      .replace('__CLASSES__', JSON.stringify(classes, null, 2))
-      .replace('__COURSES__', JSON.stringify(courses, null, 2));
+    // Mettre à jour l'activité
+    courses[courseIndex].activities[activityIndex] = {
+      ...courses[courseIndex].activities[activityIndex],
+      title: newTitle,
+    };
 
-    await fs.writeFile(
-      path.join(process.cwd(), 'lib', 'data.ts'),
-      updatedData,
-      'utf-8'
-    );
+    // Write updated data to file
+    await updateData(classes, courses);
 
-    return NextResponse.json({ courses });
-
+    return NextResponse.json({ courses, classes }, { status: 200 });
   } catch (error) {
     console.error('Error updating activity:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

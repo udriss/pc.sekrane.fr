@@ -5,6 +5,7 @@ import { MainNav } from '@/components/main-nav';
 import { ToastContainer } from 'react-toastify';
 import { Toaster } from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
+import Head from 'next/head';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,13 +21,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
-        <header className="border-b">
-            <div className="container flex h-16 mx-auto px-4">
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+      </Head>
+      <body className={`${inter.className} min-h-screen w-full`}>
+            <div className="max-w-[800px] mx-auto w-full">
               <MainNav />
             </div>
-          </header>
-          <main>
+          <main className="w-full min-w-[320px] min-h-screen">
             {children}
             <Toaster 
               position="top-center" 

@@ -4,12 +4,19 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
-import { Course, Classe } from '@/lib/data';
-import { classes, courses } from '@/lib/data';
+import { Course, Classe } from '@/lib/dataTemplate';
+import { SortableFile } from '@/components/admin/SortableFile';
+import { SortableCourse } from '@/components/admin/SortableCourse';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DragEndEvent } from '@dnd-kit/core';
+import Switch from '@mui/material/Switch';
+import { toast } from 'react-toastify';
 
+// Update ModificationsAdminProps interface
 interface ModificationsAdminProps {
   courses: Course[];
-  setCourses: (courses: Course[]) => void;
+  setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
 }
@@ -18,7 +25,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseToDelete, setCourseToDelete] = useState<string>('');
   const [files, setFiles] = useState<string[]>([]);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<boolean | null>(null);
   const [errorDeleteFile, setErrorDeleteFile] = useState<string>('');
   const [successMessageDeleteFile, setSuccessMessageDeleteFile] = useState<string>('');
   const [deleteFiles, setDeleteFiles] = useState<boolean>(false);
@@ -32,7 +39,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [errorDeleteClasse, setErrorDeleteClasse] = useState<string>('');
   const [successMessageDeleteClasse, setSuccessMessageDeleteClasse] = useState<string>('');
   const [warningDeleteClasse, setWarningDeleteClasse] = useState<string>('');
-  const [courseDetails, setCourseDetails] = useState<{ title: string; description: string; classe: string; theClasseId: string; }>({
+  const [courseDetails, setCourseDetails] = useState<{ id : string, title: string; description: string; classe: string; theClasseId: string; }>({
+    id : '',
     title: '',
     description: '',
     classe: '',
@@ -69,7 +77,24 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [warningRenameClasse, setWarningRenameClasse] = useState<string>('');
   const [refreshDataClass, setRefreshDataClass] = useState(false);
   const [successMessageUploadFileName, setSuccessMessageUploadFileName] = useState<string>('');
+  const [currentCourse, setCurrentCourse] = useState<Course[]>([]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  
+  useEffect(() => {
+    // Mettre à jour les cours associés à la classe sélectionnée
+    if (selectedClasse) {
+      const filteredCourses = courses.filter(course => course.theClasseId === selectedClasse);
+      setAssociatedCourses(filteredCourses);
+    } else {
+      setAssociatedCourses([]);
+    }
+  }, [selectedClasse, courses]);
 
   useEffect(() => {
     if (selectedCourse) {
@@ -77,6 +102,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       if (updatedCourse) {
         setFiles(updatedCourse.activities.map((activity) => activity.fileUrl));
         setCourseDetails({
+          id: updatedCourse.id,
           title: updatedCourse.title,
           description: updatedCourse.description,
           classe: updatedCourse.classe,
@@ -98,6 +124,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       const courseFiles = course.activities.map(activity => activity.fileUrl);
       setFiles(courseFiles);
       setCourseDetails({
+        id: course.id || '',
         title: course.title || '',
         description: course.description || '',
         classe: course.classe || '',
@@ -106,6 +133,149 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   };
 
+  useEffect(() => {
+    // Trouver le cours correspondant et mettre à jour le cours actuel
+    const course = courses.find(course => course.id === selectedCourse);
+    if (course) {
+      const courseWithFiles = {
+        id: course.id,
+        files: course.activities.map(activity => activity.fileUrl),
+      };
+      setCurrentCourse([course]);
+    }
+  }, [selectedCourse, courses]);
+
+  // Add drag end handler:
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const {active, over} = event;
+    
+    if (active.id !== over?.id) {
+      // Update files order
+      const oldIndex = files.indexOf(active.id as string);
+      const newIndex = files.indexOf(over?.id as string);
+      
+      const newFiles = [...files];
+      newFiles.splice(oldIndex, 1);
+      newFiles.splice(newIndex, 0, active.id as string);
+      setFiles(newFiles);
+  
+      // Get current course and reorder activities
+      const currentCourse = courses.find(course => course.id === selectedCourse);
+      if (!currentCourse) return;
+  
+      const newActivities = newFiles.map(fileUrl => 
+        currentCourse.activities.find(activity => activity.fileUrl === fileUrl)!
+      );
+  
+      // Update API
+      try {
+        const response = await fetch('/api/updateActivitiesOrder', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courseId: selectedCourse,
+            activities: newActivities
+          })
+        });
+  
+        if (!response.ok) throw new Error('Failed to update order');
+
+        
+        const data = await response.json();
+
+        if (response.ok) {
+          toast.dismiss();
+          toast.clearWaitingQueue();
+          toast.success(
+            <div className="text-center">
+              Ordre mis à jour pour le cours{" "}
+              <span className="font-bold">
+                {data.titleOfChosenCourse}
+              </span>
+            </div>,
+            {
+            position: "top-center",
+            autoClose: 500,
+            hideProgressBar: false,
+            theme: "dark",
+            style: {
+              width: '500px',
+              textAlign: 'center',
+              justifyContent: 'center',
+            },
+          });
+        }
+
+        // Update courses state with new order
+        setCourses(prevCourses => 
+          prevCourses.map(course => 
+            course.id === selectedCourse 
+              ? {...course, activities: newActivities}
+              : course
+          )
+        );
+  
+      } catch (error) {
+        console.error('Error updating activities order:', error);
+        // Revert files order on error
+        setFiles(files);
+      }
+    }
+  };
+
+  const handleDragEndCourse = async (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      // Update courses order
+      const oldIndex = courses.findIndex(course => course.id === active.id);
+      const newIndex = courses.findIndex(course => course.id === over?.id);
+
+      const newCourses = [...courses];
+      newCourses.splice(oldIndex, 1);
+      newCourses.splice(newIndex, 0, courses[oldIndex]);
+      setCourses(newCourses);
+
+      // Update API
+      try {
+        const response = await fetch('/api/updateCourseOrder', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ courses: newCourses.map(course => course.id), activeCourseId: active.id }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          toast.dismiss();
+          toast.clearWaitingQueue();
+          toast.success(
+            <div className="text-center">
+            Ordre mis à jour pour la classe{" "}
+            <span className="font-bold">
+              {data.titleOfChosenClass}
+            </span>
+          </div>,
+            {
+            position: "top-center",
+            autoClose: 500,
+            hideProgressBar: false,
+            theme: "dark",
+            style: {
+              width: '500px',
+              textAlign: 'center',
+              justifyContent: 'center',
+            },
+          });
+        } else {
+          setErrorDeleteCourse(data.error);
+        }
+      } catch (error) {
+        setErrorDeleteCourse('Internal server error');
+      }
+    }
+  };
+  
   const handleDeleteFile = async (fileUrl: string) => {
     const res = await fetch(`/api/deletefile`, {
       method: 'DELETE',
@@ -128,9 +298,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   };
 
-  const handleCancelDelete = () => {
-    setConfirmDelete(null);
-  };
+
 
   const handleDeleteCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +315,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        deleteFiles,
+        courseId: courseToDelete,
+        deleteFiles: deleteFiles,
       }),
     });
     
@@ -221,6 +390,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   };
 
+  
 
 
   const handleDeleteClasse = async (classeId: string) => {
@@ -246,7 +416,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        deleteFiles,
+        classeId: classeId,
+        deleteFiles: true
       }),
       });
 
@@ -268,6 +439,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       const updatedCourse: Course | undefined = data.courses.find((course: Course) => course.id === selectedCourse);
       if (updatedCourse) {
       setCourseDetails({
+        id: updatedCourse.id,
         title: updatedCourse.title,
         description: updatedCourse.description,
         classe: updatedCourse.classe,
@@ -303,7 +475,9 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        ...courseDetails,
+        courseId: courseDetails.id,
+        title: courseDetails.title,
+        description: courseDetails.description,
         newClasseId,
       }),
     });
@@ -345,42 +519,6 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     handleClasseChange(classeId);
   };
   
-  const handleConfirmDeleteRapide = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirmDeleteRapide) {
-      setErrorDeleteCourse('Sélectionnez un cours à supprimer !');
-      setSuccessMessageDeleteCourseRapide('');
-      return;
-    }
-    
-    const formerName = courses.find(course => course.id === confirmDeleteRapide)?.title
-
-    const res = await fetch(`/api/deletecourse/${confirmDeleteRapide}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        deleteFiles: true,
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setErrorDeleteCourseRapide(''); // Reset error message
-      setSuccessMessageDeleteCourseRapide(`Cours "${formerName}" supprimé avec succès.`);
-      setCourses(data.courses);
-      setClasses(data.classes);
-    } else {
-      setErrorDeleteCourseRapide('Erreur lors de la suppression du cours.'); 
-      setSuccessMessageDeleteCourseRapide('');
-    }
-    setConfirmDeleteRapide(null);
-  };
-  
-  const handleCancelDeleteRapide = () => {
-    setConfirmDeleteRapide(null);
-  };
 
   const updateActivityTitle = async (courseId: string, activityId: string, newTitle: string) => {
     try {
@@ -431,20 +569,31 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   }, [updateFormerActivity]);
 
-  useEffect(() => {
-    if (refreshDataClass) {
-      const updateCourseData = async () => {
-        const res = await fetch('/api/getcourses');
-        if (res.ok) {
-          const data = await res.json();
-          setCourses(data.courses);
-          setClasses(data.classes);
-        }
-      };
-      updateCourseData();
-      setRefreshDataClass(false);
+
+  const handleToggleVisibility = async (classeId: string, visibility: boolean) => {
+    try {
+      const response = await fetch(`/api/renameclasse/${classeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classeId,
+          toggleVisibilityClasse: visibility
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update class visibility');
+      }
+  
+      const data = await response.json();
+      setClasses(data.classes);
+      setCourses(data.courses);
+    } catch (error) {
+      console.error('Error updating class visibility:', error);
     }
-  }, [refreshDataClass]);
+  };
 
   return (
     <>
@@ -624,7 +773,10 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
 
                   if (uploadRes.ok) {
                     const dataModifyFile = await uploadRes.json();
-                    setRefreshDataClass(true);
+                    await new Promise(resolve => {
+                      setRefreshDataClass(true);
+                      resolve(true);
+                    });
                     setupdateFormerActivity(true);
                     setErrorUpdateActivity('');
                     setWarningUpdateActivity('');
@@ -642,7 +794,6 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
                   return;
                 }
               }
-              const activity2 = course?.activities.find((a) => a.id === selectedActivity);
               // Optionnel
               setNewFile(null);
               setNewActivityTitle('');
@@ -661,259 +812,227 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       </Card>
 
 
-    <Card className="p-4 mt-4" defaultExpanded={true} title="Modifier un cours" >
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes && Array.isArray(classes) ? (
-                classes.map((classe) => (
-                  <SelectItem key={classe.id} value={classe.id}>
-                    {classe.name}
-                  </SelectItem>
-                ))
-              ) : null}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Select value={selectedCourse} onValueChange={handleCourseChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un cours" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses && courses
-              .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
-              .map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {files.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Fichiers associés</h3>
+      <Card className="p-4 mt-4" defaultExpanded={true} title="Modifier un cours" >
+  <div className="space-y-6">
+    <div className="space-y-2">
+      <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
+        <SelectTrigger>
+          <SelectValue placeholder="Sélectionner une classe" />
+        </SelectTrigger>
+        <SelectContent>
+          {classes && Array.isArray(classes) ? (
+            classes.map((classe) => (
+              <SelectItem key={classe.id} value={classe.id}>
+                {classe.name}
+              </SelectItem>
+            ))
+          ) : null}
+        </SelectContent>
+      </Select>
+    </div>
+    <div className="space-y-2">
+      <Select value={selectedCourse} onValueChange={(value) => {
+        handleCourseChange(value);
+        setCourseToDelete(value);
+      }}>
+        <SelectTrigger>
+          <SelectValue placeholder="Sélectionner un cours" />
+        </SelectTrigger>
+        <SelectContent>
+          {courses && courses
+          .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+          .map((course) => (
+            <SelectItem key={course.id} value={course.id}>
+              {course.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+    {files.length > 0 && (
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium">Fichiers associés</h3>
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext 
+            items={files}
+            strategy={verticalListSortingStrategy}
+          >
             <ul className="space-y-2">
-              {files
-              .sort((a, b) => a.localeCompare(b))
-              .map((fileUrl) => (
-                <li key={fileUrl} className="flex items-center justify-between">
-                  <span>{fileUrl}</span>
-                  <div className="flex items-center justify-between space-x-2 w-[100px]">
-                    {confirmDelete === fileUrl ? (
-                      <>
-                        <Button className="bg-green-500 text-white hover:bg-green-700" onClick={() => handleDeleteFile(fileUrl)}>
-                          ✓
-                        </Button>
-                        <Button className="bg-gray-500 text-white" onClick={handleCancelDelete}>
-                          ✕
-                        </Button>
-                      </>
-                    ) : (
-                      <Button className="bg-red-500 text-white w-[100px] hover:bg-red-700" onClick={() => setConfirmDelete(fileUrl)}>
-                        Supprimer
-                      </Button>
-                    )}
-                  </div>
-                </li>
+              {currentCourse[0]?.activities?.map((activity) => (
+                <SortableFile
+                  key={activity.fileUrl}
+                  fileName={activity.title}
+                  fileUrl={activity.fileUrl}
+                  onDelete={handleDeleteFile}
+                />
               ))}
             </ul>
-          </div>
-        )}
-
-        {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
-        {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
+          </SortableContext>
+        </DndContext>
       </div>
-      {selectedCourse && (
-      <form onSubmit={handleSaveCourseDetails} className="space-y-6 mt-8">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Titre du cours</label>
-          <Input
-            type="text"
-            name="title"
-            value={courseDetails.title}
-            onChange={handleCourseDetailsChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Description du cours</label>
-          <Input
-            type="text"
-            name="description"
-            value={courseDetails.description}
-            onChange={handleCourseDetailsChange}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Classe</label>
-          <Select name="classe" value={newClasseId} onValueChange={(value) => setNewClasseId(value)}>
-            <SelectTrigger>
-              <SelectValue placeholder={courseDetails.classe || "Sélectionner une classe"} />
-            </SelectTrigger>
-            <SelectContent>
-              {classes.map((classe) => (
+    )}
+    {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
+    {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
+  </div>
+  {selectedCourse && (
+    <form onSubmit={handleSaveCourseDetails} className="space-y-6 mt-8">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Titre du cours</label>
+        <Input
+          type="text"
+          name="title"
+          value={courseDetails.title}
+          onChange={handleCourseDetailsChange}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Description du cours</label>
+        <Input
+          type="text"
+          name="description"
+          value={courseDetails.description}
+          onChange={handleCourseDetailsChange}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Classe</label>
+        <Select name="classe" value={newClasseId} onValueChange={(value) => setNewClasseId(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder={courseDetails.classe || "Sélectionner une classe"} />
+          </SelectTrigger>
+          <SelectContent>
+            {classes.map((classe) => (
+              <SelectItem key={classe.id} value={classe.id}>
+                {classe.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
+      {successMessageUpdateCourse && <SuccessMessage message={successMessageUpdateCourse} />}
+      <Button type="submit" className="w-full">
+        Enregistrer les modifications
+      </Button>
+    </form>
+  )}
+  <form onSubmit={handleDeleteCourse} className="space-y-6 mt-8">
+    <div className="flex flex-row col-span-1 justify-center items-center">
+      <label className="checkboxSwitch">
+        <Input
+          className="col-span-1"
+          type="checkbox"
+          checked={deleteFiles}
+          onChange={(e) => setDeleteFiles(e.target.checked)}
+        />
+        <span className="checkboxSlider checkboxSliderAdmin"></span>
+      </label>
+      <p className='ml-4'>Supprimer les fichiers associés</p>
+    </div>
+    <Button variant='destructive' type="submit" disabled={!courseToDelete} className="w-full">
+      Supprimer le cours
+    </Button>
+    <div className='mt-2'>
+      {errorDeleteCourse && <ErrorMessage message={errorDeleteCourse} />}
+      {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
+    </div>
+  </form>
+</Card>
+
+    <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une classe">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Select 
+          value={selectedClasseToDelete} 
+          onValueChange={(value) => {
+            setSelectedClasseToDelete(value);
+            handleSelectChange(value);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner une classe" />
+          </SelectTrigger>
+          <SelectContent>
+            {classes && Array.isArray(classes) ? (
+              classes.map((classe) => (
                 <SelectItem key={classe.id} value={classe.id}>
                   {classe.name}
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
-        {successMessageUpdateCourse && <SuccessMessage message={successMessageUpdateCourse} />}
-        <Button type="submit" className="w-full">
-          Enregistrer les modifications
-        </Button>
-      </form>
-      )}
-    </Card>
+              ))
+            ) : null}
+          </SelectContent>
+        </Select>
+      </div>
+      <Input
+        type="text"
+        placeholder="Nouveau nom de la classe"
+        value={editedClasseName}
+        onChange={(e) => setEditedClasseName(e.target.value)}
+      />
 
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une classe">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Select value={selectedClasseToDelete} onValueChange={setSelectedClasseToDelete}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une classe" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes && Array.isArray(classes) ? (
-                  classes.map((classe) => (
-                    <SelectItem key={classe.id} value={classe.id}>
-                      {classe.name}
-                    </SelectItem>
-                  ))
-                ) : null}
-              </SelectContent>
-            </Select>
-          </div>
-          <Input
-            type="text"
-            placeholder="Nouveau nom de la classe"
-            value={editedClasseName}
-            onChange={(e) => setEditedClasseName(e.target.value)}
+    <div className="flex flex-row justify-around">
+        <Button onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
+          Modifier la classe
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={() => handleDeleteClasse(selectedClasseToDelete)}
+        >
+          Supprimer la classe
+        </Button>
+        <div className="flex flex-row items-center">
+          <h4 className="text-sm font-medium text-gray-500">Visible</h4>
+          <Switch
+            checked={classes.find(classe => classe.id === selectedClasseToDelete)?.toggleVisibilityClasse || false}
+            onChange={(e) => handleToggleVisibility(selectedClasseToDelete, e.target.checked)}
+            disabled={!selectedClasseToDelete || classes.length === 0}
           />
-          <div className="flex flex-row justify-around">
-          <Button onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
-            Modifier la classe
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => handleDeleteClasse(selectedClasseToDelete)}
-          >
-            Supprimer la classe
-          </Button>
-          </div>
-          <div className="mt-2">
-            {errorDeleteClasse && <ErrorMessage message={errorDeleteClasse} />}
-            {warningDeleteClasse && <WarningMessage message={warningDeleteClasse} />}
-            {successMessageDeleteClasse && <SuccessMessage message={successMessageDeleteClasse} />}
-            {warningRenameClasse && <WarningMessage message={warningRenameClasse} />}
-          </div>
         </div>
-      </Card>
+      </div>
+      {associatedCourses.length > 0 && (
+        <div className="space-y-2">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEndCourse}
+          >
+            <SortableContext
+              items={associatedCourses.map(course => course.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <ul className="space-y-2">
+                {associatedCourses.map((course) => (
+                  <SortableCourse
+                    key={course.id}
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    onDelete={handleDeleteClickRapide}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
+        </div>
+      )}
+
+
+
+
+      <div className="mt-2">
+        {errorDeleteClasse && <ErrorMessage message={errorDeleteClasse} />}
+        {warningDeleteClasse && <WarningMessage message={warningDeleteClasse} />}
+        {successMessageDeleteClasse && <SuccessMessage message={successMessageDeleteClasse} />}
+        {warningRenameClasse && <WarningMessage message={warningRenameClasse} />}
+      </div>
+    </div>
 
       
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Supprimer un cours" >
-      <form onSubmit={handleDeleteCourse} className="space-y-6">
-        <div className="space-y-2">
-          <Select value={courseToDelete} onValueChange={setCourseToDelete}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un cours à supprimer" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses && courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-row col-span-1 justify-center items-center">
-        <label className="checkboxSwitch">
-        <Input
-            className="col-span-1"
-            type="checkbox"
-            checked={deleteFiles}
-            onChange={(e) => setDeleteFiles(e.target.checked)}
-          />
-          <span className="checkboxSlider checkboxSliderAdmin"></span>
-        
-        </label> 
-        <p className='ml-4'>Supprimer les fichiers associés</p>
-      </div>
-        
-        <Button type="submit" disabled={!courseToDelete} className="w-full">
-          Supprimer le cours
-        </Button>
-        <div className='mt-2'>
-        {errorDeleteCourse && <ErrorMessage message={errorDeleteCourse} />}
-        {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
-        </div>
-      </form>
-
       </Card>
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Supprimer un cours rapidement" >
-      <div>
-        <div className="space-y-2">
-          <Select name="classe" value={selectedClasse} onValueChange={(value) => handleSelectChange(value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes && Array.isArray(classes) ? (
-                classes.map((classe) => (
-                  <SelectItem key={classe.id} value={classe.id}>
-                    {classe.name}
-                  </SelectItem>
-                ))
-              ) : null}
-            </SelectContent>
-          </Select>
-        </div>
-        {associatedCourses.length > 0 && (
-          <div className="space-y-2 mt-4">
-            <ul className="space-y-2">
-              {associatedCourses.map((course) => (
-                <li key={course.id} className="flex items-center justify-between">
-                  <span>{course.title}</span>
-                  <div className="flex items-center justify-between space-x-2 w-[150px]">
-                    {confirmDeleteRapide === course.id ? (
-                      <>
-                        <Button className="bg-green-500 text-white hover:bg-green-700" onClick={handleConfirmDeleteRapide}>
-                          ✓
-                        </Button>
-                        <Button className="bg-gray-500 text-white" onClick={handleCancelDeleteRapide}>
-                          ✕
-                        </Button>
-                      </>
-                    ) : (
-                      <Button className="bg-red-500 text-white w-[150px] hover:bg-red-700" onClick={() => handleDeleteClickRapide(course.id)}>
-                        Supprimer le cours
-                      </Button>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <div className="mt-4">
-            {errorDeleteCourseRapide && <ErrorMessage message={errorDeleteCourseRapide} />}
-            {successMessageDeleteCourseRapide && <SuccessMessage message={successMessageDeleteCourseRapide} />}
-        </div>
-      </div>
-      </Card>
-    
-
-
-
 
     </>
     

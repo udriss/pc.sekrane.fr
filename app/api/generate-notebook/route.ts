@@ -4,9 +4,13 @@ import { join } from 'path';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
-import { courses } from '@/lib/data';
+import { parseData, updateData } from '@/lib/data-utils';
+
 
 export async function POST(req: Request) {
+
+  const { classes, courses } = await parseData();
+
   try {
     const { courseId, userName, sendFileUrl } = await req.json();
     const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');

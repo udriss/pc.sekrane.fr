@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Connexion Administration</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Connexion admin</h1>
       <Card className="max-w-md mx-auto p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
