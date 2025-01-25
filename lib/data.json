@@ -4,7 +4,7 @@
       "id": "0",
       "name": "Autre",
       "associated_courses": [],
-      "toggleVisibilityClasse": true
+      "toggleVisibilityClasse": false
     },
     {
       "id": "4",

@@ -27,12 +27,13 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] p-4 app-container mt-32">
+    <div className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] app-container">
       <div className="text-center space-y-6 max-w-2xl">
         <GraduationCap className="w-16 h-16 mx-auto text-primary" />
         <h1 className="text-4xl font-bold tracking-tight">Plan de travail et activités</h1>
         <p className="text-xl text-muted-foreground">
-          Site web de M. Sekrane
+          Site web de M. <span className="small-caps">Sekrane</span> <br />
+          Accédez à vos cours et activités en SPC et SNT
         </p>
         <Link href="/courses">
           <Button size="lg" className="mt-6">

@@ -45,7 +45,7 @@ export default function CoursesPage() {
   filteredCourses.sort((a, b) => a.classe.localeCompare(b.classe));
 
   return (
-    <div className="container py-8">
+    <div className="">
       <h1 className="text-3xl font-bold mb-8">Cours disponibles</h1>
       <div className="mb-4 flex items-center justify-center">
       <Select

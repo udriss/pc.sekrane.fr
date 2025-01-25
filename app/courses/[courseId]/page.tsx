@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default function CoursePageWrapper({ params }: { params: Promise<{ courseId: string }> }) {
   
     return (
-      <div className="container flex-grow flex justify-center items-center w-full">
+      <div className="flex-grow flex justify-center items-center w-full">
         <CoursePage params={params} />
       </div>
     );

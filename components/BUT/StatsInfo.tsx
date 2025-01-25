@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
 
-const config = {
+const configMathJax = {
   loader: { load: ["[tex]/html"] },
   tex: {
     packages: { "[+]": ["html"] },
@@ -75,7 +75,7 @@ export const StatsInfo = () => {
       ];
 
   return (
-    <MathJaxContext config={config}>
+    <MathJaxContext config={configMathJax}>
         <div className="mt-4">
             <Typography variant="h6" className="mb-2">
             Explications des paramètres statistiques

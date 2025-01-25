@@ -95,7 +95,8 @@ export function MainNav() {
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
       // ajouter "fixed" pour le rendre toujours visible
-      className={`bg-background/40 backdrop-blur-md shadow-sm top-0 z-50 transition-transform duration-150 ease-in-out ${isScrolled ? "-translate-y-full" : "translate-y-0"}`}
+      className={`bg-gray-100/40 backdrop-blur-md shadow-sm top-0 z-50 transition-transform 
+        duration-150 ease-in-out ${isScrolled ? "-translate-y-full" : "translate-y-0"}`}
       style={{ 
         backdropFilter: "blur(20px)", 
         WebkitBackdropFilter: "blur(10px)", 

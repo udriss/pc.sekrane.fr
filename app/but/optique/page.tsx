@@ -312,7 +312,7 @@ const clearData = () => {
 
   // Update render with null checks
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 mt-32">
+    <div className="w-full max-w-7xl">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Colonne X */}
         <div className="flex-1">
