@@ -188,47 +188,65 @@ export default function StatisticsPage() {
   };
 
   // Update submitData function
-  const submitData = async () => {
-    try {
-      if (xValues.length < 2 || yValues.length < 2) {
-        setAlert({
-          show: true,
-          message: 'Il faut au moins 2 points pour faire une régression',
-          severity: 'error'
-        });
-        return;
+const submitData = async () => {
+  try {
+    // Filter out empty expressions
+    const validXValues = xExpressions.reduce((acc: number[], expr, index) => {
+      if (expr.trim() !== '') {
+        acc.push(xValues[index]);
       }
+      return acc;
+    }, []);
 
-      setLoading(true);
-      const response = await fetch('/api/stats', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ xValues, yValues }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors du calcul');
+    const validYValues = yExpressions.reduce((acc: number[], expr, index) => {
+      if (expr.trim() !== '') {
+        acc.push(yValues[index]);
       }
+      return acc;
+    }, []);
 
-      setStats(data);
+    if (validXValues.length < 2 || validYValues.length < 2) {
       setAlert({
         show: true,
-        message: 'Calculs effectués avec succès',
-        severity: 'success'
-      });
-    } catch (error) {
-      setAlert({
-        show: true,
-        message: error instanceof Error ? error.message : 'Erreur lors du calcul',
+        message: 'Il faut au moins 2 points non vides pour faire une régression',
         severity: 'error'
       });
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    setLoading(true);
+    const response = await fetch('/api/stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        xValues: validXValues, 
+        yValues: validYValues 
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Erreur lors du calcul');
+    }
+
+    setStats(data);
+    setAlert({
+      show: true,
+      message: 'Calculs effectués avec succès',
+      severity: 'success'
+    });
+  } catch (error) {
+    setAlert({
+      show: true,
+      message: error instanceof Error ? error.message : 'Erreur lors du calcul',
+      severity: 'error'
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   interface RegressionResult {
     type: string;
@@ -236,67 +254,94 @@ export default function StatisticsPage() {
     r2: number;
   }
   
-const generateChartData = (model: string) => {
-  if (!stats?.results) return { points: [], regressionLine: [] };
+  interface Stats {
+    results: RegressionResult[];
+  }
+  
+  interface Point {
+    x: number;
+    y: number;
+  }
+  
+  interface ChartData {
+    points: Point[];
+    regressionLine: Point[];
+  }
+  
+  function generateChartData(stats: Stats | null, model: string): ChartData {
+    // Create points only from non-empty expressions
+    const points = xExpressions
+      .map((expr, i) => {
+        if (expr.trim() === '' || yExpressions[i].trim() === '') {
+          return null;
+        }
+        return { x: xValues[i], y: yValues[i] };
+      })
+      .filter((point): point is Point => point !== null);
 
-  const points = xValues.map((x, i) => ({ x, y: yValues[i] }));
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const range = maxX - minX;
-  const extendedMinX = minX - range * 0.5;
-  const extendedMaxX = maxX + range * 0.5;
-  const numPoints = 100;
-  const step = (extendedMaxX - extendedMinX) / numPoints;
+    const selectedReg = stats?.results?.find(r => r.type === model);
 
-  const selectedReg = stats.results.find((reg: any) => reg.type === model);
-  if (!selectedReg) return { points, regressionLine: [] };
-
-  const regressionLine: { x: number; y: number }[] = [];
-  for (let x = extendedMinX; x <= extendedMaxX; x += step) {
-    let y = 0;
-    switch (selectedReg.type) {
-      case 'linear':
-        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * x;
-        break;
-      case 'polynomial2':
-      case 'polynomial3':
-        y = selectedReg.coefficients.reduce(
-          (acc: number, c: number, i: number) => acc + c * Math.pow(x, i),
-          0
-        );
-        break;
-      case 'logarithmic10':
-        // y = a + b * log10(x)
-        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log10(x);
-        break;
-      case 'logarithmicE':
-        // y = a + b * ln(x)
-        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log(x);
-        break;
-      case 'exponential':
-        // y = a * e^(b * x)
-        y = selectedReg.coefficients[0] * Math.exp(selectedReg.coefficients[1] * x);
-        break;
-      default:
-        y = 0;
+    if (!points.length || !selectedReg) {
+      return { points, regressionLine: [] };
     }
-    regressionLine.push({ x, y });
+
+    // Calculate x range from valid points only
+    const xMin = Math.min(...points.map(p => p.x));
+    const xMax = Math.max(...points.map(p => p.x));
+
+    // Generate regression line
+    const regressionLine: Point[] = [];
+    const numPoints = 100;
+    const step = (xMax - xMin) / numPoints;
+  
+    for (let i = 0; i <= numPoints; i++) {
+      const x = xMin + (i * step);
+      let y = 0;
+  
+      try {
+        switch (model) {
+          case 'linear':
+            y = selectedReg.coefficients[0] * x + selectedReg.coefficients[1];
+            break;
+          case 'polynomial2':
+            y = selectedReg.coefficients[0] * Math.pow(x, 2) + 
+                selectedReg.coefficients[1] * x + 
+                selectedReg.coefficients[2];
+            break;
+          case 'polynomial3':
+            y = selectedReg.coefficients[0] * Math.pow(x, 3) + 
+                selectedReg.coefficients[1] * Math.pow(x, 2) + 
+                selectedReg.coefficients[2] * x + 
+                selectedReg.coefficients[3];
+            break;
+          case 'logarithmicE':
+            if (x > 0) {
+              y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log(x);
+            }
+            break;
+          case 'exponential':
+            y = selectedReg.coefficients[0] * Math.exp(selectedReg.coefficients[1] * x);
+            break;
+          case 'power':
+            if (x > 0) {
+              y = selectedReg.coefficients[0] * Math.pow(x, selectedReg.coefficients[1]);
+            }
+            break;
+        }
+  
+        if (isFinite(y) && !isNaN(y)) {
+          regressionLine.push({ x, y });
+        }
+      } catch (error) {
+        console.error('Error calculating regression point:', error);
+        continue;
+      }
+    }
+
+    return { points, regressionLine };
   }
 
-  return { points, regressionLine };
-};
 
-
-  const exportChart = async () => {
-    if (chartRef.current) {
-      const canvas = await html2canvas(chartRef.current);
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = 'regression-chart.png';
-      link.click();
-    }
-  };
 
   // Clear all data
 const clearData = () => {
@@ -312,31 +357,42 @@ const clearData = () => {
 };
 
   // Update precision calculation function
-  const calculatePrecision = () => {
-    const allValues = [...xValues, ...yValues];
-    const maxDecimals = allValues.reduce((max, val) => {
-      const decimal = val.toString().split('.')[1];
-      if (!decimal) return max;
-      // Count actual digits after decimal, not limited by JavaScript display
-      const actualDecimals = decimal.length;
-      return Math.max(max, actualDecimals);
-    }, 0);
-    return maxDecimals + 2;
-  };
-
-  // Update stats display with custom formatter
-  const formatNumber = (num: number) => {
-    if (num === null || num === undefined) return 'N/A';
-    const precision = calculatePrecision();
-    // Use string manipulation to avoid scientific notation
-    const parts = num.toString().split('e');
-    if (parts.length === 2) {
-      const mantissa = parseFloat(parts[0]).toFixed(precision);
-      const exponent = parseInt(parts[1]);
-      return `${mantissa}e${exponent}`;
+  const calculatePrecision = (num: number): number => {
+    // Handle special cases
+    if (num === 0) return 2;
+    
+    // Get magnitude using log10
+    const magnitude = Math.floor(Math.log10(Math.abs(num)));
+    
+    // Adjust precision based on magnitude
+    if (magnitude >= 4) {
+      return 2; // For large numbers (≥10000), show 2 decimals
+    } else if (magnitude <= -4) {
+      return Math.abs(magnitude) + 2; // For very small numbers, increase precision
+    } else {
+      return 5; // Default precision for normal range numbers
     }
-    return num.toFixed(precision);
   };
+  
+  // Update format number to use new precision calculation
+  function formatNumber(value: number): string {
+    if (value === null || value === undefined || isNaN(value)) {
+      return '';
+    }
+  
+    const strValue = value.toString();
+  
+    // Scientific notation case
+    if (strValue.includes('e') || strValue.includes('E')) {
+      const [base, exponent] = strValue.split(/[eE]/);
+      const roundedBase = Number(base).toFixed(4);
+      return `${roundedBase} \\cdot 10^{${exponent}}`;
+    }
+  
+    // Regular number case
+    const precision = calculatePrecision(value);
+    return Number(value).toFixed(precision);
+  }
 
   // Update render with null checks
   return (
@@ -350,7 +406,7 @@ const clearData = () => {
               <MathInput
                 key={index}
                 value={expr}
-                onChange={(expr, evaluated) => handleExpressionChange('x', index, expr, evaluated)}
+                onChange={(expr, evaluated) => handleExpressionChange('x', index, expr, evaluated ?? 0)}
               />
             ))}
           </div>
@@ -364,7 +420,7 @@ const clearData = () => {
               <MathInput
                 key={index}
                 value={expr}
-                onChange={(expr, evaluated) => handleExpressionChange('y', index, expr, evaluated)}
+                onChange={(expr, evaluated) => handleExpressionChange('y', index, expr, evaluated ?? 0)}
               />
             ))}
           </div>
@@ -455,13 +511,13 @@ const clearData = () => {
       <GraphDisplay
     chartLabels={chartLabels}
     chartDimensions={chartDimensions}
-    generateChartData={generateChartData}
+    generateChartData={(model: string) => generateChartData(stats, model)}
     stats={stats}
     isMobile={isMobile}
     isClient={isClient}
     containerRef={containerRef}
     chartRef={chartRef}
-    exportChart={exportChart}
+    formatNumber={formatNumber}
     loading={loading}
   />
   <StatsTable stats={stats} formatNumber={formatNumber} />

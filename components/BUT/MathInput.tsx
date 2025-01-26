@@ -22,14 +22,14 @@ const toRadians = (degrees: number) => degrees * (Math.PI / 180);
 
 interface MathInputProps {
   value: string;
-  onChange: (value: string, evaluatedValue: number) => void;
+  onChange: (value: string, evaluatedValue: number | null) => void;
 }
 
 export const MathInput: React.FC<MathInputProps> = ({ value, onChange }) => {
   const [localError, setLocalError] = useState<string | null>(null);
 
   const evaluateExpression = (expr: string): number | null => {
-    if (!expr.trim()) return 0;
+    if (!expr.trim()) return null;
     
     try {
       // Handle scientific notation and powers
@@ -50,13 +50,7 @@ export const MathInput: React.FC<MathInputProps> = ({ value, onChange }) => {
         }
       });
 
-      // Evaluate expression
-      if (/^[a-zA-Z0-9+\-*/.()^ ]*$/.test(withRadians)) {
-        const result = math.evaluate(withRadians);
-        return typeof result === 'number' ? result : null;
-      }
-      
-      return null;
+      return math.evaluate(withRadians);
     } catch {
       return null;
     }
@@ -66,15 +60,19 @@ export const MathInput: React.FC<MathInputProps> = ({ value, onChange }) => {
     const newValue = e.target.value;
     const evaluated = evaluateExpression(newValue);
     
-    if (newValue && evaluated === null && /^[a-zA-Z0-9+\-*/.()^ ]*$/.test(newValue)) {
+    if (newValue === '') {
       setLocalError(null);
+      onChange(newValue, null);
+    } else if (evaluated === null && /^[a-zA-Z0-9+\-*/.()^ ]*$/.test(newValue)) {
+      setLocalError(null);
+      onChange(newValue, null);
     } else if (evaluated === null) {
       setLocalError('Expression invalide');
+      onChange(newValue, null);
     } else {
       setLocalError(null);
+      onChange(newValue, evaluated);
     }
-
-    onChange(newValue, evaluated ?? 0);
   };
 
   return (

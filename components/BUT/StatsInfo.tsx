@@ -55,13 +55,13 @@ export const StatsInfo = () => {
           description: `Mesure normalisée (entre -1 et 1) de la relation linéaire entre $X$ et $Y$. Plus $\\left|r\\right|$ est proche de 1, plus la relation est forte.`
         },
         {
-          symbol: `$\\alpha$`,
-          name: "Pente de régression",
+          symbol: `$a$`,
+          name: "Pente de régression linéaire",
           explanation: `$\\alpha = \\frac{Cov(X,Y)}{\\sigma^2_X}$`,
           description: `Indique la variation de $Y$ pour une augmentation d'une unité de $X$. C'est la sensibilité de $Y$ par rapport à $X$.`
         },
         {
-          symbol: `$\\beta$`,
+          symbol: `$b$`,
           name: "Ordonnée à l'origine",
           explanation: `$\\beta = \\overline{Y} - \\alpha\\overline{X}$`,
           description: `Valeur de $Y$ quand $X=0$. C'est le point d'intersection de la droite de régression avec l'axe $Y$.`

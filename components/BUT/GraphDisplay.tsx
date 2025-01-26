@@ -1,18 +1,13 @@
 import React, { useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
-import {
-  ScatterChart,
-  Scatter,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip
-} from 'recharts';
 import { Download, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Select, MenuItem } from '@mui/material';
-import { Typography } from "@mui/material";
-import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { RegressionModelSelector } from './RegressionModelSelector';
+import { FaLess } from 'react-icons/fa6';
+import dynamic from 'next/dynamic';
+
+const Plot = dynamic(() => import('react-plotly.js'), {
+  ssr: false,
+  loading: () => <div>Loading Plot...</div>
+});
 
 interface ChartLabels {
   title: string;
@@ -53,81 +48,8 @@ interface GraphDisplayProps {
   isClient: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
   chartRef: React.RefObject<HTMLDivElement | null>;
-  exportChart: () => void;
   loading: boolean;
-}
-
-const getCoeffSymbols = (count: number) => {
-  return ["a", "b", "c", "d", "e"].slice(0, count);
-};
-
-const formatNumber = (num: number) => num.toFixed(4);
-
-function renderEquationAndCoefficients(stats: any, selectedModel: string) {
-  const model = stats?.results?.find((m: any) => m.type === selectedModel);
-  console.log(model);
-  // Gérer le cas d'erreur
-  if(model?.error) {
-    return (
-      <div className="mb-4">
-        <Typography color="error">
-          {model.error}
-        </Typography>
-      </div>
-    );
-  }
-
-  if(!model || !model.coefficients) return null;
-
-  const coeffs = model.coefficients;
-  const symbols = getCoeffSymbols(coeffs.length);
-  let equation = "";
-
-  switch(selectedModel) {
-    case "linear":
-      equation = `$y = ${symbols[0]} + ${symbols[1]}x$`;
-      break;
-    case "polynomial2":
-      equation = `$y = ${symbols[0]} + ${symbols[1]}x + ${symbols[2]}x^2$`;
-      break;
-    case "polynomial3":
-      equation = `$y = ${symbols[0]} + ${symbols[1]}x + ${symbols[2]}x^2 + ${symbols[3]}x^3$`;
-      break;
-    case "logarithmic10":
-      equation = `$y = ${symbols[0]} + ${symbols[1]}\\log_{10}(x)$`;
-      break;
-    case "logarithmicE":
-      equation = `$y = ${symbols[0]} + ${symbols[1]}\\ln(x)$`;
-      break;
-    case "exponential":
-      equation = `$y = ${symbols[0]} e^{${symbols[1]}x}$`;
-      break;
-    case "power":
-      equation = `$y = ${symbols[0]}x^{${symbols[1]}}$`;
-      break;
-    default:
-      equation = "";
-  }
-
-  return (
-    <div className="mb-4">
-      <MathJaxContext config={configMathJax}>
-      <Typography>
-        <MathJax>{equation}</MathJax>
-      </Typography>
-      <table style={{ marginTop: "8px" }}>
-        <tbody>
-          {coeffs.map((coef: number, i: number) => (
-            <tr key={i}>
-              <td><MathJax>{`$${symbols[i]}$`}</MathJax></td>
-              <td>{formatNumber(coef)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </MathJaxContext>
-    </div>
-  );
+  formatNumber: (num: number) => string;
 }
 
 export const GraphDisplay: React.FC<GraphDisplayProps> = ({
@@ -139,11 +61,12 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
   isClient,
   containerRef,
   chartRef,
-  exportChart,
+  formatNumber,
   loading
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedModel, setSelectedModel] = useState("linear");
+
 
   const handleModelChange = (event: any) => {
     setSelectedModel(event.target.value);
@@ -192,84 +115,122 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
     }
   };
 
+  const chartData = React.useMemo(() => {
+    const rawData = generateChartData(selectedModel);
+    
+    // Filter out points where x or y is 0 from empty inputs
+    const validPoints = rawData.points.filter(point => 
+      point.x !== 0 || point.y !== 0
+    );
+
+    // Only generate regression line if we have valid points
+    const regressionLine = validPoints.length >= 2 ? 
+      rawData.regressionLine : [];
+
+    return {
+      points: validPoints,
+      regressionLine
+    };
+  }, [selectedModel, generateChartData]);
 
   return (
-    <div ref={containerRef} className="w-full border rounded p-4 bg-white shadow-sm grid grid-cols-1 gap-4">
-      {/* Model switch */}
-      <div className="flex justify-center">
-        <Select
-          value={selectedModel}
-          onChange={handleModelChange}
-          className="w-full md:w-auto"
-        >
-          <MenuItem value="linear">Régression linéaire</MenuItem>
-          <MenuItem value="polynomial2">Polynomiale (2e degré)</MenuItem>
-          <MenuItem value="polynomial3">Polynomiale (3e degré)</MenuItem>
-          <MenuItem value="logarithmic10">Logarithmique (base 10)</MenuItem>
-          <MenuItem value="logarithmicE">Logarithmique (base e)</MenuItem>
-          <MenuItem value="exponential">Exponentielle</MenuItem>
-        </Select>
-      </div>
-
+    <div ref={containerRef} className="w-full border rounded p-4 bg-white shadow-sm">
       {loading ? (
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
         </div>
       ) : (
         <div ref={chartRef}>
-          <h3 className="text-center font-bold mb-4">{chartLabels.title}</h3>
           {isClient && chartDimensions.width > 0 && (
-            <ScatterChart
-              width={chartDimensions.width}
-              height={chartDimensions.height}
-              margin={{ 
-                top: 20, 
-                right: isMobile ? 10 : 20, 
-                bottom: isMobile ? 50 : 30, 
-                left: isMobile ? 40 : 40 
+            <Plot
+              data={[
+                {
+                  x: chartData.points.map(p => p.x),
+                  y: chartData.points.map(p => p.y),
+                  type: 'scatter',
+                  mode: 'markers',
+                  name: 'Points'
+                },
+                {
+                  x: chartData.regressionLine.map(p => p.x),
+                  y: chartData.regressionLine.map(p => p.y),
+                  type: 'scatter',
+                  mode: 'lines',
+                  name: 'Regression'
+                }
+              ]}
+              layout={{
+                width: chartDimensions.width,
+                height: Math.max(chartDimensions.height, 400),
+                title: {
+                  text: chartLabels.title,
+                  font: {
+                    family: 'Computer Modern Serif',
+                    size: 18,
+                    weight: 700
+                  }
+                },
+                xaxis: { 
+                  title: {
+                    text: chartLabels.xLabel,
+                    font: {
+                      family: 'Computer Modern Serif',
+                      size: 14
+                    }
+                  }
+                },
+                yaxis: { 
+                  title: {
+                    text: chartLabels.yLabel,
+                    font: {
+                      family: 'Computer Modern Serif',
+                      size: 14
+                    }
+                  }
+                },
+                legend: {
+                  orientation: 'h',
+                  x: 0.5,
+                  y: 1.1,
+                  xanchor: 'center',
+                  yanchor: 'top',
+                  font: {
+                    family: 'Computer Modern Serif',
+                    size: 12
+                  }
+                },
+                margin: {
+                  t: 80, // Increased top margin for title and legend
+                  b: 50,
+                  l: 50,
+                  r: 50
+                }
               }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                type="number" 
-                dataKey="x" 
-                name="X" 
-                label={{ 
-                  value: chartLabels.xLabel, 
-                  position: 'bottom' 
-                }}
-              />
-              <YAxis 
-                type="number" 
-                dataKey="y" 
-                name="Y"
-                label={{ 
-                  value: chartLabels.yLabel, 
-                  angle: -90, 
-                  position: 'left' 
-                }}
-              />
-              <Tooltip />
-              <Scatter
-                name="Points"
-                data={generateChartData(selectedModel).points}
-                fill="#8884d8"
-              />
-              {stats?.results && (
-                <Scatter
-                  name="Regression"
-                  data={generateChartData(selectedModel).regressionLine}
-                  fill="#d69404"
-                  line
-                  shape="cross"
-                />
-              )}
-            </ScatterChart>
+              config={{
+                displayModeBar: true,
+                displaylogo: false,
+                scrollZoom: true,
+                toImageButtonOptions: {
+                  format: 'png',
+                  filename: 'BUT_optique_graph_export',
+                  width: chartDimensions.width,
+                  height: Math.max(chartDimensions.height, 400),
+                  scale: 4  // Increased scale factor for better quality
+                },
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                responsive: true,
+              }}
+            />
           )}
         </div>
       )}
-      {renderEquationAndCoefficients(stats, selectedModel)}
-      <div className="flex justify-center">
+      <RegressionModelSelector 
+        selectedModel={selectedModel}
+        onModelChange={handleModelChange}
+        stats={stats}
+        formatNumber={formatNumber}
+      />
+      {/* <div className="flex justify-center">
         <Button 
           onClick={handleExport}
           disabled={isExporting}
@@ -282,7 +243,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
           )}
           {isExporting ? 'Export en cours...' : 'Exporter en PNG'}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 };

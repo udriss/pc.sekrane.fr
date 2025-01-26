@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import regression, { DataPoint } from 'regression';
+import { NextRequest } from 'next/server';
+import * as regression from 'regression';
+import { mean, variance, sampleCovariance, sampleCorrelation } from 'simple-statistics';
+
+type DataPoint = [number, number];
 
 interface RegressionResult {
   coefficients: number[];
@@ -7,109 +10,160 @@ interface RegressionResult {
   error?: string;
 }
 
-function logarithmicBase10(data: Array<[number, number]>) {
-  // On vérifie s'il y a au moins une valeur négative ou nulle
-  const hasNegativeOrZero = data.some(([x]) => x <= 0);
-  if (hasNegativeOrZero) {
-    return {
-      equation: [],
-      points: [],
-      string: 'y = a + b * log10(x)',
-      r2: 0,
-      type: 'logarithmic10',
-      error: 'Impossible de calculer la régression logarithmique (base 10) : certaines valeurs sont négatives ou nulles',
-    };
-  }
-  const transformed = data.map(([x, y]) => [Math.log10(x), y]);
-  const res = regression.linear(transformed as DataPoint[]);
-  return {
-    equation: res.equation,
-    points: res.points,
-    string: 'y = a + b * log10(x)',
-    r2: res.r2,
-    type: 'logarithmic10'
-  };
-}
-
-function logarithmicBaseE(data: Array<[number, number]>) {
-  // On vérifie s'il y a au moins une valeur négative ou nulle
-  const hasNegativeOrZero = data.some(([x]) => x <= 0);
-  if (hasNegativeOrZero) {
-    return {
-      equation: [],
-      r2: 0,
-      type: 'logarithmicE',
-      error: 'Impossible de calculer la régression logarithmique (base e) : certaines valeurs sont négatives ou nulles',
-    };
-  }
-  return regression.logarithmic(data as DataPoint[]);
+function getPrecision(data: DataPoint[]): number {
+  const minValue = Math.min(...data.flat().map(Math.abs));
+  if (minValue === 0) return 2;
+  const decimalPlaces = -Math.floor(Math.log10(minValue)) + 1;
+  return decimalPlaces > 2 ? decimalPlaces : 2;
 }
 
 const regressionTypes = [
-  { name: 'linear',       method: regression.linear },
-  { name: 'polynomial2',  method: (data: any) => regression.polynomial(data, { order: 2 }) },
-  { name: 'polynomial3',  method: (data: any) => regression.polynomial(data, { order: 3 }) },
-  { name: 'logarithmic10',method: logarithmicBase10 },
-  { name: 'logarithmicE', method: logarithmicBaseE },
-  { name: 'exponential',  method: regression.exponential },
+  { 
+    name: 'linear',       
+    method: (data: DataPoint[]) => {
+      const precision = getPrecision(data);
+      const result = regression.linear(data, { precision });
+      return {
+        ...result,
+        equation: result.equation // [gradient, y-intercept]
+      };
+    }
+  },
+  { 
+    name: 'polynomial2',  
+    method: (data: DataPoint[]) => {
+      if (data.length < 3) {
+        throw new Error('Need at least 3 points for quadratic regression');
+      }
+      const precision = getPrecision(data);
+      const result = regression.polynomial(data, { order: 2, precision });
+      return {
+        ...result,
+        equation: result.equation // [a2, a1, a0]
+      };
+    }
+  },
+  { 
+    name: 'polynomial3',  
+    method: (data: DataPoint[]) => {
+      if (data.length < 4) {
+        throw new Error('Il faut au moins 4 points pour une régression cubique');
+      }
+      const precision = getPrecision(data);
+      const result = regression.polynomial(data, { order: 3, precision });
+      return {
+        ...result,
+        equation: result.equation // [a3, a2, a1, a0]
+      };
+    }
+  },
+  {
+    name: 'logarithmicE',
+    method: (data: DataPoint[]) => {
+      if (data.some(point => point[0] <= 0)) {
+        throw new Error('La régression logarithmique nécessite des valeurs x <strong>strictement</strong> positives');
+      }
+      const precision = getPrecision(data);
+      const result = regression.logarithmic(data, { precision });
+      return {
+        ...result,
+        equation: result.equation // [a, b]
+      };
+    }
+  },
+  {
+    name: 'exponential',
+    method: (data: DataPoint[]) => {
+      if (data.some(point => point[1] <= 0)) {
+        throw new Error('La régression exponentielle nécessite des valeurs y <strong>strictement</strong> positives');
+      }
+      const precision = getPrecision(data);
+      const result = regression.exponential(data, { precision });
+      return {
+        ...result,
+        equation: result.equation // [a, b]
+      };
+    }
+  },
+  {
+    name: 'power',
+    method: (data: DataPoint[]) => {
+      if (data.some(point => point[0] <= 0 || point[1] <= 0)) {
+        throw new Error('La régression puissance nécessite des valeurs x et y positives');
+      }
+      const precision = getPrecision(data);
+      const result = regression.power(data, { precision });
+      return {
+        ...result,
+        equation: result.equation // [a, b]
+      };
+    }
+  }
 ];
 
 function standardizeResult(result: any): RegressionResult {
+  if (result.error) {
+    return {
+      coefficients: [],
+      r2: 0,
+      error: result.error
+    };
+  }
   return {
     coefficients: Array.isArray(result.equation) ? result.equation : [result.equation],
-    r2: result.r2,
-    ...(result.error && { error: result.error })
+    r2: result.r2 || 0
   };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const { xValues, yValues } = await req.json();
+    const data = xValues.map((x: number, i: number) => [x, yValues[i]]) as DataPoint[];
+    
+    const meanX = mean(xValues);
+    const meanY = mean(yValues);
+    const varianceX = variance(xValues);
+    const varianceY = variance(yValues);
+    const covariance = sampleCovariance(xValues, yValues);
+    const correlation = sampleCorrelation(xValues, yValues);
 
-    // Calcul de la moyenne
-    const meanX = xValues.reduce((a: number, b: number) => a + b, 0) / xValues.length;
-    const meanY = yValues.reduce((a: number, b: number) => a + b, 0) / xValues.length;
-
-    // Calcul de la variance
-    const varianceX = xValues.reduce((a: number, b: number) => a + Math.pow(b - meanX, 2), 0) / xValues.length;
-    const varianceY = yValues.reduce((a: number, b: number) => a + Math.pow(b - meanY, 2), 0) / yValues.length;
-
-    // Calcul de la covariance
-    const covariance = xValues.reduce((a: number, i: number, idx: number) => {
-      return a + (xValues[idx] - meanX) * (yValues[idx] - meanY);
-    }, 0) / xValues.length;
-
-    // Calcul du coefficient de corrélation
-    const correlation = covariance / (Math.sqrt(varianceX) * Math.sqrt(varianceY));
-
-    const errors: string[] = [];
-    const points: DataPoint[] = xValues.map((x: number, i: number) => [x, yValues[i]]);
-
-    const results = regressionTypes.map(regType => {
-      const result = regType.method(points);
-      return {
-        type: regType.name,
-        ...standardizeResult(result)
-      };
+    const results = regressionTypes.map(({ name, method }) => {
+      try {
+        const result = method(data);
+        return { 
+          type: name, 
+          ...standardizeResult(result),
+          error: null 
+        };
+      } catch (error) {
+        return { 
+          type: name, 
+          coefficients: [], 
+          r2: 0, 
+          error: (error as Error).message 
+        };
+      }
     });
 
-    console.log('results', results);
-
-    return NextResponse.json({
+    return new Response(JSON.stringify({
       meanX,
-      meanY,
+      meanY, 
       varianceX,
       varianceY,
       covariance,
       correlation,
       sampleSize: xValues.length,
       results,
-      errors
-    });
-    
+      errors: results.filter(r => r.error).map(r => ({
+        type: r.type,
+        message: r.error
+      }))
+    }), { status: 200 });
 
   } catch (error) {
-    return NextResponse.json({ error: 'Error calculating statistics' }, { status: 500 });
+    return new Response(
+      JSON.stringify({ error: (error as Error).message }),
+      { status: 500 }
+    );
   }
 }
-

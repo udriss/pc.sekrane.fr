@@ -1,5 +1,5 @@
 import React from 'react';
-import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import TeX from '@matejmazur/react-katex';
 import {
   Table,
   TableBody,
@@ -9,15 +9,6 @@ import {
   TableRow,
   Paper
 } from '@mui/material';
-
-// MathJax configuration
-const config = {
-  loader: { load: ["[tex]/html"] },
-  tex: {
-    packages: { "[+]": ["html"] },
-    inlineMath: [["$", "$"]]
-  }
-};
 
 interface RegressionStats {
   slope: number;
@@ -41,55 +32,45 @@ interface StatsTableProps {
 
 export const StatsTable: React.FC<StatsTableProps> = ({ stats, formatNumber }) => {
   return (
-    <MathJaxContext config={config}>
-      <TableContainer component={Paper} className="h-full shadow-none" sx={{ boxShadow: 'none' }}>
-        <Table className='h-full'>
-          <TableHead>
-            <TableRow>
-              <TableCell>Paramètre</TableCell>
-              <TableCell align="right">Valeur</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell><MathJax>{`$\\bar{X}$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.meanX)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$\\bar{Y}$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.meanY)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$\\sigma^2_X$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.varianceX)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$\\sigma^2_Y$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.varianceY)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$Cov(X,Y)$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.covariance)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$\\alpha$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.regression?.slope)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$\\beta$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.regression?.intercept)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$r_{X,Y}$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(stats.correlation)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><MathJax>{`$R^2$`}</MathJax></TableCell>
-              <TableCell align="right">{formatNumber(Math.pow(stats.correlation, 2))}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </MathJaxContext>
+    <TableContainer component={Paper} className="h-full shadow-none" sx={{ boxShadow: 'none' }}>
+      <Table className='h-full'>
+        <TableHead>
+          <TableRow>
+            <TableCell>Paramètre</TableCell>
+            <TableCell align="right">Valeur</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <TableCell><TeX math="\overline{X}" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.meanX)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="\bar{Y}" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.meanY)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="\sigma^2_X" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.varianceX)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="\sigma^2_Y" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.varianceY)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="Cov(X,Y)" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.covariance)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="r_{X,Y}" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(stats.correlation)} /></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><TeX math="R^2" /></TableCell>
+            <TableCell align="right"><TeX math={formatNumber(Math.pow(stats.correlation, 2))} /></TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
