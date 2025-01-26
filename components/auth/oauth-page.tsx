@@ -23,7 +23,7 @@ const signIn: (provider: AuthProvider) => void | Promise<AuthResponse> = async (
   // preview-start
   const promise = new Promise<AuthResponse>((resolve) => {
     setTimeout(() => {
-      console.log(`Sign in with ${provider.id}`);
+      
       resolve({ error: 'This is a fake error' });
     }, 500);
   });

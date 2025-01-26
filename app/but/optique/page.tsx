@@ -230,34 +230,62 @@ export default function StatisticsPage() {
     }
   };
 
-  const generateChartData = () => {
-    if (!stats) return { points: [], regressionLine: [] };
-    
-    // Points de données
-    const points = xValues.map((x, i) => ({
-      x: x,
-      y: yValues[i]
-    }));
+  interface RegressionResult {
+    type: string;
+    coefficients: number[];
+    r2: number;
+  }
   
-    // Ligne de régression
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const range = maxX - minX;
-    const extendedMinX = minX - range * 0.5; // Extend range by 5%
-    const extendedMaxX = maxX + range * 0.5; // Extend range by 5%
-    const regressionLine = stats.regression ? [
-      {
-        x: extendedMinX,
-        y: stats.regression.slope * extendedMinX + stats.regression.intercept
-      },
-      {
-        x: extendedMaxX,
-        y: stats.regression.slope * extendedMaxX + stats.regression.intercept
-      }
-    ] : [];
-  
-    return { points, regressionLine };
-  };
+const generateChartData = (model: string) => {
+  if (!stats?.results) return { points: [], regressionLine: [] };
+
+  const points = xValues.map((x, i) => ({ x, y: yValues[i] }));
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const range = maxX - minX;
+  const extendedMinX = minX - range * 0.5;
+  const extendedMaxX = maxX + range * 0.5;
+  const numPoints = 100;
+  const step = (extendedMaxX - extendedMinX) / numPoints;
+
+  const selectedReg = stats.results.find((reg: any) => reg.type === model);
+  if (!selectedReg) return { points, regressionLine: [] };
+
+  const regressionLine: { x: number; y: number }[] = [];
+  for (let x = extendedMinX; x <= extendedMaxX; x += step) {
+    let y = 0;
+    switch (selectedReg.type) {
+      case 'linear':
+        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * x;
+        break;
+      case 'polynomial2':
+      case 'polynomial3':
+        y = selectedReg.coefficients.reduce(
+          (acc: number, c: number, i: number) => acc + c * Math.pow(x, i),
+          0
+        );
+        break;
+      case 'logarithmic10':
+        // y = a + b * log10(x)
+        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log10(x);
+        break;
+      case 'logarithmicE':
+        // y = a + b * ln(x)
+        y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log(x);
+        break;
+      case 'exponential':
+        // y = a * e^(b * x)
+        y = selectedReg.coefficients[0] * Math.exp(selectedReg.coefficients[1] * x);
+        break;
+      default:
+        y = 0;
+    }
+    regressionLine.push({ x, y });
+  }
+
+  return { points, regressionLine };
+};
+
 
   const exportChart = async () => {
     if (chartRef.current) {

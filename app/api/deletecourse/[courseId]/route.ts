@@ -7,7 +7,6 @@ import path from 'path';
 export async function DELETE(req: NextRequest) {
     try {
     const { deleteFiles, courseId } = await req.json();
-    console.log('courseId:', courseId);
 
     if (!courseId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

@@ -10,12 +10,23 @@ import {
 } from 'recharts';
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, MenuItem } from '@mui/material';
+import { Typography } from "@mui/material";
+import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
 interface ChartLabels {
   title: string;
   xLabel: string;
   yLabel: string;
 }
+
+const configMathJax = {
+  loader: { load: ["[tex]/html"] },
+  tex: {
+    packages: { "[+]": ["html"] },
+    inlineMath: [["$", "$"]]
+  }
+};
 
 interface ChartDimensions {
   width: number;
@@ -30,14 +41,93 @@ interface ChartData {
 interface GraphDisplayProps {
   chartLabels: ChartLabels;
   chartDimensions: ChartDimensions;
-  generateChartData: () => ChartData;
-  stats: any;
+  generateChartData: (model: string) => ChartData;
+  stats: {
+    results: Array<{
+      type: string;
+      coefficients: number[];
+      error?: string;
+    }>;
+  };
   isMobile: boolean;
   isClient: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
   chartRef: React.RefObject<HTMLDivElement | null>;
   exportChart: () => void;
   loading: boolean;
+}
+
+const getCoeffSymbols = (count: number) => {
+  return ["a", "b", "c", "d", "e"].slice(0, count);
+};
+
+const formatNumber = (num: number) => num.toFixed(4);
+
+function renderEquationAndCoefficients(stats: any, selectedModel: string) {
+  const model = stats?.results?.find((m: any) => m.type === selectedModel);
+  console.log(model);
+  // Gérer le cas d'erreur
+  if(model?.error) {
+    return (
+      <div className="mb-4">
+        <Typography color="error">
+          {model.error}
+        </Typography>
+      </div>
+    );
+  }
+
+  if(!model || !model.coefficients) return null;
+
+  const coeffs = model.coefficients;
+  const symbols = getCoeffSymbols(coeffs.length);
+  let equation = "";
+
+  switch(selectedModel) {
+    case "linear":
+      equation = `$y = ${symbols[0]} + ${symbols[1]}x$`;
+      break;
+    case "polynomial2":
+      equation = `$y = ${symbols[0]} + ${symbols[1]}x + ${symbols[2]}x^2$`;
+      break;
+    case "polynomial3":
+      equation = `$y = ${symbols[0]} + ${symbols[1]}x + ${symbols[2]}x^2 + ${symbols[3]}x^3$`;
+      break;
+    case "logarithmic10":
+      equation = `$y = ${symbols[0]} + ${symbols[1]}\\log_{10}(x)$`;
+      break;
+    case "logarithmicE":
+      equation = `$y = ${symbols[0]} + ${symbols[1]}\\ln(x)$`;
+      break;
+    case "exponential":
+      equation = `$y = ${symbols[0]} e^{${symbols[1]}x}$`;
+      break;
+    case "power":
+      equation = `$y = ${symbols[0]}x^{${symbols[1]}}$`;
+      break;
+    default:
+      equation = "";
+  }
+
+  return (
+    <div className="mb-4">
+      <MathJaxContext config={configMathJax}>
+      <Typography>
+        <MathJax>{equation}</MathJax>
+      </Typography>
+      <table style={{ marginTop: "8px" }}>
+        <tbody>
+          {coeffs.map((coef: number, i: number) => (
+            <tr key={i}>
+              <td><MathJax>{`$${symbols[i]}$`}</MathJax></td>
+              <td>{formatNumber(coef)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </MathJaxContext>
+    </div>
+  );
 }
 
 export const GraphDisplay: React.FC<GraphDisplayProps> = ({
@@ -53,6 +143,11 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
   loading
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("linear");
+
+  const handleModelChange = (event: any) => {
+    setSelectedModel(event.target.value);
+  };
 
   const handleExport = async () => {
     if (!chartRef.current) return;
@@ -97,8 +192,25 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
     }
   };
 
+
   return (
     <div ref={containerRef} className="w-full border rounded p-4 bg-white shadow-sm grid grid-cols-1 gap-4">
+      {/* Model switch */}
+      <div className="flex justify-center">
+        <Select
+          value={selectedModel}
+          onChange={handleModelChange}
+          className="w-full md:w-auto"
+        >
+          <MenuItem value="linear">Régression linéaire</MenuItem>
+          <MenuItem value="polynomial2">Polynomiale (2e degré)</MenuItem>
+          <MenuItem value="polynomial3">Polynomiale (3e degré)</MenuItem>
+          <MenuItem value="logarithmic10">Logarithmique (base 10)</MenuItem>
+          <MenuItem value="logarithmicE">Logarithmique (base e)</MenuItem>
+          <MenuItem value="exponential">Exponentielle</MenuItem>
+        </Select>
+      </div>
+
       {loading ? (
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -138,24 +250,25 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
                 }}
               />
               <Tooltip />
-              <Scatter 
-                name="Points" 
-                data={generateChartData().points} 
-                fill="#8884d8" 
+              <Scatter
+                name="Points"
+                data={generateChartData(selectedModel).points}
+                fill="#8884d8"
               />
-              {stats?.regression && (
-                <Scatter 
-                  name="Points" 
-                  data={generateChartData().regressionLine} 
-                  fill="#d69404" 
-                  line 
-                  shape="cross" 
+              {stats?.results && (
+                <Scatter
+                  name="Regression"
+                  data={generateChartData(selectedModel).regressionLine}
+                  fill="#d69404"
+                  line
+                  shape="cross"
                 />
               )}
             </ScatterChart>
           )}
         </div>
       )}
+      {renderEquationAndCoefficients(stats, selectedModel)}
       <div className="flex justify-center">
         <Button 
           onClick={handleExport}

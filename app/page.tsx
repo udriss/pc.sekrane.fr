@@ -32,8 +32,11 @@ export default function Home() {
         <GraduationCap className="w-16 h-16 mx-auto text-primary" />
         <h1 className="text-4xl font-bold tracking-tight">Plan de travail et activités</h1>
         <p className="text-xl text-muted-foreground">
-          Site web de M. <span className="small-caps">Sekrane</span> <br />
           Accédez à vos cours et activités en SPC et SNT
+        </p>
+
+        <p className="text-xl text-muted-foreground mt-6">
+          Site web de M. <span className="small-caps">Sekrane</span> <br />
         </p>
         <Link href="/courses">
           <Button size="lg" className="mt-6">

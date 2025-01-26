@@ -153,11 +153,6 @@ export function ActivityList({
       const existingUserName = existingUserNameCookie?.split('=')[1];
       const newNotebookFileName = fileUrl.split('/').pop(); // Get filename from URL
 
-      //console.log('existingNotebookInCookie:', existingNotebookInCookie);
-      //console.log('newNotebookFileName:', newNotebookFileName);
-      //console.log('existingUserName:', existingUserName);
-      //console.log('userName:', userName);
-      //console.log('TEST', newNotebookFileName === existingNotebookInCookie);
 
       if (existingNotebookInCookie && existingUserName === userName && newNotebookFileName === existingNotebookInCookie) {
         // Use the existing notebook fileName
@@ -166,7 +161,7 @@ export function ActivityList({
           .find(cookie => cookie.trim().startsWith('notebookDir='));
         const existingDir = existingDirCookie?.split('=')[1];
 
-        //console.log('Existing notebook:', existingDir);
+        
 
         const tokenResponse = await fetch('/api/jupyter-list');
         const tokenData = await tokenResponse.json();
@@ -178,7 +173,7 @@ export function ActivityList({
           document.cookie = `notebookDir=${existingDir};  path=/; max-age=2592000`
           document.cookie = `notebookUserName=${userName};  path=/; max-age=2592000`;
           document.cookie = `notebookURL=${jupyterUrl};  path=/; max-age=2592000`;
-          //console.log('Generated cookie ### Cashed:', document.cookie);
+          
           return;
         }
       }
@@ -200,7 +195,7 @@ export function ActivityList({
 
       const jupyterUrl = `https://jupyter.sekrane.fr/notebooks/${data.dirPath}/${data.fileName}?token=${tokenData.token}`;
       onSelectActivity(jupyterUrl, 'ipynb');
-      //console.log('Generated notebook:', jupyterUrl);
+      
 
       // Save file path info in cookies
       document.cookie = `notebookFileName=${data.fileName}; path=/; max-age=3600`;
@@ -208,7 +203,7 @@ export function ActivityList({
       document.cookie = `notebookUserName=${userName};  path=/; max-age=3600`;
       document.cookie = `notebookURL=${jupyterUrl};  path=/; max-age=3600`;
       
-      //console.log('Generated cookie 2:', document.cookie);
+      
     } else if (fileExtension && ['png','jpg','jpeg','gif','svg','heic','webmp'].includes(fileExtension)) {
       const apiUrl = `/api/files${fileUrl}`;
       const objectUrl = await downloadFileWithProgress(apiUrl);

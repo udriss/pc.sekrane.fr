@@ -50,7 +50,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   useEffect(() => {
     async function fetchCourse() {
       if (courseId) {
-        console.log('fetching course', courseId);
+        
         const res = await fetch(`/api/courses/${courseId}`);
         if (res.status === 404) {
           router.push('/not-found');
@@ -91,7 +91,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     if (iframeRef.current) {
       iframeRef.current.src = '';
     }
-    console.log('Cookies et iframe iPyNB effacés');
+    
   };
 
   const handleDrag = (sizes: number[]) => {

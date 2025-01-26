@@ -42,8 +42,8 @@ interface StatsTableProps {
 export const StatsTable: React.FC<StatsTableProps> = ({ stats, formatNumber }) => {
   return (
     <MathJaxContext config={config}>
-      <TableContainer component={Paper} className="mt-4 shadow-none" sx={{ boxShadow: 'none' }}>
-        <Table>
+      <TableContainer component={Paper} className="h-full shadow-none" sx={{ boxShadow: 'none' }}>
+        <Table className='h-full'>
           <TableHead>
             <TableRow>
               <TableCell>Paramètre</TableCell>

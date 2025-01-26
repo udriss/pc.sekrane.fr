@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest) {
     // Write updated data to file
     await updateData(classes, courses);
     const titleOfChosenCourse = courses.find(course => course.id === courseId.toString())?.title;
-    console.log(courses.find(course => course.id === courseId.toString())?.title);
+    
 
     return NextResponse.json({ titleOfChosenCourse: titleOfChosenCourse }, { status: 200 });
   } catch (error) {

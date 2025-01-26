@@ -5,7 +5,7 @@ import { cp } from 'fs';
 export async function PUT(req: NextRequest) {
   try {
     const { courseId, title, description, newClasseId } = await req.json();
-    console.log(courseId, "++", title, "++", description, "++", newClasseId);
+    
     if (!courseId || !title || !description || !newClasseId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }

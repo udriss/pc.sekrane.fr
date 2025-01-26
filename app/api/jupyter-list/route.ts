@@ -13,11 +13,11 @@ export async function GET() {
         resolve(NextResponse.json({ error: stderr }, { status: 500 }));
       } else {
         const tokenMatch = stdout.match(/token=([^\s]+)/);
-        //console.log(`stdout jupyter-list route: ${stdout}`);
+        
         if (tokenMatch) {
           const token = tokenMatch[1];
           resolve(NextResponse.json({ token }, { status: 200 }));
-          // console.log(`Token: ${token}`);
+          
         } else {
           resolve(NextResponse.json({ error: 'No token found' }, { status: 500 }));
         }

@@ -8,11 +8,40 @@ import 'react-toastify/dist/ReactToastify.css';
 import Head from 'next/head';
 
 const inter = Inter({ subsets: ['latin'] });
+const deploymentDomain = process.env.NEXT_PUBLIC_DEPLOYMENT_DOMAIN || 'http://localhost:8001';
 
 export const metadata: Metadata = {
   title: 'Plan de travail et activités',
-  description: 'Site web de M. SEKRANE. Accédez à vos cours et activités en SPC et SNT.',
+  description: 'Site web de M. SEKRANE. Accédez à vos cours et activités en SPC et SNT',
+  icons: {
+    icon: '/images/favicon.ico',
+  },
+  keywords: ['cours', 'physique', 'chimie', 'SPC', 'optique', 'Python',
+     'SNT', 'informatique', 'programmation', 'algorithmique', 'éducation',
+      'apprentissage', 'exercices', 'enseignant', 'élèves', 'sciences', 'technologie'],
+  openGraph: {
+    title: 'Plan de travail et activités',
+    description: 'Site web de M. SEKRANE. Accédez à vos cours et activités en SPC et SNT',
+    images: [
+      '/images/ogImages/imageOG_1.jpeg',
+      '/images/ogImages/imageOG_2.jpeg',
+      '/images/ogImages/imageOG_3.jpeg',
+      '/images/ogImages/imageOG_4.jpeg',
+      '/images/ogImages/imageOG_5.jpeg',
+      '/images/ogImages/imageOG_6.jpeg',
+      '/images/ogImages/imageOG_7.jpeg',
+      '/images/ogImages/imageOG_8.jpeg'
+    ],
+    locale: 'fr_FR',
+    type: 'website',
+  },
+  robots: 'index, follow',
+  formatDetection: {
+    telephone: false
+  },
+  metadataBase: new URL(deploymentDomain),
 };
+
 
 export default function RootLayout({
   children,
@@ -22,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <Head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/images/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
       </Head>
       <body className={`${inter.className} min-h-screen w-full`}>

@@ -52,7 +52,7 @@ export const StatsInfo = () => {
           symbol: `$r(X,Y)$`,
           name: "Coefficient de corrélation",
           explanation: `$r_{X,Y} = \\frac{Cov(X,Y)}{\\sqrt{\\sigma^2_X \\sigma^2_Y}}$`,
-          description: `Mesure normalisée (entre -1 et 1) de la relation linéaire entre $X$ et $Y$. Plus $\left|r\right|$ est proche de 1, plus la relation est forte.`
+          description: `Mesure normalisée (entre -1 et 1) de la relation linéaire entre $X$ et $Y$. Plus $\\left|r\\right|$ est proche de 1, plus la relation est forte.`
         },
         {
           symbol: `$\\alpha$`,
