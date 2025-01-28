@@ -6,17 +6,69 @@ import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { parseData, updateData } from '@/lib/data-utils';
 
+const filePath = path.join('public', 'jupyterServerWork', 'uniqueIds.json');
+
+async function generateUniqueId() {
+  let uniqueId;
+  let uniqueIds = [];
+
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    uniqueIds = JSON.parse(data);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') throw error;
+  }
+
+  do {
+    uniqueId = uuidv4().replace(/-/g, '').substring(0, 6).toUpperCase();
+  } while (uniqueIds.includes(uniqueId));
+
+  return uniqueId;
+}
+
+const getFrenchDayAbbrev = (date: Date): string => {
+  const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const months = ['JANV', 'FÉVR', 'MARS', 'AVRI', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCTO', 'NOVE', 'DÉCE'];
+  return `${days[date.getDay()]}-${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
+};
+
+async function storeUniqueId(uniqueId: string, dirPath: string, orginalFileName: string, userName: string) {
+  try {
+    let storedData = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      storedData = JSON.parse(data);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') throw error;
+    }
+
+    const currentDate = new Date();
+    const formattedDate = getFrenchDayAbbrev(currentDate);
+
+
+    storedData.push({
+      uniqueId: uniqueId,
+      dirPath: dirPath,
+      orginalFileName: orginalFileName,
+      userName: userName,
+      date: formattedDate
+    });
+
+    await fs.writeFile(filePath, JSON.stringify(storedData, null, 2), 'utf8');
+    console.log('Unique ID and dirPath stored successfully');
+  } catch (error) {
+    console.error('Error storing data:', error);
+  }
+}
+
 
 export async function POST(req: Request) {
-
   const { classes, courses } = await parseData();
 
   try {
     const { courseId, userName, sendFileUrl } = await req.json();
     const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');
 
-
-    // Find the course by ID
     const course = courses.find(course => course.id === courseId);
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
@@ -30,8 +82,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Notebook file not found' }, { status: 404 });
     }
 
-    
-    // Vérifier si le dossier jupyterServerWork existe, sinon le créer
     if (!existsSync(jupyterServerWork)) {
       mkdirSync(jupyterServerWork, { recursive: true });
       exec(`chown -R www-data:idr ${jupyterServerWork}`, (error, stdout, stderr) => {
@@ -45,16 +95,12 @@ export async function POST(req: Request) {
       });
     }
 
-    
-
-    
-
+    const uniqueId = await generateUniqueId();
     const originalFileName = path.basename(notebookFile.fileUrl, '.ipynb');
-    const uniqueId = uuidv4().replace(/-/g, '').substring(0, 3);
     
     // Create new directory path
     const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
-    const newDirName = `${originalFileName}-${uniqueId}-${sanitizedUserName}`;
+    const newDirName = `${originalFileName}_${uniqueId}_${sanitizedUserName}`;
     const jupyterWorkDir = path.join(process.cwd(), 'public', 'jupyterServerWork');
     const newDirPath = path.join(jupyterWorkDir, newDirName);
 
@@ -79,12 +125,13 @@ export async function POST(req: Request) {
         console.error(`stderr: ${stderr}`);
       }
     });
-
+    await storeUniqueId(uniqueId, newDirName, originalFileName+".ipynb", userName);
 
     // Return the directory path for Jupyter server
     return NextResponse.json({ 
       dirPath: newDirName,
-      fileName: `${originalFileName}.ipynb`
+      fileName: `${originalFileName}.ipynb`,
+      uniqueId: uniqueId
     });
   } catch (error) {
     console.error('Error generating notebook:', error);

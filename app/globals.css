@@ -243,3 +243,9 @@ input:checked + .checkboxSliderAdmin:before  {
     margin: 0.5rem 0;
     font-size: 0.9rem;
   }
+
+  .toast-centered {
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+  }

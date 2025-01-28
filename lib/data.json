@@ -25,7 +25,8 @@
       "name": "SNT",
       "associated_courses": [
         "8",
-        "9"
+        "9",
+        "19"
       ],
       "toggleVisibilityClasse": true
     },
@@ -55,15 +56,30 @@
   "courses": [
     {
       "id": "9",
-      "title": "1 - Internet",
+      "title": "1 — Internet",
       "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
       "classe": "SNT",
       "theClasseId": "5",
       "activities": []
     },
     {
+      "id": "19",
+      "title": "4 — Algo",
+      "description": "Apprendre à définir, afficher et manipuler des variables en Python à travers des algorithmes et des exercices pratiques.",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": [
+        {
+          "id": "1737991180547",
+          "name": "2SNT_Algo.pdf",
+          "title": "Parcours d'activités",
+          "fileUrl": "/19/pdf/2SNT_Algo.pdf"
+        }
+      ]
+    },
+    {
       "id": "8",
-      "title": "8 - IA",
+      "title": "8 — IA",
       "description": "Exploration de l'IA en santé via des dessins, applications en ligne, création de modèles IA, et sensibilisation aux biais des données.",
       "classe": "SNT",
       "theClasseId": "5",
@@ -275,10 +291,10 @@
       "theClasseId": "4",
       "activities": [
         {
-          "id": "1737364519049",
-          "name": "TSTI_C7_Act1.pdf",
+          "id": "1737972778771",
+          "name": "TSTI_C7_A1.pdf",
           "title": "AE : combustion complète",
-          "fileUrl": "/6/pdf/TSTI_C7_Act1.pdf"
+          "fileUrl": "/6/pdf/TSTI_C7_A1.pdf"
         }
       ]
     },
@@ -420,6 +436,21 @@
           "name": "2nd_T1_C5_coches_el_3.pdf",
           "title": "Couches électroniques",
           "fileUrl": "/14/pdf/2nd_T1_C5_coches_el_3.pdf"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "title": "Chapitre 8",
+      "description": "",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1737972591733",
+          "name": "TSTI_C8_A1_2.pdf",
+          "title": "Acides et bases de BRØNSTED",
+          "fileUrl": "/18/pdf/TSTI_C8_A1_2.pdf"
         }
       ]
     }

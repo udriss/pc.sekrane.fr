@@ -18,6 +18,7 @@ interface ActivityListProps {
   handleFileSelection: (fileUrl: string, fileType: string) => void;
   userName: string;                                // Reçu du parent
   setUserName: React.Dispatch<React.SetStateAction<string>>; // Reçu du parent
+  onUniqueIdReceived: (uniqueId: string) => void;
 }
 
 export function ActivityList({
@@ -27,6 +28,7 @@ export function ActivityList({
   handleFileSelection,
   userName,
   setUserName,
+  onUniqueIdReceived
 }: ActivityListProps) {
 
   const [toastId, setToastId] = useState<Id | null>(null);
@@ -122,7 +124,8 @@ export function ActivityList({
         return;
       }
     }
-
+    toast.dismiss();
+    toast.clearWaitingQueue();
     const fileExtension = fileUrl.split('.').pop();
     if (fileUrl.endsWith('.ipynb')) {
       if (!userName) {
@@ -174,6 +177,7 @@ export function ActivityList({
           document.cookie = `notebookUserName=${userName};  path=/; max-age=2592000`;
           document.cookie = `notebookURL=${jupyterUrl};  path=/; max-age=2592000`;
           
+          
           return;
         }
       }
@@ -193,15 +197,18 @@ export function ActivityList({
       const data = await response.json();
       if (!response.ok) return;
 
+      onUniqueIdReceived(data.uniqueId);
+
       const jupyterUrl = `https://jupyter.sekrane.fr/notebooks/${data.dirPath}/${data.fileName}?token=${tokenData.token}`;
       onSelectActivity(jupyterUrl, 'ipynb');
       
 
       // Save file path info in cookies
-      document.cookie = `notebookFileName=${data.fileName}; path=/; max-age=3600`;
-      document.cookie = `notebookDir=${data.dirPath};  path=/; max-age=3600`;
-      document.cookie = `notebookUserName=${userName};  path=/; max-age=3600`;
-      document.cookie = `notebookURL=${jupyterUrl};  path=/; max-age=3600`;
+      document.cookie = `notebookFileName=${data.fileName}; path=/; max-age=2592000`;
+      document.cookie = `notebookDir=${data.dirPath};  path=/; max-age=2592000`;
+      document.cookie = `notebookUserName=${userName};  path=/; max-age=2592000`;
+      document.cookie = `notebookURL=${jupyterUrl};  path=/; max-age=2592000`;
+      document.cookie = `notebookUniqueId=${data.uniqueId};  path=/; max-age=2592000`;
       
       
     } else if (fileExtension && ['png','jpg','jpeg','gif','svg','heic','webmp'].includes(fileExtension)) {
@@ -225,7 +232,6 @@ export function ActivityList({
       }
     }
   };
-  const hasIpynb = activities.some((activity) => activity.name.endsWith('.ipynb'));
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
@@ -250,49 +256,27 @@ export function ActivityList({
   };
 
   return (
-    <>
-      <div className="flex flex-col items-center">
-        {hasIpynb && (
-          <div className="mb-4 w-full max-w-[200px]">
-            <Input
-              className="inputNameActivityList"
-              type="text"
-              placeholder="Entrez votre nom"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              onFocus={() => {
-                if (toastId) {
-                  toast.dismiss();
-                  toast.clearWaitingQueue();
-                  setToastId(null);
-                }
-              }}
-            />
-          </div>
-        )}
-        <div className="flex flex-wrap flex-row gap-4">
-          {activities
-          .map((activity) => (
-            <Tooltip 
-              key={activity.id}
-              content={activity.title}
-              closeDelay={550}
-              className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
-                rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
-                transition-opacity duration-300"
-            >
-              <Button
-                variant="outline"
-                className="inline-flex items-center justify-start w-auto min-w-[150px] max-w-[300px] truncate"
-                onClick={() => handleActivityClick(activity.fileUrl)}
-              >
-                <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
-                <span className="truncate">{activity.title}</span>
-              </Button>
-            </Tooltip>
-          ))}
-        </div>
-      </div>
-    </>
+    <div className="flex flex-wrap flex-row gap-4">
+      {activities
+      .map((activity) => (
+        <Tooltip 
+          key={activity.id}
+          content={activity.title}
+          closeDelay={550}
+          className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
+            rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
+            transition-opacity duration-300"
+        >
+          <Button
+            variant="outline"
+            className="inline-flex items-center justify-start w-auto min-w-[150px] max-w-[300px] truncate"
+            onClick={() => handleActivityClick(activity.fileUrl)}
+          >
+            <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
+            <span className="truncate">{activity.title}</span>
+          </Button>
+        </Tooltip>
+      ))}
+    </div>
   );
 }

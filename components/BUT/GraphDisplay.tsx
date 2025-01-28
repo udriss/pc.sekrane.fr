@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 const Plot = dynamic(() => import('react-plotly.js'), {
   ssr: false,
-  loading: () => <div>Loading Plot...</div>
+  loading: () => <div>Chargement du graphique ...</div>
 });
 
 interface ChartLabels {
@@ -118,9 +118,9 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
   const chartData = React.useMemo(() => {
     const rawData = generateChartData(selectedModel);
     
-    // Filter out points where x or y is 0 from empty inputs
+    // Only filter out null points, keep (0,0) if it's a valid data point
     const validPoints = rawData.points.filter(point => 
-      point.x !== 0 || point.y !== 0
+      point !== null && point !== undefined
     );
 
     // Only generate regression line if we have valid points

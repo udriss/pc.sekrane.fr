@@ -289,13 +289,15 @@ const submitData = async () => {
     const xMin = Math.min(...points.map(p => p.x));
     const xMax = Math.max(...points.map(p => p.x));
 
+    const xDepart = xMin - (xMax - xMin) * 0.2;
+    const xArrive = xMax + (xMax - xMin) * 0.2;
     // Generate regression line
     const regressionLine: Point[] = [];
-    const numPoints = 100;
-    const step = (xMax - xMin) / numPoints;
+    const numPoints = 250;
+    const step = (xArrive - xDepart) / numPoints;
   
     for (let i = 0; i <= numPoints; i++) {
-      const x = xMin + (i * step);
+      const x = xDepart + (i * step);
       let y = 0;
   
       try {
@@ -317,7 +319,7 @@ const submitData = async () => {
           case 'logarithmicE':
             if (x > 0) {
               y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log(x);
-            }
+            } else {y=NaN}
             break;
           case 'exponential':
             y = selectedReg.coefficients[0] * Math.exp(selectedReg.coefficients[1] * x);
