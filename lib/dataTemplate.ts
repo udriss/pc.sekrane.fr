@@ -12,6 +12,8 @@ export interface Activity {
     classe: string;
     theClasseId: string;
     activities: Activity[];
+    toggleVisibilityCourse?: boolean;
+    themeChoice?: number;
   }
 
   export interface Classe {

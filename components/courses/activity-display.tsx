@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import DOMPurify from 'dompurify';
 import ActivityHeader from "@/components/courses/activity-header";
 import { ActivityList } from "@/components/courses/activity-list";
-import { Course } from "@/lib/data";
+import { Course, Activity } from "@/lib/dataTemplate";
 import NotFound from "@/app/not-found";
 import LoadingPage from "@/app/loading";
 import Split from 'react-split';
@@ -17,6 +17,7 @@ import { ExternalLink } from 'lucide-react'; // Add this import
 import { toast, Id } from 'react-toastify'; // Add this import
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
+import { Download } from 'lucide-react'; // Add this import
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -44,6 +45,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const router = useRouter();
   const [currentUniqueId, setCurrentUniqueId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   const handleUniqueIdReceived = (id: string) => {
     setCurrentUniqueId(id);
@@ -67,8 +69,8 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     }
   }, [userName, setUserName]);
 
-  const handleFileSelection = (fileUrl: string, fileType: string) => {
-    if (fileType === 'other' && isMobileDevice()) {
+  const handleFileSelection = (fileUrl: string, fileType: string, activity: Activity) => {
+    if (fileType === 'pdfType' && isMobileDevice()) {
       // Open PDF in new tab on mobile
       window.open(fileUrl, '_blank');
       return;
@@ -82,6 +84,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     if (fileType !== 'image' && fileType !== 'video' && selectedFileLeft === fileUrl && !isMobileDevice()) {
       setIframeKeyLeft(prev => prev + 1);
     }
+    setSelectedActivity(activity);
     setSelectedFileLeft(fileUrl);
     setLeftFileType(fileType);
   };
@@ -115,12 +118,13 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     fetchCourse();
   }, [courseId]);
 
-  const handleSelectActivity = (fileUrl: string, type: string) => {
+  const handleSelectActivity = (fileUrl: string, type: string, activity: Activity) => {
     if (type === 'ipynb') {
       setSelectedFileRight(fileUrl);
     } else {
       setSelectedFileLeft(fileUrl);
       setLeftFileType(type);
+      setSelectedActivity(activity);
     }
     setLastClickedType(type);
   };
@@ -171,8 +175,6 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     const uniqueIdCookie = document.cookie
       .split(';')
       .find(cookie => cookie.trim().startsWith('notebookUniqueId='));
-    console.log('Unique ID cookie:', uniqueIdCookie);
-    console.log('Unique ID:', currentUniqueId);
     if (uniqueIdCookie) {
       const uniqueIdValue = uniqueIdCookie.split('=')[1];
       setCurrentUniqueId(uniqueIdValue);
@@ -181,7 +183,6 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
 
   const handleVerifyNotebook = async () => {
     if (!currentUniqueId || currentUniqueId.length !== 6) return;
-    console.log('Verifying notebook with ID:', currentUniqueId);
     
     setIsLoading(true);
     try {
@@ -192,7 +193,6 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
       });
       
       const data = await response.json();
-      console.log('Verification response:', data);
       
       if (data.success) {
         // Set userName and save in cookies
@@ -208,13 +208,14 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
         }
 
         const jupyterUrl = `https://jupyter.sekrane.fr/notebooks/${data.dirPath}/${data.orginalFileName}?token=${tokenData.token}`;
-        console.log('Opening notebook:', jupyterUrl);
         
         // Only update iframeRightRef
         if (iframeRightRef.current) {
           iframeRightRef.current.src = jupyterUrl;
         }
-        handleSelectActivity(jupyterUrl, 'ipynb');
+        if (selectedActivity) {
+          handleSelectActivity(jupyterUrl, 'ipynb', selectedActivity);
+        }
         toast.dismiss();
         toast.clearWaitingQueue();
         toast.success(
@@ -302,12 +303,181 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     </div>
   );
 
+  
+  const DownloadButton = ({ fileUrl, title }: { fileUrl: string, title: string }) => {
+    const handleDownload = async () => {
+      try {
+        // Obtenir le nom du fichier à partir de l'URL pour le téléchargement
+        const fileName = fileUrl.split('/').pop() || 'downloaded-file';
+        
+        // Télécharger le fichier
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        
+        // Créer un lien de téléchargement et le déclencher
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = title || fileName;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Utiliser le titre pour le message de succès
+        toast.success(`Téléchargement de "${title}" démarré`);
+      } catch (error) {
+        console.error('Erreur lors du téléchargement:', error);
+        toast.error('Erreur lors du téléchargement du fichier');
+      }
+    };
+
+    return (
+      <Button 
+        onClick={handleDownload}
+        className="absolute top-0 right-0 z-10 m-2 bg-blue-600 hover:bg-blue-700"
+        size="sm"
+      >
+        <Download className="mr-2 h-4 w-4" /> Télécharger
+      </Button>
+    );
+  };
+
+
+// Modifier le composant FileMetadata pour intégrer le lecteur audio
+const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) => {
+  const [fileSize, setFileSize] = useState<string>("Chargement...");
+  const [lastModified, setLastModified] = useState<string>("Chargement...");
+  const fileName = activity.title || 'Fichier inconnu';
+  const fileExtension = activity.fileUrl.split('.').pop()?.toLowerCase() || 'inconnu';
+  const isAudioFile = ['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(fileExtension);
+  
+  useEffect(() => {
+    async function fetchFileMetadata() {
+      try {
+        // Extraire le chemin relatif du fichier à partir de l'URL
+        const filePath = activity.fileUrl;
+        
+        // Appeler l'API pour obtenir les métadonnées
+        const response = await fetch(`/api/file-metadata?filePath=${encodeURIComponent(filePath)}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Formater la taille du fichier
+          const size = data.size;
+          let formattedSize = "";
+          if (size < 1024) {
+            formattedSize = `${size} octets`;
+          } else if (size < 1024 * 1024) {
+            formattedSize = `${(size / 1024).toFixed(2)} Ko`;
+          } else {
+            formattedSize = `${(size / (1024 * 1024)).toFixed(2)} Mo`;
+          }
+          setFileSize(formattedSize);
+          
+          // Formater la date en français
+          const date = new Date(data.lastModified);
+          const options: Intl.DateTimeFormatOptions = {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          };
+          const formattedDate = new Intl.DateTimeFormat('fr-FR', options).format(date);
+          setLastModified(formattedDate);
+        } else {
+          setFileSize("Information non disponible");
+          setLastModified("Information non disponible");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des métadonnées:", error);
+        setFileSize("Erreur de chargement");
+        setLastModified("Erreur de chargement");
+      }
+    }
+    
+    fetchFileMetadata();
+  }, [activity.fileUrl]);
+  
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gray-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">{activity.title}</h2>
+        
+        <div className="space-y-4">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-500">Type de fichier</span>
+            <span className="text-base font-semibold uppercase">{fileExtension}</span>
+          </div>
+          
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-500">Taille</span>
+            <span className="text-base font-semibold">{fileSize}</span>
+          </div>
+          
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-500">Dernière modification</span>
+            <span className="text-base font-semibold">{lastModified}</span>
+          </div>
+          
+          {isAudioFile && (
+            <div className="mt-6">
+              <div className="w-full flex justify-center">
+                <div 
+                  className="w-full max-w-md"
+                  style={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
+                  backgroundColor: '#f8f9fa',
+                  padding: '10px',
+                  height: '80px',
+                  display: 'flex',
+                  alignContent: 'center',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  }}
+                >
+                  <audio 
+                  controls
+                  className="w-full"
+                  controlsList="nodownload"
+                  preload="metadata"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderRadius: '4px'
+                  }}
+                  >
+                  <source src={url} type={`audio/${fileExtension}`} />
+                  Votre navigateur ne prend pas en charge la lecture audio.
+                  </audio>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-4">
+              Ce fichier peut être téléchargé en utilisant le bouton ci-dessus.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
   return (
     <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1200px] mx-auto px-4 md:px-0">
       <ActivityHeader title={course.title} description={course.description} />
 
-      <div className="flex flex-col w-full md:grid-cols-4">
-      <ActivityList
+      {/* Adapter la structure en fonction du thème */}
+      <div className={`
+        ${course.themeChoice === 1 ? 'flex flex-col md:flex-row' : 'flex flex-col'} 
+        w-full
+      `}>
+        <ActivityList
+          themeChoice={course.themeChoice ?? 0}
           activities={course.activities}
           onSelectActivity={handleSelectActivity}
           onToggleSideBySide={handleToggleSideBySide}
@@ -315,75 +485,77 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
           userName={userName}
           setUserName={setUserName}
           onUniqueIdReceived={handleUniqueIdReceived}
-          />
+        />
 
-      {/* <div className="w-full h-[3px] my-8 bg-gradient-to-r from-transparent via-gray-400 to-transparent" /> */}
-      <Divider variant="middle" sx={{ my: 2, borderBottomWidth: '2px' }}></Divider>
-      {hasIpynb && (
-          <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
-            <div className="flex flex-col gap-4">
-            <Input
-                className="inputNameActivityList min-w-[200px]"
-                type="text"
-                placeholder="Entrez votre prénom"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                onFocus={() => {
-                  if (toastId) {
-                    toast.dismiss();
-                    toast.clearWaitingQueue();
-                    setToastId(null);
-                  }
-                }}
-              />
-            <div className="flex flex-row items-center justify-around gap-4">
-            <div className="">
-              Double vue
-            </div>
-              <label className="checkboxSwitch">
-                <input
-                  type="checkbox"
-                  checked={showSideBySide}
-                  onChange={(e) => setShowSideBySide(e.target.checked)}
+        {/* Dans le mode accordéon, cette div doit toujours prendre toute la largeur */}
+        <div className={`${course.themeChoice === 1 ? 'flex-1' : 'w-full'}`}>
+          {course.themeChoice !== 2 && <Divider variant="middle" sx={{ my: 2, borderBottomWidth: '2px' }}></Divider>}
+          {hasIpynb && (
+            // Cette partie reste inchangée comme demandé
+            <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
+              <div className="flex flex-col gap-4">
+              <Input
+                  className="inputNameActivityList min-w-[200px]"
+                  type="text"
+                  placeholder="Entrez votre prénom"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  onFocus={() => {
+                    if (toastId) {
+                      toast.dismiss();
+                      toast.clearWaitingQueue();
+                      setToastId(null);
+                    }
+                  }}
                 />
-                <span className="checkboxSlider checkboxSliderEleve"></span>
-              </label>
-            </div>
-            </div>
-            <div className="flex flex-col gap-4 md:mt-0 mt-4">
-              <OtpInput
-                value={currentUniqueId}
-                onChange={handleOTPChange}
-                numInputs={6}
-                renderSeparator={""}
-                renderInput={(props) => <input {...props} />}
-                containerStyle="flex gap-2"
-                inputStyle={{
-                  width: '2rem',
-                  height: '2.5rem',
-                  margin: '0 2px',
-                  fontSize: '1rem',
-                  borderRadius: '4px',
-                  border: '2px solid rgb(42, 101, 196)',
-                  textAlign: 'center'
-                }}
-              />
-            <Button 
-              onClick={handleVerifyNotebook}
-              disabled={isLoading || !currentUniqueId || currentUniqueId.length !== 6}
-              className=""
-            >
-              {isLoading ? 'Chargement...' : 'Charger un notebook'}
-            </Button>
-            </div>
-            
+              <div className="flex flex-row items-center justify-around gap-4">
+              <div className="">
+                Double vue
+              </div>
+                <label className="checkboxSwitch">
+                  <input
+                    type="checkbox"
+                    checked={showSideBySide}
+                    onChange={(e) => setShowSideBySide(e.target.checked)}
+                  />
+                  <span className="checkboxSlider checkboxSliderEleve"></span>
+                </label>
+              </div>
+              </div>
+              <div className="flex flex-col gap-4 md:mt-0 mt-4">
+                <OtpInput
+                  value={currentUniqueId}
+                  onChange={handleOTPChange}
+                  numInputs={6}
+                  renderSeparator={""}
+                  renderInput={(props) => <input {...props} />}
+                  containerStyle="flex gap-2"
+                  inputStyle={{
+                    width: '2rem',
+                    height: '2.5rem',
+                    margin: '0 2px',
+                    fontSize: '1rem',
+                    borderRadius: '4px',
+                    border: '2px solid rgb(42, 101, 196)',
+                    textAlign: 'center'
+                  }}
+                />
+              <Button 
+                onClick={handleVerifyNotebook}
+                disabled={isLoading || !currentUniqueId || currentUniqueId.length !== 6}
+                className=""
+              >
+                {isLoading ? 'Chargement...' : 'Charger un notebook'}
+              </Button>
+              </div>
+              
 
-            <Button onClick={handleClearCookies} className="bg-red-300 text-white w-[auto] hover:bg-red-700 md:mt-0 mt-4">
-              Effacer vos données
-            </Button>
-          </div>
-        )}
-
+              <Button onClick={handleClearCookies} className="bg-red-300 text-white w-[auto] hover:bg-red-700 md:mt-0 mt-4">
+                Effacer vos données
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 md:mt-8 flex justify-center h-[900px] w-full overflow-y-auto">
@@ -400,7 +572,15 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
             dragInterval={2}
             direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
           >
-            <div className="w-full h-full md:h-auto">
+            <div className="w-full h-full md:h-auto relative">
+              {/* Bouton de téléchargement */}
+              {selectedFileLeft && selectedActivity &&
+                  <DownloadButton 
+                  fileUrl={selectedFileLeft} 
+                  title={selectedActivity?.title || ''}
+                />
+              }
+              
               {leftFileType === 'image' && selectedFileLeft && (
                 <ImageZoom src={selectedFileLeft} />
               )}
@@ -410,7 +590,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
                   fileName={selectedFileLeft.split('/').pop() || 'video'}
                 />
               )}
-              {leftFileType !== 'image' && leftFileType !== 'video' && selectedFileLeft && (
+              {leftFileType === 'pdfType' && selectedFileLeft && (
                 <div className="w-full h-full relative">
                   <iframe 
                     key={iframeKeyLeft} 
@@ -419,6 +599,19 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
                     style={{border: 'none'}}
                   />
                 </div>
+              )}
+              {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
+                <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
+              )}
+              {leftFileType === 'typescript' && selectedFileLeft && (
+                <iframe 
+                  srcDoc={sanitizeContent(selectedFileLeft)} 
+                  style={{ width: '100%', height: '100%' }}
+                  sandbox="allow-scripts"
+                ></iframe>
+              )}
+              {leftFileType === 'audio' && selectedFileLeft && selectedActivity && (
+                <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
               )}
             </div>
             <div className="w-full h-full md:h-auto">
@@ -436,7 +629,15 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
           </Split>
         ) : (
           <>
-            <div style={{ width: lastClickedType !== 'ipynb' && selectedFileLeft ? '100%' : '0%', height: '100%', display: selectedFileLeft && lastClickedType !== 'ipynb' ? 'block' : 'none' }}>
+            <div style={{ width: lastClickedType !== 'ipynb' && selectedFileLeft ? '100%' : '0%', height: '100%', display: selectedFileLeft && lastClickedType !== 'ipynb' ? 'block' : 'none' }} className="relative">
+              {/* Bouton de téléchargement */}
+              {selectedFileLeft && selectedActivity &&
+                  <DownloadButton 
+                  fileUrl={selectedFileLeft} 
+                  title={selectedActivity.title} 
+                />
+              }
+              
               {leftFileType === 'image' && selectedFileLeft && (
                 <ImageZoom src={selectedFileLeft} />
               )}
@@ -453,20 +654,20 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
                     sandbox="allow-scripts"
                     ></iframe>
               )}
-              {leftFileType !== 'image' && leftFileType !== 'video' && selectedFileLeft && (
-                <>
-                  {isMobileDevice() && leftFileType === 'other' ? (
-                    <MobileOpenButton url={selectedFileLeft} />
-                  ) : (
-                    <iframe
-                      key={iframeKeyLeft}
-                      ref={iframeRef}
-                      src={selectedFileLeft}
-                      className="w-full h-full"
-                      allowFullScreen
-                    />
-                  )}
-                </>
+              {leftFileType === 'pdfType' && selectedFileLeft && (
+                <iframe
+                  key={iframeKeyLeft}
+                  ref={iframeRef}
+                  src={selectedFileLeft}
+                  className="w-full h-full"
+                  allowFullScreen
+                />
+              )}
+              {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
+                <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
+              )}
+              {leftFileType === 'audio' && selectedFileLeft && selectedActivity && (
+                <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
               )}
             </div>
             <div

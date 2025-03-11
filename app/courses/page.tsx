@@ -39,8 +39,11 @@ export default function CoursesPage() {
   };
 
   const filteredCourses = selectedClasse
-    ? courses.filter((course) => course.classe === selectedClasse)
-    : [];
+    ? courses.filter((course) => 
+        course.classe === selectedClasse && 
+        (course.toggleVisibilityCourse !== false)
+      )
+    : courses.filter((course) => course.toggleVisibilityCourse !== false);
 
   filteredCourses.sort((a, b) => a.classe.localeCompare(b.classe));
 

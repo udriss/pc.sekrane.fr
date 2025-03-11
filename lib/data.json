@@ -3,7 +3,9 @@
     {
       "id": "0",
       "name": "Autre",
-      "associated_courses": [],
+      "associated_courses": [
+        "22"
+      ],
       "toggleVisibilityClasse": false
     },
     {
@@ -16,7 +18,11 @@
         "4",
         "5",
         "6",
-        "18"
+        "18",
+        "26",
+        "27",
+        "29",
+        "30"
       ],
       "toggleVisibilityClasse": true
     },
@@ -26,7 +32,8 @@
       "associated_courses": [
         "8",
         "9",
-        "19"
+        "19",
+        "28"
       ],
       "toggleVisibilityClasse": true
     },
@@ -38,7 +45,12 @@
         "11",
         "12",
         "13",
-        "14"
+        "14",
+        "23",
+        "31",
+        "32",
+        "33",
+        "34"
       ],
       "toggleVisibilityClasse": true
     },
@@ -48,7 +60,11 @@
       "associated_courses": [
         "15",
         "16",
-        "17"
+        "17",
+        "20",
+        "21",
+        "24",
+        "25"
       ],
       "toggleVisibilityClasse": true
     }
@@ -60,7 +76,9 @@
       "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
       "classe": "SNT",
       "theClasseId": "5",
-      "activities": []
+      "activities": [],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
     },
     {
       "id": "19",
@@ -70,12 +88,20 @@
       "theClasseId": "5",
       "activities": [
         {
-          "id": "1737991180547",
+          "id": "1740740585766",
+          "name": "2SNT_algo.ipynb",
+          "title": "Notebook",
+          "fileUrl": "/19/notebook/2SNT_algo.ipynb"
+        },
+        {
+          "id": "1741079021164",
           "name": "2SNT_Algo.pdf",
           "title": "Parcours d'activités",
           "fileUrl": "/19/pdf/2SNT_Algo.pdf"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 1
     },
     {
       "id": "8",
@@ -90,7 +116,9 @@
           "title": "Parcours d'activités",
           "fileUrl": "/8/pdf/2SNT_IA.pdf"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
     },
     {
       "id": "2",
@@ -117,7 +145,9 @@
           "title": "Supplément : équation différentielle",
           "fileUrl": "/2/pdf/TSTI_C1_supplement.pdf"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
     },
     {
       "id": "3",
@@ -138,7 +168,9 @@
           "title": "TP2 — Notebook",
           "fileUrl": "/3/notebook/TST_C2_TP_1.ipynb"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
     },
     {
       "id": "4",
@@ -159,11 +191,351 @@
           "title": "TP4 — Notebook",
           "fileUrl": "/4/notebook/TSTI_C4_TP1.ipynb"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "16",
+      "title": "T4 Chapitre 1",
+      "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1736157814914",
+          "name": "1S_T4_C1_A4.pdf",
+          "title": "Double périodicité (spatiale et temporelle)",
+          "fileUrl": "/16/pdf/1S_T4_C1_A4.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "15",
+      "title": "T1 Chapitre 4",
+      "description": "Concepts essentiels des réactions chimiques incluant l'évolution des quantités des réactifs et de produits : introduction du tableau d'avancement.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1736153524872",
+          "name": "1S_C4_intro.pdf",
+          "title": "Fabrication de sandwichs",
+          "fileUrl": "/15/pdf/1S_C4_intro.pdf"
+        },
+        {
+          "id": "1737639989000",
+          "name": "1S_C4_fiche_1.ipynb",
+          "title": "Avancement : Python 1",
+          "fileUrl": "/15/notebook/1S_C4_fiche_1.ipynb"
+        },
+        {
+          "id": "1737639999341",
+          "name": "1S_C4_fiche_2.ipynb",
+          "title": "Avancement : Python 2",
+          "fileUrl": "/15/notebook/1S_C4_fiche_2.ipynb"
+        },
+        {
+          "id": "1737640012131",
+          "name": "1S_C4_fiche_3.ipynb",
+          "title": "Avancement : Python 3",
+          "fileUrl": "/15/notebook/1S_C4_fiche_3.ipynb"
+        },
+        {
+          "id": "1739171256792",
+          "name": "1S_C4_CE1.pdf",
+          "title": "CE 1",
+          "fileUrl": "/15/pdf/1S_C4_CE1.pdf"
+        },
+        {
+          "id": "1739171266499",
+          "name": "1S_C4_CE2.pdf",
+          "title": "CE 2",
+          "fileUrl": "/15/pdf/1S_C4_CE2.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "5",
+      "title": "Chapitre 6",
+      "description": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1736155906779",
+          "name": "TSTI_C6_A1.pdf",
+          "title": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
+          "fileUrl": "/5/pdf/TSTI_C6_A1.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "6",
+      "title": "Chapitre 7",
+      "description": "Comprendre la combustion complète, ses caractéristiques, les types de combustibles, les équations de réaction et les bilans de matière et énergétique.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1737972778771",
+          "name": "TSTI_C7_A1.pdf",
+          "title": "AE : combustion complète",
+          "fileUrl": "/6/pdf/TSTI_C7_A1.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "12",
+      "title": "Documents de cours",
+      "description": "Retrouvez tous les documents de cours de votre année de seconde en Physique chimie",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737546829601",
+          "name": "2nd_T1_C1_cours_2.pdf",
+          "title": "T1 Chapitre 1 — Identification des espèces chimiques",
+          "fileUrl": "/12/pdf/2nd_T1_C1_cours_2.pdf"
+        },
+        {
+          "id": "1737028835331",
+          "name": "2matE_bilan_chap4.pdf",
+          "title": "T1 Chapitre 4 — Le noyau de l'atome",
+          "fileUrl": "/12/pdf/2matE_bilan_chap4.pdf"
+        },
+        {
+          "id": "1737544796445",
+          "name": "2nd_T1_C5_cours_2.pdf",
+          "title": "T1 Chapitre 5 — L’électron dans l’atome",
+          "fileUrl": "/12/pdf/2nd_T1_C5_cours_2.pdf"
+        },
+        {
+          "id": "1738661612591",
+          "name": "2matE_bilan_chap6.pdf",
+          "title": "T1 Chapitre 6 — Stabilité des entités chimiques",
+          "fileUrl": "/12/pdf/2matE_bilan_chap6.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "17",
+      "title": "T1 Chapitre 5",
+      "description": "Le titrage permet de déterminer précisément la concentration d'une espèce chimique en solution par réaction chimique rapide, totale et unique.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1737011062105",
+          "name": "1S_C5_A1.pdf",
+          "title": "AE : dosage d'un anti mousse",
+          "fileUrl": "/17/pdf/1S_C5_A1.pdf"
+        },
+        {
+          "id": "1737356496655",
+          "name": "1S_C5_A2.pdf",
+          "title": "AE : contrôle qualité d’une solution de bétadine",
+          "fileUrl": "/17/pdf/1S_C5_A2.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "32",
+      "title": "T1 Chapitre 1",
+      "description": "Corps purs et mélanges (homogènes/hétérogènes), espèces chimiques, propriétés physiques (masse volumique, température de changement d'état, solubilité), identification par propriétés physiques et tests chimiques.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1741128095157",
+          "name": "2nd_T1_C1_A1.pdf",
+          "title": "Masse volumique",
+          "fileUrl": "/32/pdf/2nd_T1_C1_A1.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "31",
+      "title": "T1 Chapitre 2",
+      "description": "Concentration des solutions aqueuses, dissolution, dilution, solubilité, conservation de la masse, échelle de teintes, courbe d’étalonnage, importance de la concentration en chimie et vie quotidienne.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1741127866663",
+          "name": "2nd_T1_C2_A1.pdf",
+          "title": "AE : Dissolution",
+          "fileUrl": "/31/pdf/2nd_T1_C2_A1.pdf"
+        },
+        {
+          "id": "1741127929186",
+          "name": "2nd_T1_C2_A2.pdf",
+          "title": "AE : Conductimétrie",
+          "fileUrl": "/31/pdf/2nd_T1_C2_A2.pdf"
+        },
+        {
+          "id": "1741127947737",
+          "name": "2nd_T1_C2_A3.pdf",
+          "title": "AE : Dilution",
+          "fileUrl": "/31/pdf/2nd_T1_C2_A3.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "33",
+      "title": "T1 Chapitre 3",
+      "description": "Constitution de la matière, structures atomiques, moléculaires et ioniques, échelle microscopique et macroscopique, masse d’une entité, quantité de matière, nombre d’Avogadro.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1741128128162",
+          "name": "2nd_T1_C3_A2.pdf",
+          "title": "AE : La mole",
+          "fileUrl": "/33/pdf/2nd_T1_C3_A2.pdf"
+        },
+        {
+          "id": "1741128144652",
+          "name": "2nd_T1_C3_A1.pdf",
+          "title": "Des milliards d’entités",
+          "fileUrl": "/33/pdf/2nd_T1_C3_A1.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "34",
+      "title": "T1 Chapitre 4",
+      "description": "Un atome est un objet très petit. Il est diﬀicile de prendre conscience de sa taille réelle et de la répartition de sa masse dans le volume qu’il occupe. Peut-on utiliser des objets de la vie quotidienne pour mieux appréhender les caractéristiques de l’atome ?",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1741128170152",
+          "name": "2nd_T1_C4_A1.pdf",
+          "title": "L’atome, une structure complexe",
+          "fileUrl": "/34/pdf/2nd_T1_C4_A1.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "14",
+      "title": "T1 Chapitre 5",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737534191717",
+          "name": "2nd_T1_C5_coches_el_3.pdf",
+          "title": "Couches électroniques",
+          "fileUrl": "/14/pdf/2nd_T1_C5_coches_el_3.pdf"
+        },
+        {
+          "id": "1741128215383",
+          "name": "2nd_T1_C5_A1.pdf",
+          "title": "AE : La famille des halogènes",
+          "fileUrl": "/14/pdf/2nd_T1_C5_A1.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "13",
+      "title": "T1 Chapitre 6",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1737502011057",
+          "name": "2nd_T1_C6_config_el_2.ipynb",
+          "title": "Notebook Python",
+          "fileUrl": "/13/notebook/2nd_T1_C6_config_el_2.ipynb"
+        },
+        {
+          "id": "1741128343906",
+          "name": "2nd_T1_C6_charges_ions.pdf",
+          "title": "Charge d’ions monoatomique",
+          "fileUrl": "/13/pdf/2nd_T1_C6_charges_ions.pdf"
+        },
+        {
+          "id": "1741128362596",
+          "name": "2nd_T1_C6_lewis_structure_1.pdf",
+          "title": "Modèle de LEWIS, énergie de liaison",
+          "fileUrl": "/13/pdf/2nd_T1_C6_lewis_structure_1.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "18",
+      "title": "Chapitre 8",
+      "description": "Acides/bases, couples acide/base, pH, réactions acido-basiques, dilution et mesure du pH.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1737972591733",
+          "name": "TSTI_C8_A1_2.pdf",
+          "title": "Acides et bases de BRØNSTED",
+          "fileUrl": "/18/pdf/TSTI_C8_A1_2.pdf"
+        },
+        {
+          "id": "1738574946045",
+          "name": "TSTI_C8_A4.pdf",
+          "title": "AE: un chou rouge haut en couleur !",
+          "fileUrl": "/18/pdf/TSTI_C8_A4.pdf"
+        },
+        {
+          "id": "1741121779978",
+          "name": "TSTI_C8_A3.pdf",
+          "title": "AE : Dilution d’acide",
+          "fileUrl": "/18/pdf/TSTI_C8_A3.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "20",
+      "title": "T1 Chapitre 6",
+      "description": "Exploration de la polarité, des structures chimiques et de la géométrie moléculaire pour prédire interactions et propriétés des entités chimiques.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "22",
+      "title": "TEST",
+      "description": "",
+      "classe": "Autre",
+      "theClasseId": "0",
+      "activities": [],
+      "themeChoice": 0
     },
     {
       "id": "10",
-      "title": "T4 Chapitre 1",
+      "title": "T2 Chapitre 1",
       "description": "Description des mouvements d'un système : référentiels, trajectoires, vecteurs vitesse et variations de mouvements dans l'espace.",
       "classe": "Seconde",
       "theClasseId": "6",
@@ -210,93 +582,339 @@
           "title": "Vitesse limite : chute.avi",
           "fileUrl": "/10/autre/2MVT_chute_glycerol.avi"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
     },
     {
       "id": "11",
-      "title": "T4 Chapitre 2",
+      "title": "T2 Chapitre 2",
       "description": "Étude des forces mécaniques : définition, représentation vectorielle, poids, réactions des supports et interactions gravitationnelles.",
       "classe": "Seconde",
       "theClasseId": "6",
-      "activities": []
+      "activities": [],
+      "themeChoice": 0
     },
     {
-      "id": "16",
-      "title": "T1 Chapitre 1",
-      "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
+      "id": "23",
+      "title": "T3 Chapitre 1",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1739266825612",
+          "name": "2nd_T3_C1_A5.pdf",
+          "title": "Activité 5",
+          "fileUrl": "/23/pdf/2nd_T3_C1_A5.pdf"
+        }
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "24",
+      "title": "T1 Chapitre 8",
+      "description": "Structure des molécules organiques, leur représentation, nomenclature, identification des groupes fonctionnels et analyse par spectroscopie infrarouge.",
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [
         {
-          "id": "1736157814914",
-          "name": "1S_T4_C1_A4.pdf",
-          "title": "Double périodicité (spatiale et temporelle)",
-          "fileUrl": "/16/pdf/1S_T4_C1_A4.pdf"
+          "id": "1740427776643",
+          "name": "1S_T1_C8_A2.pdf",
+          "title": "Familles de molécules",
+          "fileUrl": "/24/pdf/1S_T1_C8_A2.pdf"
+        },
+        {
+          "id": "1740427798427",
+          "name": "1S_T1_C8_A3.pdf",
+          "title": "Identification de substances chimiques",
+          "fileUrl": "/24/pdf/1S_T1_C8_A3.pdf"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
     },
     {
-      "id": "15",
-      "title": "T1 Chapitre 4",
-      "description": "Concepts essentiels des réactions chimiques incluant l'évolution des quantités des réactifs et de produits : introduction du tableau d'avancement.",
+      "id": "25",
+      "title": "T1 Chapitre 9",
+      "description": "Étapes de synthèse organique : transformation, isolement, purification, identification et optimisation expérimentale",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
+    },
+    {
+      "id": "21",
+      "title": "Documents de cours",
+      "description": "Retrouvez tous les documents de cours de votre année de terminale en spécialité Physique chimie.",
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [
         {
-          "id": "1736153524872",
-          "name": "1S_C4_intro.pdf",
-          "title": "Fabrication de sandwichs",
-          "fileUrl": "/15/pdf/1S_C4_intro.pdf"
+          "id": "1738571132779",
+          "name": "1S_C0_incertitudes.pdf",
+          "title": "Chapitre 0",
+          "fileUrl": "/21/pdf/1S_C0_incertitudes.pdf"
         },
         {
-          "id": "1737639989000",
-          "name": "1S_C4_fiche_1.ipynb",
-          "title": "Avancement : Python 1",
-          "fileUrl": "/15/notebook/1S_C4_fiche_1.ipynb"
+          "id": "1740433468614",
+          "name": "1S_C1_masse_molaire.pdf",
+          "title": "T1 Chapitre 1 — Moles et masses molaires ",
+          "fileUrl": "/21/pdf/1S_C1_masse_molaire.pdf"
         },
         {
-          "id": "1737639999341",
-          "name": "1S_C4_fiche_2.ipynb",
-          "title": "Avancement : Python 2",
-          "fileUrl": "/15/notebook/1S_C4_fiche_2.ipynb"
+          "id": "1740433488544",
+          "name": "1S_C2_dosage_colorimetrique.pdf",
+          "title": "T1 Chapitre 2 — Analyse d’espèces colorées en solution",
+          "fileUrl": "/21/pdf/1S_C2_dosage_colorimetrique.pdf"
         },
         {
-          "id": "1737640012131",
-          "name": "1S_C4_fiche_3.ipynb",
-          "title": "Avancement : Python 3",
-          "fileUrl": "/15/notebook/1S_C4_fiche_3.ipynb"
+          "id": "1740438845924",
+          "name": "1S_C3_redox.pdf",
+          "title": "T1 Chapitre 3 — Réactions redox et leur équilibrage",
+          "fileUrl": "/21/pdf/1S_C3_redox.pdf"
+        },
+        {
+          "id": "1740436111204",
+          "name": "1S_C4_avancement.pdf",
+          "title": "T1 Chapitre 4 — Transformations chimiques et tableau d’avancement",
+          "fileUrl": "/21/pdf/1S_C4_avancement.pdf"
+        },
+        {
+          "id": "1738570437194",
+          "name": "1S_C5_titrages.pdf",
+          "title": "T1 Chapitre 5 — Introduction au titrage",
+          "fileUrl": "/21/pdf/1S_C5_titrages.pdf"
+        },
+        {
+          "id": "1738570415261",
+          "name": "1S_C6_structures.pdf",
+          "title": "T1 Chapitre 6 — Polarité et structures chimiques",
+          "fileUrl": "/21/pdf/1S_C6_structures.pdf"
+        },
+        {
+          "id": "1740436187207",
+          "name": "1S_C7_interaction_micro.pdf",
+          "title": "T1 Chapitre 7 — Les interactions qui lient et dissolvent",
+          "fileUrl": "/21/pdf/1S_C7_interaction_micro.pdf"
+        },
+        {
+          "id": "1740436217061",
+          "name": "1S_C8_structures.pdf",
+          "title": "T1 Chapitre 8 — Structure des entités organiques",
+          "fileUrl": "/21/pdf/1S_C8_structures.pdf"
+        },
+        {
+          "id": "1740436247559",
+          "name": "1S_C9_syntheses.pdf",
+          "title": "T1 Chapitre 9 — Synthèses organiques",
+          "fileUrl": "/21/pdf/1S_C9_syntheses.pdf"
         }
-      ]
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 0
     },
     {
-      "id": "5",
-      "title": "Chapitre 6",
-      "description": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
+      "id": "26",
+      "title": "Chapitre 9",
+      "description": "Décomposition d'un signal périodique en somme de signaux sinusoïdaux (harmoniques). Analyse spectrale représentant l'amplitude dans le domaine fréquentiel.",
       "classe": "Tle STI2D",
       "theClasseId": "4",
       "activities": [
         {
-          "id": "1736155906779",
-          "name": "TSTI_C6_A1.pdf",
-          "title": "Exploration des états de l'eau (solide, liquide, gazeux), leurs transitions et leurs impacts sur notre environnement.",
-          "fileUrl": "/5/pdf/TSTI_C6_A1.pdf"
+          "id": "1740742636989",
+          "name": "piano.wav",
+          "title": "Son piano",
+          "fileUrl": "/26/autre/piano.wav"
+        },
+        {
+          "id": "1740761371783",
+          "name": "son220.wav",
+          "title": "Son 220 Hz",
+          "fileUrl": "/26/autre/son220.wav"
+        },
+        {
+          "id": "1740760631242",
+          "name": "son440.wav",
+          "title": "Son 440 Hz",
+          "fileUrl": "/26/autre/son440.wav"
+        },
+        {
+          "id": "1740761197770",
+          "name": "son880.wav",
+          "title": "Son 880 Hz",
+          "fileUrl": "/26/autre/son880.wav"
+        },
+        {
+          "id": "1740761319726",
+          "name": "son1100.wav",
+          "title": "Son 1100 Hz",
+          "fileUrl": "/26/autre/son1100.wav"
+        },
+        {
+          "id": "1740761347277",
+          "name": "son1320.wav",
+          "title": "Son 1320 Hz",
+          "fileUrl": "/26/autre/son1320.wav"
+        },
+        {
+          "id": "1740762645397",
+          "name": "son1540.wav",
+          "title": "Son 1540 Hz",
+          "fileUrl": "/26/autre/son1540.wav"
+        },
+        {
+          "id": "1740761247138",
+          "name": "son1760.wav",
+          "title": "Son 1760 Hz",
+          "fileUrl": "/26/autre/son1760.wav"
+        },
+        {
+          "id": "1740900605935",
+          "name": "son1.wav",
+          "title": "Son 1",
+          "fileUrl": "/26/autre/son1.wav"
+        },
+        {
+          "id": "1740900613419",
+          "name": "son2.wav",
+          "title": "Son 2",
+          "fileUrl": "/26/autre/son2.wav"
+        },
+        {
+          "id": "1740904058000",
+          "name": "TSTI_C9_A1.pdf",
+          "title": "AE : Décomposition de Fourier des signaux périodiques",
+          "fileUrl": "/26/pdf/TSTI_C9_A1.pdf"
+        },
+        {
+          "id": "1741010015875",
+          "name": "TSTI_C9_Ac1.xlsx",
+          "title": "Tableur : Décomposition de Fourier des signaux périodiques",
+          "fileUrl": "/26/autre/TSTI_C9_Ac1.xlsx"
+        },
+        {
+          "id": "1741121220382",
+          "name": "TSTI_C9_A2.pdf",
+          "title": "Analyse spectrale d’un signal périodique",
+          "fileUrl": "/26/pdf/TSTI_C9_A2.pdf"
+        },
+        {
+          "id": "1741121238700",
+          "name": "TSTI_C9_A3.pdf",
+          "title": "Rang d’un harmonique dans un signal périodique",
+          "fileUrl": "/26/pdf/TSTI_C9_A3.pdf"
+        },
+        {
+          "id": "1741121374180",
+          "name": "TSTI_C9_A4.pdf",
+          "title": "AE : Détermination du spectre d’amplitude d’une onde périodique",
+          "fileUrl": "/26/pdf/TSTI_C9_A4.pdf"
+        },
+        {
+          "id": "1740903152984",
+          "name": "TSTI_C9_A5.pdf",
+          "title": "AE : Analyse spectrale et décomposition de signaux sonores",
+          "fileUrl": "/26/pdf/TSTI_C9_A5.pdf"
+        },
+        {
+          "id": "1740903060007",
+          "name": "TSTI_C9_Ac5.xlsx",
+          "title": "Tableur : Analyse spectrale et décomposition de signaux sonores",
+          "fileUrl": "/26/autre/TSTI_C9_Ac5.xlsx"
         }
-      ]
+      ],
+      "themeChoice": 0
     },
     {
-      "id": "6",
-      "title": "Chapitre 7",
-      "description": "Comprendre la combustion complète, ses caractéristiques, les types de combustibles, les équations de réaction et les bilans de matière et énergétique.",
+      "id": "27",
+      "title": "Chapitre 11",
+      "description": "Spectre électromagnétique, transmission d’ondes (radio, filaire), modulation (amplitude/fréquence), porteuse, signal modulant, applications en télécommunications, antennes et propagation des ondes.",
       "classe": "Tle STI2D",
       "theClasseId": "4",
       "activities": [
         {
-          "id": "1737972778771",
-          "name": "TSTI_C7_A1.pdf",
-          "title": "AE : combustion complète",
-          "fileUrl": "/6/pdf/TSTI_C7_A1.pdf"
+          "id": "1741121593573",
+          "name": "TSTI_C11_A1.pdf",
+          "title": "Transmission d’information par modulation d’amplitude",
+          "fileUrl": "/27/pdf/TSTI_C11_A1.pdf"
+        },
+        {
+          "id": "1741121624995",
+          "name": "TSTI_C11_A3.pdf",
+          "title": "Émission et réception d’ondes électromagnétiques",
+          "fileUrl": "/27/pdf/TSTI_C11_A3.pdf"
+        },
+        {
+          "id": "1741121608307",
+          "name": "TSTI_C11_A2.pdf",
+          "title": "Communication par fibre optique",
+          "fileUrl": "/27/pdf/TSTI_C11_A2.pdf"
         }
-      ]
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "30",
+      "title": "Chapitre 10",
+      "description": "Nature corpusculaire de la lumière, photons, quantification de l’énergie (E= h × f ), spectres atomiques, transitions électroniques, absorption/émission de lumière, applications photovoltaïques et lien avec les niveaux d’énergie des atomes.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1741121463077",
+          "name": "TSTI_C10_A1.pdf",
+          "title": "L’effet photoélectrique",
+          "fileUrl": "/30/pdf/TSTI_C10_A1.pdf"
+        },
+        {
+          "id": "1741121479855",
+          "name": "TSTI_C10_A2.pdf",
+          "title": "Rendement des conversions énergétiques solaires",
+          "fileUrl": "/30/pdf/TSTI_C10_A2.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "28",
+      "title": "2 — Web",
+      "description": "",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": [
+        {
+          "id": "1741017607265",
+          "name": "2sntS_web_bilan.pdf",
+          "title": "Cours",
+          "fileUrl": "/28/pdf/2sntS_web_bilan.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
+      "id": "29",
+      "title": "Calculatrice",
+      "description": "",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1741214174381",
+          "name": "TSTI_Numworks_emulateur.html",
+          "title": "Émulateur : Numworks",
+          "fileUrl": "/29/autre/TSTI_Numworks_emulateur.html"
+        },
+        {
+          "id": "1741214280093",
+          "name": "TSTI_TI83_tuto.pdf",
+          "title": "Tutoriel : TI 83 Premium",
+          "fileUrl": "/29/pdf/TSTI_TI83_tuto.pdf"
+        }
+      ],
+      "themeChoice": 0
     },
     {
       "id": "1",
@@ -352,107 +970,28 @@
           "name": "TSTI_C8_pH.pdf",
           "title": "Chapitre 8 — Réactions chimiques acido-basiques",
           "fileUrl": "/1/pdf/TSTI_C8_pH.pdf"
-        }
-      ]
-    },
-    {
-      "id": "12",
-      "title": "Documents de cours",
-      "description": "Retrouvez tous les documents de cours de votre année de seconde en Physique chimie",
-      "classe": "Seconde",
-      "theClasseId": "6",
-      "activities": [
-        {
-          "id": "1737028835331",
-          "name": "2matE_bilan_chap4.pdf",
-          "title": "T1 Chapitre 4 — Le noyau de l'atome",
-          "fileUrl": "/12/pdf/2matE_bilan_chap4.pdf"
         },
         {
-          "id": "1737544796445",
-          "name": "2nd_T1_C5_cours_2.pdf",
-          "title": "T1 Chapitre 5 — L’électron dans l’atome",
-          "fileUrl": "/12/pdf/2nd_T1_C5_cours_2.pdf"
+          "id": "1740904376323",
+          "name": "TSTI_C9.pdf",
+          "title": "Chapitre 9 — Notion d'ondes",
+          "fileUrl": "/1/pdf/TSTI_C9.pdf"
         },
         {
-          "id": "1737546829601",
-          "name": "2nd_T1_C1_cours_2.pdf",
-          "title": "T1 Chapitre 1 — Identification des espèces chimiques",
-          "fileUrl": "/12/pdf/2nd_T1_C1_cours_2.pdf"
-        }
-      ]
-    },
-    {
-      "id": "17",
-      "title": "T1 Chapitre 5",
-      "description": "Le titrage permet de déterminer précisément la concentration d'une espèce chimique en solution par réaction chimique rapide, totale et unique.",
-      "classe": "1 Spé",
-      "theClasseId": "7",
-      "activities": [
-        {
-          "id": "1737011062105",
-          "name": "1S_C5_A1.pdf",
-          "title": "AE : dosage d'un anti mousse",
-          "fileUrl": "/17/pdf/1S_C5_A1.pdf"
+          "id": "1740904729390",
+          "name": "TSTI_C10.pdf",
+          "title": "Chapitre 10 — Énergie transportée par la lumière",
+          "fileUrl": "/1/pdf/TSTI_C10.pdf"
         },
         {
-          "id": "1737356496655",
-          "name": "1S_C5_A2.pdf",
-          "title": "AE : contrôle qualité d’une solution de bétadine",
-          "fileUrl": "/17/pdf/1S_C5_A2.pdf"
+          "id": "1740904740666",
+          "name": "TSTI_C11.pdf",
+          "title": "Chapitre 11 — Télécommunications par ondes électromagnétiques",
+          "fileUrl": "/1/pdf/TSTI_C11.pdf"
         }
-      ]
-    },
-    {
-      "id": "13",
-      "title": "T1 Chapitre 6",
-      "description": "",
-      "classe": "Seconde",
-      "theClasseId": "6",
-      "activities": [
-        {
-          "id": "1737502011057",
-          "name": "2nd_T1_C6_config_el_2.ipynb",
-          "title": "Notebook Python",
-          "fileUrl": "/13/notebook/2nd_T1_C6_config_el_2.ipynb"
-        },
-        {
-          "id": "1737502019489",
-          "name": "2nd_T1_C6_lewis_structure_2.pdf",
-          "title": "Modèle de LEWIS, énergie de liaison",
-          "fileUrl": "/13/pdf/2nd_T1_C6_lewis_structure_2.pdf"
-        }
-      ]
-    },
-    {
-      "id": "14",
-      "title": "T1 Chapitre 5",
-      "description": "",
-      "classe": "Seconde",
-      "theClasseId": "6",
-      "activities": [
-        {
-          "id": "1737534191717",
-          "name": "2nd_T1_C5_coches_el_3.pdf",
-          "title": "Couches électroniques",
-          "fileUrl": "/14/pdf/2nd_T1_C5_coches_el_3.pdf"
-        }
-      ]
-    },
-    {
-      "id": "18",
-      "title": "Chapitre 8",
-      "description": "",
-      "classe": "Tle STI2D",
-      "theClasseId": "4",
-      "activities": [
-        {
-          "id": "1737972591733",
-          "name": "TSTI_C8_A1_2.pdf",
-          "title": "Acides et bases de BRØNSTED",
-          "fileUrl": "/18/pdf/TSTI_C8_A1_2.pdf"
-        }
-      ]
+      ],
+      "toggleVisibilityCourse": true,
+      "themeChoice": 2
     }
   ]
 }

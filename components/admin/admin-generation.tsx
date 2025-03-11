@@ -20,13 +20,11 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [newCourseTitle, setNewCourseTitle] = useState<string>('');
   const [newCourseDescription, setNewCourseDescription] = useState<string>('');
   const [newCourseClasse, setNewCourseClasse] = useState<string>('');
-  const [selectedClasseId, setSelectedClasseId] = useState(null);
   const [newClasse, setNewClasse] = useState<string>('');
   const [errorAddFile, setErrorAddFile] = useState<string>('');
   const [errorAddCourse, setErrorAddCourse] = useState<string>('');
   const [errorAddClasse, setErrorAddClasse] = useState<string>('');
-  const [successMessageAddFile, setSuccessMessageAddFile] = useState<string>('');
-  const [successMessageAddFileName, setSuccessMessageAddFileName] = useState<string>('');
+  const [successMessageAddFile, setSuccessMessageAddFile] = useState<React.ReactNode>(null);
   const [successMessageAddCourse, setSuccessMessageAddCourse] = useState<string>('');
   const [successMessageAddClasse, setSuccessMessageAddClasse] = useState<string>('');
   const [warningAddClasse, setWarningAddClasse] = useState<string>('');
@@ -71,8 +69,10 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       const data = await res.json();
       setErrorAddFile('');
       setWarningAddFile('');
-      setSuccessMessageAddFileName(`${data.fileName}`);
-      setSuccessMessageAddFile(`Fichier téléchargé avec succès avec le nom : `);
+      setSuccessMessageAddFile(
+        <>Fichier <span style={{ color: "red" }}>{data.fileName}</span> téléchargé avec succès.</>
+      );
+      
       const updatedCourses = courses.map(course =>
         course.id === selectedCourse ? { ...course, activities: [...course.activities, data.activity] } : course
       ) as Course[];
@@ -231,11 +231,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
         </div>
         {warningAddFile && <WarningMessage message={warningAddFile} />}
         {errorAddFile && <ErrorMessage message={errorAddFile} />}
-        {successMessageAddFile && 
-        <> 
-        <SuccessMessage message={successMessageAddFile} />
-        <span className="text-sm text-green-500">{successMessageAddFileName}</span>
-        </>}
+        {successMessageAddFile && <SuccessMessage message={successMessageAddFile} />}
         <Button type="submit" className="w-full">
           Télécharger
         </Button>

@@ -21,13 +21,52 @@ interface ModificationsAdminProps {
   setClasses: (classes: Classe[]) => void;
 }
 
+/**
+ * ModificationsAdmin component for managing courses, classes and activities in an admin interface.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Course[]} props.courses - Array of course objects containing course information
+ * @param {Function} props.setCourses - Function to update the courses state
+ * @param {Class[]} props.classes - Array of class objects containing class information  
+ * @param {Function} props.setClasses - Function to update the classes state
+ * 
+ * @description
+ * This component provides functionality to:
+ * - Modify activity titles and files
+ * - Modify course details (title, description, associated class)
+ * - Delete courses with optional file deletion
+ * - Modify class names
+ * - Delete classes
+ * - Toggle visibility of classes and courses
+ * - Reorder activities via drag and drop
+ * - Reorder courses via drag and drop
+ * 
+ * The component is split into three main sections:
+ * 1. Activity modification card
+ * 2. Course modification card 
+ * 3. Class modification card
+ * 
+ * Each section contains relevant forms and controls for managing the respective entities.
+ * The component uses optimistic updates and provides feedback through success/error messages.
+ * 
+ * @example
+ * ```tsx
+ * <ModificationsAdmin 
+ *   courses={courses}
+ *   setCourses={setCourses}
+ *   classes={classes} 
+ *   setClasses={setClasses}
+ * />
+ * ```
+ */
 export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }: ModificationsAdminProps) {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseToDelete, setCourseToDelete] = useState<string>('');
   const [files, setFiles] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<boolean | null>(null);
   const [errorDeleteFile, setErrorDeleteFile] = useState<string>('');
-  const [successMessageDeleteFile, setSuccessMessageDeleteFile] = useState<string>('');
+  const [successMessageDeleteFile, setSuccessMessageDeleteFile] = useState<React.ReactNode>(null);
   const [deleteFiles, setDeleteFiles] = useState<boolean>(false);
   const [errorDeleteCourse, setErrorDeleteCourse] = useState<string>('');
   const [errorDeleteCourseRapide, setErrorDeleteCourseRapide] = useState<string>('');
@@ -100,7 +139,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     if (selectedCourse) {
       const updatedCourse = courses.find((course) => course.id === selectedCourse);
       if (updatedCourse) {
-        setFiles(updatedCourse.activities.map((activity) => activity.fileUrl));
+        setFiles(updatedCourse.activities.map((activity) => activity.id));
         setCourseDetails({
           id: updatedCourse.id,
           title: updatedCourse.title,
@@ -121,7 +160,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     const course = courses.find(course => course.id === courseId);
     if (course) {
       setNewClasseId(course.theClasseId);
-      const courseFiles = course.activities.map(activity => activity.fileUrl);
+      const courseFiles = course.activities.map(activity => activity.id);
       setFiles(courseFiles);
       setCourseDetails({
         id: course.id || '',
@@ -139,7 +178,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     if (course) {
       const courseWithFiles = {
         id: course.id,
-        files: course.activities.map(activity => activity.fileUrl),
+        files: course.activities.map(activity => activity.id),
       };
       setCurrentCourse([course]);
     }
@@ -147,13 +186,13 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
 
   // Add drag end handler:
   const handleDragEnd = async (event: DragEndEvent) => {
-    const {active, over} = event;
-    
+    const { active, over } = event;
+  
     if (active.id !== over?.id) {
       // Update files order
       const oldIndex = files.indexOf(active.id as string);
       const newIndex = files.indexOf(over?.id as string);
-      
+  
       const newFiles = [...files];
       newFiles.splice(oldIndex, 1);
       newFiles.splice(newIndex, 0, active.id as string);
@@ -163,9 +202,11 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       const currentCourse = courses.find(course => course.id === selectedCourse);
       if (!currentCourse) return;
   
-      const newActivities = newFiles.map(fileUrl => 
-        currentCourse.activities.find(activity => activity.fileUrl === fileUrl)!
+      const newActivities = newFiles.map(fileId => 
+        currentCourse.activities.find(activity => activity.id === fileId)!
       );
+  
+
   
       // Update API
       try {
@@ -179,10 +220,9 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         });
   
         if (!response.ok) throw new Error('Failed to update order');
-
-        
+  
         const data = await response.json();
-
+  
         if (response.ok) {
           toast.dismiss();
           toast.clearWaitingQueue();
@@ -194,23 +234,24 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
               </span>
             </div>,
             {
-            position: "top-center",
-            autoClose: 500,
-            hideProgressBar: false,
-            theme: "dark",
-            style: {
-              width: '500px',
-              textAlign: 'center',
-              justifyContent: 'center',
-            },
-          });
+              position: "top-center",
+              autoClose: 500,
+              hideProgressBar: false,
+              theme: "dark",
+              style: {
+                width: '500px',
+                textAlign: 'center',
+                justifyContent: 'center',
+              },
+            }
+          );
         }
-
+  
         // Update courses state with new order
         setCourses(prevCourses => 
           prevCourses.map(course => 
             course.id === selectedCourse 
-              ? {...course, activities: newActivities}
+              ? { ...course, activities: newActivities }
               : course
           )
         );
@@ -222,6 +263,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       }
     }
   };
+  
 
   const handleDragEndCourse = async (event: any) => {
     const { active, over } = event;
@@ -276,20 +318,21 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   };
   
-  const handleDeleteFile = async (fileUrl: string) => {
+  const handleDeleteFile = async (fileId: string) => {
     const res = await fetch(`/api/deletefile`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ fileUrl, courseId: selectedCourse }),
+      body: JSON.stringify({ fileId, courseId: selectedCourse }),
     });
-
+  
     if (res.ok) {
       const data = await res.json();
       setErrorDeleteFile('');
-      setSuccessMessageDeleteFile('Fichier supprimé avec succès.');
-      setFiles(data.files);
+      setSuccessMessageDeleteFile(
+        <>Fichier <span style={{ color: "red" }}>{data.fileUrl}</span> supprimé avec succès.</>
+      );
       setCourses(data.courses);
       setConfirmDelete(null);
     } else {
@@ -297,8 +340,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       setSuccessMessageDeleteFile('');
     }
   };
-
-
+  
 
   const handleDeleteCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -570,6 +612,32 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   }, [updateFormerActivity]);
 
 
+  // Ajouter cette fonction avec les autres handlers
+const handleToggleVisibilityCourse = async (courseId: string, visibility: boolean) => {
+  try {
+    const response = await fetch(`/api/updatecourse/${courseId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        courseId,
+        toggleVisibilityCourse: visibility
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update course visibility');
+    }
+
+    const data = await response.json();
+    setCourses(data.courses);
+    setClasses(data.classes);
+  } catch (error) {
+    console.error('Error updating course visibility:', error);
+  }
+};
+
   const handleToggleVisibility = async (classeId: string, visibility: boolean) => {
     try {
       const response = await fetch(`/api/renameclasse/${classeId}`, {
@@ -648,34 +716,36 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
               <SelectValue placeholder="Sélectionner une activité" />
             </SelectTrigger>
             <SelectContent>
-              {(() => {
-                const filteredCourses = courses.filter((course) =>
-                  !selectedClassForActivity ||
-                  course.theClasseId === selectedClassForActivity
-                );
-                if (selectedCourseForActivity) {
-                  const chosenCourse = filteredCourses.find(
-                    (c) => c.id === selectedCourseForActivity
+                {(() => {
+                  const filteredCourses = courses.filter((course) =>
+                    !selectedClassForActivity ||
+                    course.theClasseId === selectedClassForActivity
                   );
-                  return chosenCourse?.activities
-                    .sort((a, b) => a.title.localeCompare(b.title))
-                    .map((activity) => (
-                      <SelectItem key={activity.id} value={activity.id}>
-                        {activity.title}
-                      </SelectItem>
-                    ));
-                } else {
-                  return filteredCourses
-                    .flatMap((course) => course.activities)
-                    .sort((a, b) => a.title.localeCompare(b.title))
-                    .map((activity) => (
-                      <SelectItem key={activity.id} value={activity.id}>
-                        {activity.title}
-                      </SelectItem>
-                    ));
-                }
-              })()}
-            </SelectContent>
+                  if (selectedCourseForActivity) {
+                    const chosenCourse = filteredCourses.find(
+                      (c) => c.id === selectedCourseForActivity
+                    );
+                    return chosenCourse?.activities
+                      ?.filter(activity => activity && activity?.id)
+                      ?.sort((a, b) => (a?.title || '').localeCompare(b?.title || ''))
+                      .map((activity) => (
+                        activity ? <SelectItem key={activity.id} value={activity.id}>
+                          {activity.title || 'Untitled'}
+                        </SelectItem> : null
+                      ));
+                  } else {
+                    return filteredCourses
+                      .flatMap((course) => course?.activities || [])
+                      .filter(activity => activity && activity?.id)
+                      .sort((a, b) => (a?.title || '').localeCompare(b?.title || ''))
+                      .map((activity) => (
+                        activity ? <SelectItem key={activity.id} value={activity.id}>
+                          {activity.title || 'Untitled'}
+                        </SelectItem> : null
+                      ));
+                  }
+                })()}
+              </SelectContent>
           </Select>
 
           {/* Formulaire pour changer le titre et uploader un nouveau fichier */}
@@ -684,7 +754,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
               placeholder="Nouveau titre de l'activité"
               value={newActivityTitle || courses
                 .flatMap(course => course.activities)
-                .find(activity => activity.id === selectedActivity)
+                .find(activity => activity?.id === selectedActivity)
                 ?.title || ''}
               onChange={(e) => setNewActivityTitle(e.target.value)}
             />
@@ -724,76 +794,77 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
               }
 
 
-              // Mise à jour du titre
-              if (newActivityTitle) {
                 try {
-                  if (course) {
-                    await updateActivityTitle(course.id, activity.id, newActivityTitle);
-                  }
-                } catch (error) {
-                  setErrorUpdateActivity('Erreur lors de la mise à jour du titre: ' + error);
-                  setWarningUpdateActivity('');
-                  setSuccessMessageUpdateActivity('');
-                  setSuccessMessageUploadFileName('');
-                  return;
+                if (!course) {
+                  throw new Error('Cours non trouvé');
                 }
-              }
-              
 
+                // Combine title and file update in a single operation
+                if (newActivityTitle || newFile) {
 
-              // S’il y a un nouveau fichier, on supprime l'ancien et on upload le nouveau
-              if (newFile) {
-                try {
-                  // Suppression
+                  // Then handle file update if needed
+                  if (newFile) {
+                  // Delete existing file
                   const deleteRes = await fetch('/api/deletefile', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      fileUrl: activity.fileUrl,
-                      courseId: course?.id || '',
+                    fileId: activity.id,
+                    courseId: course.id,
                     }),
                   });
-              
-                  if (!deleteRes.ok) throw new Error('Erreur lors de la suppression du fichier');
-              
-                  // Upload
+
+                  if (!deleteRes.ok) {
+                    throw new Error('Erreur lors de la suppression du fichier');
+                  }
+
+                  // Upload new file
                   const formData = new FormData();
                   formData.append('file', newFile);
-                  if (course) {
-                    formData.append('courseId', course.id);
-                  }
-                  formData.append('ActivityTitle', activity.title);
+                  formData.append('courseId', course.id);
+                  formData.append('ActivityTitle', newActivityTitle || activity.title);
+                  
                   const uploadRes = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData,
                   });
 
-              
-                  if (!uploadRes.ok) throw new Error('Erreur lors du téléchargement du fichier');
-
-                  if (uploadRes.ok) {
-                    const dataModifyFile = await uploadRes.json();
-                    await new Promise(resolve => {
-                      setRefreshDataClass(true);
-                      resolve(true);
-                    });
-                    setupdateFormerActivity(true);
-                    setErrorUpdateActivity('');
-                    setWarningUpdateActivity('');
-                    setSuccessMessageUploadFileName(`${dataModifyFile.fileName}`);
-                    setSuccessMessageUpdateActivity(`Fichier mis à jour avec succès avec : `);
-                    
-                    setNewFile(null);
+                  if (!uploadRes.ok) {
+                    throw new Error('Erreur lors du téléchargement du fichier');
                   }
-                  
-                } catch (error) {
-                  setErrorUpdateActivity('Erreur lors de la mise à jour du fichier');
+
+                  const dataModifyFile = await uploadRes.json();
+                  await new Promise(resolve => {
+                    setRefreshDataClass(true);
+                    resolve(true);
+                  });
+                  setupdateFormerActivity(true);
+                  setSuccessMessageUploadFileName(dataModifyFile.fileName);
+                  }
+
+                  // First update title if needed
+                  else if (newActivityTitle) {
+                    await updateActivityTitle(course.id, activity.id, newActivityTitle);
+                    }
+
+                  // Set success messages
+                  setErrorUpdateActivity('');
                   setWarningUpdateActivity('');
-                  setSuccessMessageUpdateActivity('');
-                  setSuccessMessageUploadFileName('');
-                  return;
+                  setSuccessMessageUpdateActivity(
+                  `Mise à jour réussie ${newActivityTitle ? 'du titre' : ''} ${newActivityTitle && newFile ? 'et' : ''} ${newFile ? 'du fichier' : ''}`
+                  );
                 }
-              }
+
+                // Reset form state
+                setNewFile(null);
+                setNewActivityTitle('');
+
+                } catch (error) {
+                setErrorUpdateActivity(`Erreur lors de la mise à jour: ${error}`);
+                setWarningUpdateActivity('');
+                setSuccessMessageUpdateActivity('');
+                setSuccessMessageUploadFileName('');
+                }
               // Optionnel
               setNewFile(null);
               setNewActivityTitle('');
@@ -864,7 +935,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
             <ul className="space-y-2">
               {currentCourse[0]?.activities?.map((activity) => (
                 <SortableFile
-                  key={activity.fileUrl}
+                  fileId={activity.id}
+                  key={activity.id}
                   fileName={activity.title}
                   fileUrl={activity.fileUrl}
                   onDelete={handleDeleteFile}
@@ -1006,14 +1078,16 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
               strategy={verticalListSortingStrategy}
             >
               <ul className="space-y-2">
-                {associatedCourses.map((course) => (
-                  <SortableCourse
-                    key={course.id}
-                    courseId={course.id}
-                    courseTitle={course.title}
-                    onDelete={handleDeleteClickRapide}
-                  />
-                ))}
+              {associatedCourses.map((course) => (
+                <SortableCourse
+                  key={course.id}
+                  courseId={course.id}
+                  courseTitle={course.title}
+                  toggleVisibilityCourse={course.toggleVisibilityCourse}
+                  onDelete={handleDeleteClickRapide}
+                  onToggleVisibility={handleToggleVisibilityCourse}
+                />
+              ))}
               </ul>
             </SortableContext>
           </DndContext>

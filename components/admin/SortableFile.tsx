@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Grip } from 'lucide-react';
 
 interface PropsSortableFile {
+  fileId: string;
   fileUrl: string;
-  fileName?: string;
-  onDelete: (fileUrl: string) => void;
+  fileName: string;
+  onDelete: (fileId: string) => void;
 }
 
-export function SortableFile({ fileUrl, fileName, onDelete }: PropsSortableFile) {
+export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortableFile) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: fileUrl,
+    id: fileId,
   });
 
   const style = {
@@ -31,7 +32,7 @@ export function SortableFile({ fileUrl, fileName, onDelete }: PropsSortableFile)
       {/* File name and delete logic */}
       <div className='flex-1 col-span-6 flex flex-col justify-start space-x-2'>
       <span className="truncate flex-1">{fileName}</span>
-      <h4 className="truncate text-sm text-gray-500">{fileUrl}</h4>
+      {fileUrl && <h4 className="truncate text-sm text-gray-500">{fileUrl}</h4>}
       </div>
       <div className="flex col-span-2 justify-around space-x-2 ml-2">
         {confirmDelete ? (
@@ -39,7 +40,7 @@ export function SortableFile({ fileUrl, fileName, onDelete }: PropsSortableFile)
             <Button
               size="sm"
               variant="destructive"
-              onClick={() => onDelete(fileUrl)}
+              onClick={() => onDelete(fileId)}
             >
               ✓
             </Button>

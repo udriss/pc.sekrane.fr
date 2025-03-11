@@ -1,9 +1,8 @@
 import React from 'react';
 
 interface SuccessMessageProps {
-  message: string;
+  message: React.ReactNode;
 }
-
 const SuccessMessage: React.FC<SuccessMessageProps> = ({ message }) => {
   return <p className="text-sm text-green-500 font-bold">{message}</p>;
 };

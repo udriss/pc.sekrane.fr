@@ -2,15 +2,26 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { Grip } from 'lucide-react';
+import { Grip, Eye} from 'lucide-react';
+import Switch from '@mui/material/Switch';
+import { LuEyeClosed } from "react-icons/lu";
+import { TbEyeClosed } from "react-icons/tb";
 
 interface PropsSortableCourse {
   courseId: string;
   courseTitle: string;
+  toggleVisibilityCourse?: boolean;
   onDelete: (courseId: string) => void;
+  onToggleVisibility: (courseId: string, visibility: boolean) => void;
 }
 
-export function SortableCourse({ courseId, courseTitle, onDelete }: PropsSortableCourse) {
+export function SortableCourse({ 
+  courseId, 
+  courseTitle, 
+  toggleVisibilityCourse = true,
+  onDelete,
+  onToggleVisibility 
+}: PropsSortableCourse) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: courseId,
@@ -22,17 +33,30 @@ export function SortableCourse({ courseId, courseTitle, onDelete }: PropsSortabl
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-9 justify-between p-2 bg-white rounded-md">
-      {/* Drag handle section */}
+    <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-12 justify-between p-2 bg-white rounded-md">
       <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
-      <Grip strokeWidth={2.25} absoluteStrokeWidth />
+        <Grip strokeWidth={2.25} absoluteStrokeWidth />
       </div>
 
-      {/* Course title and delete logic */}
       <div className='flex-1 col-span-6 flex flex-col justify-start space-x-2'>
         <span className="truncate flex-1">{courseTitle}</span>
       </div>
-      <div className="flex col-span-2 justify-around space-x-2 ml-2">
+
+      <div className="flex col-span-2 items-center">
+      <h4 className="text-sm font-medium text-gray-500 mr-2">
+          {toggleVisibilityCourse ? (
+            <Eye className="text-green-600" />
+          ) : (
+            <TbEyeClosed className="h-6 w-6 text-red-600" />            
+          )}
+        </h4>
+        <Switch
+          checked={toggleVisibilityCourse}
+          onChange={(e) => onToggleVisibility(courseId, e.target.checked)}
+        />
+      </div>
+
+      <div className="flex col-span-3 justify-end space-x-2">
         {confirmDelete ? (
           <>
             <Button

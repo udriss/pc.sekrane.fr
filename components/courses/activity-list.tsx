@@ -3,8 +3,8 @@
 import type { Activity } from "@/lib/data";
 import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { FaRegFilePdf, FaFileInvoice, FaRegImage, FaPython, FaVideo } from 'react-icons/fa6';
+import { GiSoundOn } from "react-icons/gi";
 // import { toast } from 'react-hot-toast';
 import { toast, Id } from 'react-toastify';
 import { downloadFileWithProgress } from '@/components/courses/donwload-track';
@@ -12,16 +12,18 @@ import { RATE_LIMIT } from '@/lib/rateLimit';
 import { Tooltip } from "@nextui-org/react";
 
 interface ActivityListProps {
+  themeChoice: number;
   activities: Activity[];
-  onSelectActivity: (fileUrl: string, type: string) => void;
+  onSelectActivity: (fileUrl: string, type: string, activity: Activity) => void;
   onToggleSideBySide: (show: boolean) => void;
-  handleFileSelection: (fileUrl: string, fileType: string) => void;
+  handleFileSelection: (fileUrl: string, fileType: string, activity: Activity) => void;
   userName: string;                                // Reçu du parent
   setUserName: React.Dispatch<React.SetStateAction<string>>; // Reçu du parent
   onUniqueIdReceived: (uniqueId: string) => void;
 }
 
 export function ActivityList({
+  themeChoice,
   activities,
   onSelectActivity,
   onToggleSideBySide,
@@ -35,6 +37,7 @@ export function ActivityList({
   const [errorToastId, setErrorToastId] = useState<Id | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const [isAccordionOpen, setIsAccordionOpen] = useState(true);
 
   useEffect(() => {
     if (!userName) {
@@ -63,7 +66,12 @@ export function ActivityList({
     return Math.ceil(ms / 1000);
   };
 
-  const handleActivityClick = async (fileUrl: string) => {
+  const handleActivityClick = async (fileUrl: string, activity: Activity) => {
+    // Si on est en mode accordéon (themeChoice = 2), on le ferme lors du clic
+    if (themeChoice === 2) {
+      setIsAccordionOpen(false);
+    }
+    
     // Clear existing interval if any
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -170,7 +178,7 @@ export function ActivityList({
         const tokenData = await tokenResponse.json();
         if (!tokenData.error) {
           const jupyterUrl = `https://jupyter.sekrane.fr/notebooks/${existingDir}/${newNotebookFileName}?token=${tokenData.token}`;
-          onSelectActivity(jupyterUrl, 'ipynb');
+          onSelectActivity(jupyterUrl, 'ipynb', activity);
           // Save file path info in cookies
           document.cookie = `notebookFileName=${newNotebookFileName}; path=/; max-age=2592000`; // 30 days = 30 * 24 * 60 * 60 = 2592000 seconds
           document.cookie = `notebookDir=${existingDir};  path=/; max-age=2592000`
@@ -200,7 +208,7 @@ export function ActivityList({
       onUniqueIdReceived(data.uniqueId);
 
       const jupyterUrl = `https://jupyter.sekrane.fr/notebooks/${data.dirPath}/${data.fileName}?token=${tokenData.token}`;
-      onSelectActivity(jupyterUrl, 'ipynb');
+      onSelectActivity(jupyterUrl, 'ipynb', activity);
       
 
       // Save file path info in cookies
@@ -214,68 +222,200 @@ export function ActivityList({
     } else if (fileExtension && ['png','jpg','jpeg','gif','svg','heic','webmp'].includes(fileExtension)) {
       const apiUrl = `/api/files${fileUrl}`;
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, 'image');
-      onSelectActivity(objectUrl, 'image');
+      handleFileSelection(objectUrl, 'image', activity);
+      onSelectActivity(objectUrl, 'image', activity);
     } else if (fileExtension && ['mp4','avi','mov'].includes(fileExtension)) {
-      onSelectActivity(fileUrl, 'video');
-      handleFileSelection(fileUrl, 'video');
+      onSelectActivity(fileUrl, 'video', activity);
+      handleFileSelection(fileUrl, 'video', activity);
     } else if (fileExtension && ['tsx'].includes(fileExtension)) {
-      onSelectActivity(fileUrl, 'typescript');
+      onSelectActivity(fileUrl, 'typescript', activity);
+    } else if (fileExtension && ['pdf'].includes(fileExtension)) {
+      const apiUrl = `/api/files${fileUrl}`;
+      const objectUrl = await downloadFileWithProgress(apiUrl); // Only executed after button click
+      onSelectActivity(objectUrl, 'pdfType', activity);
+      handleFileSelection(objectUrl, 'pdfType', activity);
+    } else if (fileExtension && ['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(fileExtension)) {
+      const apiUrl = `/api/files${fileUrl}`;
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, 'audio', activity);
+      onSelectActivity(objectUrl, 'audio', activity);
     } else {
       const apiUrl = `/api/files${fileUrl}`;
       try {
         const objectUrl = await downloadFileWithProgress(apiUrl); // Only executed after button click
-        onSelectActivity(objectUrl, 'other');
-        handleFileSelection(objectUrl, 'other');
+        onSelectActivity(objectUrl, 'other', activity);
+        handleFileSelection(objectUrl, 'other', activity);
       } catch (error) {
         toast.error('Erreur lors du téléchargement');
       }
     }
   };
 
-  const getFileIcon = (fileName: string) => {
+    const getFileIcon = (fileName: string) => {
+      const extension = fileName.split('.').pop()?.toLowerCase();
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'svg':
+          return <FaRegImage className="mr-2 h-6 w-6" />;
+        case 'pdf':
+          return <FaRegFilePdf className="mr-2 h-6 w-6" />;
+        case 'ipynb':
+          return <FaPython className="mr-2 h-6 w-6" style={{ color: 'rgb(236, 189, 24)' }} />;  
+        case 'mp4':
+        case 'avi':
+        case 'mov':
+          return <FaVideo className="mr-2 h-6 w-6" style={{ color: 'rgba(2, 93, 211, 0.82)' }} />;
+        case 'mp3':
+        case 'wav':
+        case 'ogg':
+        case 'aac':
+        case 'flac':
+          return <GiSoundOn className="mr-2 h-6 w-6" style={{ color: 'rgba(0, 115, 38, 0.82)' }} />;
+        default:
+          return <FaFileInvoice className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
+      }
+    };
+
+  const getFileType = (fileName: string): string => {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-      case 'svg':
-        return <FaRegImage className="mr-2 h-6 w-6" />;
-      case 'pdf':
-        return <FaRegFilePdf className="mr-2 h-6 w-6" />;
-      case 'ipynb':
-        return <FaPython className="mr-2 h-6 w-6" style={{ color: 'rgb(236, 189, 24)' }} />;  
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-        return <FaVideo className="mr-2 h-6 w-6" style={{ color: 'rgba(2, 93, 211, 0.82)' }} />;
-      default:
-        return <FaFileInvoice className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
-    }
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension || '')) return 'Images';
+    if (['pdf'].includes(extension || '')) return 'Documents PDF';
+    if (['ipynb'].includes(extension || '')) return 'Notebooks Python';
+    if (['mp4', 'avi', 'mov'].includes(extension || '')) return 'Vidéos';
+    if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension || '')) return 'Audio';
+    return 'Autres fichiers';
   };
 
-  return (
-    <div className="flex flex-wrap flex-row gap-4">
-      {activities
-      .map((activity) => (
-        <Tooltip 
-          key={activity.id}
-          content={activity.title}
-          closeDelay={550}
-          className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
-            rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
-            transition-opacity duration-300"
-        >
-          <Button
-            variant="outline"
-            className="inline-flex items-center justify-start w-auto min-w-[150px] max-w-[300px] truncate"
-            onClick={() => handleActivityClick(activity.fileUrl)}
+  // Groupe les activités par type pour themeChoice = 1
+  const groupedActivities = React.useMemo(() => {
+    const groups: Record<string, Activity[]> = {};
+    
+    activities.forEach(activity => {
+      const fileType = getFileType(activity.name);
+      if (!groups[fileType]) {
+        groups[fileType] = [];
+      }
+      groups[fileType].push(activity);
+    });
+    
+    return groups;
+  }, [activities]);
+
+  // Affichage horizontal (themeChoice = 0, par défaut)
+  if (themeChoice === 0) {
+    return (
+      <div className="flex flex-wrap flex-row gap-4">
+        {activities.map((activity) => (
+          <Tooltip 
+            key={activity.id}
+            content={activity.title}
+            closeDelay={550}
+            className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
+              rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
+              transition-opacity duration-300"
           >
-            <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
-            <span className="truncate">{activity.title}</span>
-          </Button>
-        </Tooltip>
+            <Button
+              variant="outline"
+              className="inline-flex items-center justify-start w-auto min-w-[100px] max-w-[300px] truncate"
+              onClick={() => handleActivityClick(activity.fileUrl, activity)}
+            >
+              <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
+              <span className="truncate">{activity.title}</span>
+            </Button>
+          </Tooltip>
+        ))}
+      </div>
+    );
+  }
+  
+  // Affichage accordéon (themeChoice = 2)
+  if (themeChoice === 2) {
+    return (
+      <div className={`w-full transition-all duration-300 ${isAccordionOpen ? 'mb-6' : 'mb-0'}`}>
+        <div 
+          className="flex items-center justify-between bg-gray-100 p-3 rounded-t-md cursor-pointer select-none"
+          onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+        >
+          <h3 className="text-lg font-medium">Ressources du cours</h3>
+          <div className={`transform transition-transform ${isAccordionOpen ? 'rotate-180' : 'rotate-0'}`}>
+            ▼
+          </div>
+        </div>
+        
+        <div 
+          className={`transition-all duration-300 overflow-hidden bg-white border-x border-b border-gray-200 rounded-b-md
+            ${isAccordionOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
+        >
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
+              <div key={groupName} className="mb-4">
+                <h4 className="text-md font-medium text-gray-700 mb-2 pb-1 border-b border-gray-200">
+                  {groupName}
+                </h4>
+                <div className="space-y-2">
+                  {groupActivities.map(activity => (
+                    <Tooltip 
+                      key={activity.id}
+                      content={activity.title}
+                      closeDelay={550}
+                      className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
+                        rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
+                        transition-opacity duration-300"
+                    >
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-left pl-2 py-1.5 h-auto"
+                        onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                      >
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                          <span className="truncate">{activity.title}</span>
+                        </div>
+                      </Button>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Affichage vertical groupé par type (themeChoice = 1)
+  return (
+    <div className="w-full md:w-64 lg:w-72 flex-shrink-0 border-r border-gray-200 pr-4">
+      {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
+        <div key={groupName} className="mb-6">
+          <h3 className="text-md font-medium text-gray-700 mb-2">{groupName}</h3>
+          <div className="space-y-2">
+            {groupActivities.map(activity => (
+              <Tooltip 
+                key={activity.id}
+                content={activity.title}
+                closeDelay={550}
+                className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
+                  rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
+                  transition-opacity duration-300"
+              >
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-left pl-2 py-1.5 h-auto"
+                  onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                >
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                    <span className="truncate">{activity.title}</span>
+                  </div>
+                </Button>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );

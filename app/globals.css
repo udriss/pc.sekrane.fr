@@ -249,3 +249,15 @@ input:checked + .checkboxSliderAdmin:before  {
     display: flex !important;
     justify-content: center !important;
   }
+
+  .active {
+    background-color: #e5e7eb;
+    font-weight: bold;
+  }
+  
+  .question-content {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }

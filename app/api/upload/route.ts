@@ -25,18 +25,41 @@ export async function POST(req: Request) {
           .replace(/[^a-zA-Z0-9.-]/g, '_');    // Replace any remaining special chars with underscore
       };
       
-      const fileName = sanitizeFileName(file.name);
+      let fileName = sanitizeFileName(file.name);
       let filePath = '';
 
       // Determine the directory based on the file type
       if (file.name.endsWith('.ipynb')) {
-        filePath = path.join(process.cwd(), 'public', courseId, 'notebook', fileName);
+        filePath = path.join(process.cwd(), 'public', courseId, 'notebook');
       } else if (file.name.endsWith('.pdf')) {
-        filePath = path.join(process.cwd(), 'public', courseId, 'pdf', fileName);
+        filePath = path.join(process.cwd(), 'public', courseId, 'pdf');
       } else {
-        filePath = path.join(process.cwd(), 'public', courseId, 'autre', fileName);
+        filePath = path.join(process.cwd(), 'public', courseId, 'autre');
       }
 
+      let fullFilePath = path.join(filePath, fileName);
+      let fileExists = true;
+      let counter = 0;
+      let newFileName = fileName;
+
+      while (fileExists) {
+        try {
+          await fs.access(fullFilePath);
+          counter++;
+          const fileNameWithoutExtension = path.basename(fileName, path.extname(fileName));
+          newFileName = `${fileNameWithoutExtension}_${counter}${path.extname(fileName)}`;
+          fullFilePath = path.join(filePath, newFileName);
+        } catch (error: any) {
+          if (error.code === 'ENOENT') {
+            fileExists = false;
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      fileName = newFileName;
+      filePath = path.join(filePath, fileName);
 
       // Ensure the directory exists
       await fs.mkdir(path.dirname(filePath), { recursive: true });
