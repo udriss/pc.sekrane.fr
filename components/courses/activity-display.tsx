@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DOMPurify from 'dompurify';
@@ -18,6 +18,7 @@ import { toast, Id } from 'react-toastify'; // Add this import
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
 import { Download } from 'lucide-react'; // Add this import
+import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -47,6 +48,37 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [isLoading, setIsLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
+
+
+  // Dans le composant CoursePage, ajouter cette fonction pour grouper les activités
+  // juste avant le return
+const groupedActivities = useMemo(() => {
+  if (!course) return {};
+  
+  // Définir le type de l'objet groups pour permettre les propriétés dynamiques
+  const groups: Record<string, Activity[]> = {};
+  
+  course.activities.forEach(activity => {
+    // Déterminer le type de fichier basé sur l'extension
+    const extension = activity.name.split('.').pop()?.toLowerCase() || '';
+    let fileType = 'Autres fichiers';
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension)) fileType = 'Images';
+    if (['pdf'].includes(extension)) fileType = 'Documents PDF';
+    if (['ipynb'].includes(extension)) fileType = 'Notebooks Python';
+    if (['mp4', 'avi', 'mov'].includes(extension)) fileType = 'Vidéos';
+    if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) fileType = 'Audio';
+    
+    if (!groups[fileType]) {
+      groups[fileType] = [];
+    }
+    groups[fileType].push(activity);
+  });
+  
+  return groups;
+}, [course]);
+
+
   const handleUniqueIdReceived = (id: string) => {
     setCurrentUniqueId(id);
   };
@@ -54,6 +86,22 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const handleOTPChange = (value: string) => {
     setCurrentUniqueId(value.toUpperCase());
   };
+
+  // Dans le composant CoursePage, ajouter cette fonction
+const handleActivityClick = (fileUrl: string, activity: Activity) => {
+  // Determine file type
+  const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
+  let type = 'other';
+  
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension)) type = 'image';
+  if (['pdf'].includes(extension)) type = 'pdfType';
+  if (['ipynb'].includes(extension)) type = 'ipynb';
+  if (['mp4', 'avi', 'mov'].includes(extension)) type = 'video';
+  if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) type = 'audio';
+  if (['tsx', 'jsx', 'ts', 'js', 'html', 'css'].includes(extension)) type = 'typescript';
+  
+  handleSelectActivity(fileUrl, type, activity);
+};
 
   useEffect(() => {
     if (!userName) {
@@ -468,7 +516,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
 
 
   return (
-    <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1200px] mx-auto px-4 md:px-0">
+    <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1400px] mx-auto px-4 md:px-0">
       <ActivityHeader title={course.title} description={course.description} />
 
       {/* Adapter la structure en fonction du thème */}
@@ -476,88 +524,191 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         ${course.themeChoice === 1 ? 'flex flex-col md:flex-row' : 'flex flex-col'} 
         w-full
       `}>
-        <ActivityList
-          themeChoice={course.themeChoice ?? 0}
-          activities={course.activities}
-          onSelectActivity={handleSelectActivity}
-          onToggleSideBySide={handleToggleSideBySide}
-          handleFileSelection={handleFileSelection}
-          userName={userName}
-          setUserName={setUserName}
-          onUniqueIdReceived={handleUniqueIdReceived}
-        />
+        {/* Afficher ActivityList seulement si themeChoice n'est pas 1 ou si hasIpynb est vrai */}
+        {(course.themeChoice !== 1 || hasIpynb) && (
+          <ActivityList
+            themeChoice={course.themeChoice ?? 0}
+            activities={course.activities}
+            onSelectActivity={handleSelectActivity}
+            onToggleSideBySide={handleToggleSideBySide}
+            handleFileSelection={handleFileSelection}
+            userName={userName}
+            setUserName={setUserName}
+            onUniqueIdReceived={handleUniqueIdReceived}
+          />
+        )}
 
-        {/* Dans le mode accordéon, cette div doit toujours prendre toute la largeur */}
-        <div className={`${course.themeChoice === 1 ? 'flex-1' : 'w-full'}`}>
-          {course.themeChoice !== 2 && <Divider variant="middle" sx={{ my: 2, borderBottomWidth: '2px' }}></Divider>}
-          {hasIpynb && (
-            // Cette partie reste inchangée comme demandé
-            <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
-              <div className="flex flex-col gap-4">
-              <Input
-                  className="inputNameActivityList min-w-[200px]"
-                  type="text"
-                  placeholder="Entrez votre prénom"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  onFocus={() => {
-                    if (toastId) {
-                      toast.dismiss();
-                      toast.clearWaitingQueue();
-                      setToastId(null);
-                    }
-                  }}
-                />
-              <div className="flex flex-row items-center justify-around gap-4">
-              <div className="">
-                Double vue
-              </div>
-                <label className="checkboxSwitch">
-                  <input
-                    type="checkbox"
-                    checked={showSideBySide}
-                    onChange={(e) => setShowSideBySide(e.target.checked)}
-                  />
-                  <span className="checkboxSlider checkboxSliderEleve"></span>
-                </label>
-              </div>
-              </div>
-              <div className="flex flex-col gap-4 md:mt-0 mt-4">
-                <OtpInput
-                  value={currentUniqueId}
-                  onChange={handleOTPChange}
-                  numInputs={6}
-                  renderSeparator={""}
-                  renderInput={(props) => <input {...props} />}
-                  containerStyle="flex gap-2"
-                  inputStyle={{
-                    width: '2rem',
-                    height: '2.5rem',
-                    margin: '0 2px',
-                    fontSize: '1rem',
-                    borderRadius: '4px',
-                    border: '2px solid rgb(42, 101, 196)',
-                    textAlign: 'center'
-                  }}
-                />
-              <Button 
-                onClick={handleVerifyNotebook}
-                disabled={isLoading || !currentUniqueId || currentUniqueId.length !== 6}
-                className=""
-              >
-                {isLoading ? 'Chargement...' : 'Charger un notebook'}
-              </Button>
-              </div>
-              
+        {/* Afficher le contenu en pleine largeur si themeChoice === 1 et !hasIpynb */}
 
-              <Button onClick={handleClearCookies} className="bg-red-300 text-white w-[auto] hover:bg-red-700 md:mt-0 mt-4">
-                Effacer vos données
-              </Button>
+
+
+{course.themeChoice === 1 && !hasIpynb && (
+  <div className="w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4"> {/* Ajout de responsive */}
+      {(() => {
+        // Préparation des activités réparties équitablement
+        const allActivities: Array<{groupName: string, activity: Activity}> = [];
+        
+        // Aplatir la structure pour obtenir toutes les activités avec leur type
+        Object.entries(groupedActivities).forEach(([groupName, activities]) => {
+          activities.forEach(activity => {
+            allActivities.push({ groupName, activity });
+          });
+        });
+        
+        // Nombre total d'activités
+        const totalActivities = allActivities.length;
+        
+        // Nombre idéal d'activités par colonne
+        const itemsPerColumn = Math.ceil(totalActivities / 3);
+        
+        // Diviser en 3 colonnes égales
+        const columns: Array<{groupName: string, activity: Activity}[]> = [
+          allActivities.slice(0, itemsPerColumn),
+          allActivities.slice(itemsPerColumn, itemsPerColumn * 2),
+          allActivities.slice(itemsPerColumn * 2)
+        ];
+        
+        // Pour traquer le dernier type affiché entre les colonnes
+        let lastGroupNameDisplayed = '';
+        
+        // Rendre les colonnes
+        return columns.map((column, colIndex) => {
+          // Regrouper les activités par type dans cette colonne
+          const groupedInColumn: Record<string, Activity[]> = {};
+          
+          column.forEach(({ groupName, activity }) => {
+            if (!groupedInColumn[groupName]) {
+              groupedInColumn[groupName] = [];
+            }
+            groupedInColumn[groupName].push(activity);
+          });
+          
+          // Obtenir les entrées ordonnées pour préserver l'ordre original
+          const entries = Object.entries(groupedInColumn);
+          
+          return (
+            <div key={`column-${colIndex}`} className="space-y-6">
+              {entries.map(([groupName, activities], index) => {
+                // Ne pas afficher le groupName s'il s'agit du même type que celui affiché précédemment
+                // et qu'il s'agit du premier groupe de la colonne (continuité entre colonnes)
+                const shouldDisplayGroupName = !(index === 0 && groupName === lastGroupNameDisplayed);
+                
+                // Mettre à jour le dernier groupName affiché après traitement
+                if (index === entries.length - 1) {
+                  lastGroupNameDisplayed = groupName;
+                }
+                
+                return (
+                  <div key={`${colIndex}-${groupName}`} className="break-inside-avoid">
+                    {shouldDisplayGroupName && (
+                      <h3 className="text-md font-medium text-gray-800 border-b border-gray-300 pb-1 mb-3">
+                        {groupName}
+                      </h3>
+                    )}
+                    <div className="space-y-2 flex flex-col">
+                      {activities.map((activity: Activity) => (
+                        <Button
+                          key={activity.id}
+                          variant="outline"
+                          className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
+                          onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                        >
+                          <div className="flex items-center w-full">
+                            <div className="flex-shrink-0 mr-2">
+                              {getFileIcon(activity.name)}
+                            </div>
+                            <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
+                              {activity.title}
+                            </span>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                    </div>
+                  
+                );
+              })}
             </div>
-          )}
-        </div>
+          );
+        });
+      })()}
+    </div>
+  </div>
+)}
+        {/* Dans le mode accordéon ou si hasIpynb est vrai */}
+        {(course.themeChoice !== 1 || hasIpynb) && (
+          <div className={`${course.themeChoice === 1 ? 'flex-1' : 'w-full'}`}>
+            {hasIpynb && (
+              <>
+                <Divider variant="middle" sx={{ my: 2, borderBottomWidth: '2px' }}></Divider>
+                <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
+                  <div className="flex flex-col gap-4">
+                    <Input
+                      className="inputNameActivityList min-w-[200px]"
+                      type="text"
+                      placeholder="Entrez votre prénom"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      onFocus={() => {
+                        if (toastId) {
+                          toast.dismiss();
+                          toast.clearWaitingQueue();
+                          setToastId(null);
+                        }
+                      }}
+                    />
+                    <div className="flex flex-row items-center justify-around gap-4">
+                      <div className="">
+                        Double vue
+                      </div>
+                      <label className="checkboxSwitch">
+                        <input
+                          type="checkbox"
+                          checked={showSideBySide}
+                          onChange={(e) => setShowSideBySide(e.target.checked)}
+                        />
+                        <span className="checkboxSlider checkboxSliderEleve"></span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4 md:mt-0 mt-4">
+                    <OtpInput
+                      value={currentUniqueId}
+                      onChange={handleOTPChange}
+                      numInputs={6}
+                      renderSeparator={""}
+                      renderInput={(props) => <input {...props} />}
+                      containerStyle="flex gap-2"
+                      inputStyle={{
+                        width: '2rem',
+                        height: '2.5rem',
+                        margin: '0 2px',
+                        fontSize: '1rem',
+                        borderRadius: '4px',
+                        border: '2px solid rgb(42, 101, 196)',
+                        textAlign: 'center'
+                      }}
+                    />
+                    <Button 
+                      onClick={handleVerifyNotebook}
+                      disabled={isLoading || !currentUniqueId || currentUniqueId.length !== 6}
+                      className=""
+                    >
+                      {isLoading ? 'Chargement...' : 'Charger un notebook'}
+                    </Button>
+                  </div>
+                  <Button onClick={handleClearCookies} className="bg-red-300 text-white w-[auto] hover:bg-red-700 md:mt-0 mt-4">
+                    Effacer vos données
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Le reste du code reste inchangé */}
       <div className="mt-4 md:mt-8 flex justify-center h-[900px] w-full overflow-y-auto">
         {showSideBySide ? (
           <Split

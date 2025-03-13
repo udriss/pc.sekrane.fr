@@ -18,22 +18,34 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
+    // Si c'est une mise à jour du thème
+    if ('themeChoice' in body) {
+      courses[courseIndex] = {
+        ...courses[courseIndex],
+        themeChoice: body.themeChoice
+      };
+    }
     // Si c'est une mise à jour de visibilité
-    if ('toggleVisibilityCourse' in body) {
+    else if ('toggleVisibilityCourse' in body) {
       courses[courseIndex] = {
         ...courses[courseIndex],
         toggleVisibilityCourse: body.toggleVisibilityCourse
       };
-    } 
+    }
     // Si c'est une mise à jour complète du cours
-    else if (body.title && body.description && body.newClasseId) {
-      courses[courseIndex] = {
+    else if (body.title || body.description || body.newClasseId) {
+      // Update only the fields that are provided in the request
+      const updatedCourse = {
         ...courses[courseIndex],
-        title: body.title,
-        description: body.description,
-        theClasseId: body.newClasseId,
-        classe: classes.find(classe => classe.id === body.newClasseId)?.name || courses[courseIndex].classe,
+        ...(body.title && { title: body.title }),
+        ...(body.description && { description: body.description }),
+        ...(body.newClasseId && { 
+          theClasseId: body.newClasseId,
+          classe: classes.find(classe => classe.id === body.newClasseId)?.name || courses[courseIndex].classe
+        })
       };
+          
+      courses[courseIndex] = updatedCourse;
     } else {
       return NextResponse.json({ error: 'Invalid update parameters' }, { status: 400 });
     }

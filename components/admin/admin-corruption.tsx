@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
-import { Course, Classe } from '@/lib/dataTemplate';
+import { Course, Classe, THEMES } from '@/lib/dataTemplate';
 import { SortableFile } from '@/components/admin/SortableFile';
 import { SortableCourse } from '@/components/admin/SortableCourse';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -78,12 +78,13 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [errorDeleteClasse, setErrorDeleteClasse] = useState<string>('');
   const [successMessageDeleteClasse, setSuccessMessageDeleteClasse] = useState<string>('');
   const [warningDeleteClasse, setWarningDeleteClasse] = useState<string>('');
-  const [courseDetails, setCourseDetails] = useState<{ id : string, title: string; description: string; classe: string; theClasseId: string; }>({
+  const [courseDetails, setCourseDetails] = useState<{ id : string, title: string; description: string; classe: string; theClasseId: string; themeChoice?: number; }>({
     id : '',
     title: '',
     description: '',
     classe: '',
     theClasseId: '',
+    themeChoice: 0,
   });
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [refreshDataClass, setRefreshDataClass] = useState(false);
   const [successMessageUploadFileName, setSuccessMessageUploadFileName] = useState<string>('');
   const [currentCourse, setCurrentCourse] = useState<Course[]>([]);
-
+  const [warningUpdateCourse, setWarningUpdateCourse] = useState<string>('');
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -146,6 +147,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
           description: updatedCourse.description,
           classe: updatedCourse.classe,
           theClasseId: updatedCourse.theClasseId,
+          themeChoice: updatedCourse.themeChoice ?? 0,
         });
         setNewClasseId(updatedCourse.theClasseId); // Mettre à jour newClasseId
       }
@@ -168,6 +170,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         description: course.description || '',
         classe: course.classe || '',
         theClasseId: course.theClasseId || '',
+        themeChoice: course.themeChoice ?? 0,
       });
     }
   };
@@ -511,6 +514,33 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   
   const handleSaveCourseDetails = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Récupérer le cours original pour comparaison
+    const originalCourse = courses.find(c => c.id === selectedCourse);
+    
+    if (!originalCourse) {
+      setErrorUpdateCourse('Course not found');
+      setSuccessMessageUpdateCourse('');
+      return;
+    }
+    
+    // Vérifier si des modifications ont été effectuées
+    const titleChanged = courseDetails.title !== originalCourse.title;
+    const descriptionChanged = courseDetails.description !== originalCourse.description;
+    const classeChanged = newClasseId !== originalCourse.theClasseId;
+    
+    // Si rien n'a changé, afficher un avertissement et ne pas envoyer de requête
+    if (!titleChanged && !descriptionChanged && !classeChanged) {
+      setErrorUpdateCourse('');
+      setSuccessMessageUpdateCourse('');
+      // Utiliser le state warningUpdateCourse existant, ou en créer un si nécessaire
+      setWarningUpdateCourse("Aucune modification détectée. Rien n'a été mis à jour.");
+      return;
+    }
+    
+    // Réinitialiser les messages
+    setWarningUpdateCourse('');
+    
     const res = await fetch(`/api/updatecourse/${selectedCourse}`, {
       method: 'PUT',
       headers: {
@@ -523,7 +553,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         newClasseId,
       }),
     });
-
+  
     if (res.ok) {
       const data = await res.json();
       setErrorUpdateCourse(''); // Reset error message
@@ -531,7 +561,8 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       setCourses(data.courses);
       setClasses(data.classes);
     } else {
-      setErrorUpdateCourse('Erreur lors de la mise à jour du cours.'); 
+      const data = await res.json();
+      setErrorUpdateCourse('Erreur lors de la mise à jour du cours : '+ data.error); 
       setSuccessMessageUpdateCourse('');
     }
   };
@@ -660,6 +691,64 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       setCourses(data.courses);
     } catch (error) {
       console.error('Error updating class visibility:', error);
+    }
+  };
+
+  const handleThemeChange = async (themeId: string) => {
+    const numericThemeId = Number(themeId);
+    
+    // Mettre à jour l'état local
+    setCourseDetails(prev => ({
+      ...prev,
+      themeChoice: numericThemeId
+    }));
+    
+    try {
+      
+      // Trouver le cours actuel pour afficher son titre dans le toast
+      const currentCourse = courses.find(course => course.id === selectedCourse);
+      const courseTitle = currentCourse?.title || "sélectionné";
+
+      const res = await fetch(`/api/updatecourse/${selectedCourse}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: selectedCourse,
+          themeChoice: numericThemeId
+        }),
+      });
+  
+      if (res.ok) {
+        const data = await res.json();
+        setCourses(data.courses);
+        
+        toast.dismiss();
+        toast.clearWaitingQueue();
+      toast.success(
+        <div className="text-center">
+          Thème mis à jour pour le cours{" "}
+          <span className="font-bold">{courseTitle}</span>
+        </div>,
+        {
+          position: "top-center",
+          autoClose: 500,
+          hideProgressBar: false,
+          theme: "dark",
+          style: {
+            width: '500px',
+            textAlign: 'center',
+            justifyContent: 'center',
+          },
+        }
+      );
+      } else {
+        setErrorUpdateCourse('Erreur lors de la mise à jour du thème.');
+      }
+    } catch (error) {
+      console.error('Error updating theme:', error);
+      setErrorUpdateCourse('Erreur serveur lors de la mise à jour du thème.');
     }
   };
 
@@ -920,37 +1009,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
         </SelectContent>
       </Select>
     </div>
-    {files.length > 0 && (
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Fichiers associés</h3>
-        <DndContext 
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext 
-            items={files}
-            strategy={verticalListSortingStrategy}
-          >
-            <ul className="space-y-2">
-              {currentCourse[0]?.activities?.map((activity) => (
-                <SortableFile
-                  fileId={activity.id}
-                  key={activity.id}
-                  fileName={activity.title}
-                  fileUrl={activity.fileUrl}
-                  onDelete={handleDeleteFile}
-                />
-              ))}
-            </ul>
-          </SortableContext>
-        </DndContext>
-      </div>
-    )}
-    {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
-    {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
-  </div>
-  {selectedCourse && (
+    {selectedCourse && (
     <form onSubmit={handleSaveCourseDetails} className="space-y-6 mt-8">
       <div className="space-y-2">
         <label className="text-sm font-medium">Titre du cours</label>
@@ -986,13 +1045,60 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           </SelectContent>
         </Select>
       </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Thème</label>
+        <Select name="theme" value={courseDetails.themeChoice?.toString() || '0'} onValueChange={handleThemeChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un thème" />
+          </SelectTrigger>
+          <SelectContent>
+            {THEMES.map((theme) => (
+              <SelectItem key={theme.id} value={theme.id.toString()}>
+                {theme.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
+      {warningUpdateCourse && <WarningMessage message={warningUpdateCourse} />}
       {successMessageUpdateCourse && <SuccessMessage message={successMessageUpdateCourse} />}
       <Button type="submit" className="w-full">
         Enregistrer les modifications
       </Button>
     </form>
   )}
+    {files.length > 0 && (
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium">Fichiers associés</h3>
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext 
+            items={files}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="space-y-2">
+              {currentCourse[0]?.activities?.map((activity) => (
+                <SortableFile
+                  fileId={activity.id}
+                  key={activity.id}
+                  fileName={activity.title}
+                  fileUrl={activity.fileUrl}
+                  onDelete={handleDeleteFile}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      </div>
+    )}
+    {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
+    {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
+  </div>
+
   <form onSubmit={handleDeleteCourse} className="space-y-6 mt-8">
     <div className="flex flex-row col-span-1 justify-center items-center">
       <label className="checkboxSwitch">

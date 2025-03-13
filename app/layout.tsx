@@ -59,7 +59,7 @@ export default function RootLayout({
               <MainNav />
             </div>
           <main className="container mt-32 min-h-screen flex flex-col w-full md:max-w-[750px] 
-          lg:max-w-[960px] xl:max-w-[1200px] mx-auto px-4 md:px-0">
+          lg:max-w-[960px] xl:max-w-[1300px] mx-auto px-4 md:px-0">
             {children}
             <Toaster 
               position="top-center" 

@@ -90,7 +90,7 @@
         {
           "id": "1740740585766",
           "name": "2SNT_algo.ipynb",
-          "title": "Notebook",
+          "title": "Missions",
           "fileUrl": "/19/notebook/2SNT_algo.ipynb"
         },
         {
@@ -313,20 +313,20 @@
           "fileUrl": "/12/pdf/2matE_bilan_chap4.pdf"
         },
         {
-          "id": "1737544796445",
-          "name": "2nd_T1_C5_cours_2.pdf",
+          "id": "1741797215047",
+          "name": "2nd_T1_C5_cours_1.pdf",
           "title": "T1 Chapitre 5 — L’électron dans l’atome",
-          "fileUrl": "/12/pdf/2nd_T1_C5_cours_2.pdf"
+          "fileUrl": "/12/pdf/2nd_T1_C5_cours_1.pdf"
         },
         {
-          "id": "1738661612591",
-          "name": "2matE_bilan_chap6.pdf",
+          "id": "1741797243448",
+          "name": "2nd_T1_C6_cours.pdf",
           "title": "T1 Chapitre 6 — Stabilité des entités chimiques",
-          "fileUrl": "/12/pdf/2matE_bilan_chap6.pdf"
+          "fileUrl": "/12/pdf/2nd_T1_C6_cours.pdf"
         }
       ],
       "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 2
     },
     {
       "id": "17",
@@ -365,7 +365,8 @@
           "fileUrl": "/32/pdf/2nd_T1_C1_A1.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "31",
@@ -393,7 +394,8 @@
           "fileUrl": "/31/pdf/2nd_T1_C2_A3.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "33",
@@ -415,7 +417,8 @@
           "fileUrl": "/33/pdf/2nd_T1_C3_A1.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "34",
@@ -431,12 +434,13 @@
           "fileUrl": "/34/pdf/2nd_T1_C4_A1.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "14",
       "title": "T1 Chapitre 5",
-      "description": "",
+      "description": "L'électron dans l'atome : répartition en couches (n) et sous-couches (s,p), ordre de remplissage des sous-couches : 1s → 2s → 2p → 3s → 3p, déterminant propriétés chimiques et classification périodique des éléments.",
       "classe": "Seconde",
       "theClasseId": "6",
       "activities": [
@@ -453,13 +457,13 @@
           "fileUrl": "/14/pdf/2nd_T1_C5_A1.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
       "id": "13",
       "title": "T1 Chapitre 6",
-      "description": "",
+      "description": "Les règles du duet/octet expliquent la stabilité des gaz nobles et déterminent la formation d'ions et de molécules par le modèle de Lewis.",
       "classe": "Seconde",
       "theClasseId": "6",
       "activities": [
@@ -480,10 +484,16 @@
           "name": "2nd_T1_C6_lewis_structure_1.pdf",
           "title": "Modèle de LEWIS, énergie de liaison",
           "fileUrl": "/13/pdf/2nd_T1_C6_lewis_structure_1.pdf"
+        },
+        {
+          "id": "1741767339001",
+          "name": "tableau_periodique_LEWIS_vide.png",
+          "title": "Tableau périodique",
+          "fileUrl": "/13/autre/tableau_periodique_LEWIS_vide.png"
         }
       ],
       "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 1
     },
     {
       "id": "18",
@@ -522,15 +532,6 @@
       "theClasseId": "7",
       "activities": [],
       "toggleVisibilityCourse": false,
-      "themeChoice": 0
-    },
-    {
-      "id": "22",
-      "title": "TEST",
-      "description": "",
-      "classe": "Autre",
-      "theClasseId": "0",
-      "activities": [],
       "themeChoice": 0
     },
     {
@@ -583,8 +584,8 @@
           "fileUrl": "/10/autre/2MVT_chute_glycerol.avi"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "toggleVisibilityCourse": false,
+      "themeChoice": 1
     },
     {
       "id": "11",
@@ -593,7 +594,8 @@
       "classe": "Seconde",
       "theClasseId": "6",
       "activities": [],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "23",
@@ -638,7 +640,7 @@
     {
       "id": "25",
       "title": "T1 Chapitre 9",
-      "description": "Étapes de synthèse organique : transformation, isolement, purification, identification et optimisation expérimentale",
+      "description": "Étapes de synthèse organique : transformation, isolement, purification, identification et optimisation expérimentale.",
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [],
@@ -826,7 +828,7 @@
           "fileUrl": "/26/autre/TSTI_C9_Ac5.xlsx"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 1
     },
     {
       "id": "27",
