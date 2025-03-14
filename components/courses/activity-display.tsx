@@ -544,7 +544,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
 
 {course.themeChoice === 1 && !hasIpynb && (
   <div className="w-full">
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4"> {/* Ajout de responsive */}
+    <div className="flex flex-wrap p-4"> {/* Changé de grid à flex avec flex-wrap */}
       {(() => {
         // Préparation des activités réparties équitablement
         const allActivities: Array<{groupName: string, activity: Activity}> = [];
@@ -559,8 +559,11 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         // Nombre total d'activités
         const totalActivities = allActivities.length;
         
-        // Nombre idéal d'activités par colonne
-        const itemsPerColumn = Math.ceil(totalActivities / 3);
+        // Nombre de colonnes selon la taille d'écran
+        const columnsCount = { sm: 2, md: 3 };
+        
+        // Nombre idéal d'activités par colonne (pour 3 colonnes)
+        const itemsPerColumn = Math.ceil(totalActivities / columnsCount.md);
         
         // Diviser en 3 colonnes égales
         const columns: Array<{groupName: string, activity: Activity}[]> = [
@@ -588,48 +591,54 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
           const entries = Object.entries(groupedInColumn);
           
           return (
-            <div key={`column-${colIndex}`} className="space-y-6">
-              {entries.map(([groupName, activities], index) => {
-                // Ne pas afficher le groupName s'il s'agit du même type que celui affiché précédemment
-                // et qu'il s'agit du premier groupe de la colonne (continuité entre colonnes)
-                const shouldDisplayGroupName = !(index === 0 && groupName === lastGroupNameDisplayed);
-                
-                // Mettre à jour le dernier groupName affiché après traitement
-                if (index === entries.length - 1) {
-                  lastGroupNameDisplayed = groupName;
-                }
-                
-                return (
-                  <div key={`${colIndex}-${groupName}`} className="break-inside-avoid">
-                    {shouldDisplayGroupName && (
-                      <h3 className="text-md font-medium text-gray-800 border-b border-gray-300 pb-1 mb-3">
-                        {groupName}
-                      </h3>
-                    )}
-                    <div className="space-y-2 flex flex-col">
-                      {activities.map((activity: Activity) => (
-                        <Button
-                          key={activity.id}
-                          variant="outline"
-                          className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
-                          onClick={() => handleActivityClick(activity.fileUrl, activity)}
-                        >
-                          <div className="flex items-center w-full">
-                            <div className="flex-shrink-0 mr-2">
-                              {getFileIcon(activity.name)}
-                            </div>
-                            <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
-                              {activity.title}
-                            </span>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                    </div>
-                  
-                );
-              })}
-            </div>
+            <React.Fragment key={`column-fragment-${colIndex}`}>
+              {/* Colonne */}
+              <div className="w-full sm:w-1/2 md:w-1/3 px-3 mb-6 md:mb-0 relative">
+                <div className="space-y-6">
+                  {entries.map(([groupName, activities], index) => {
+                    // Ne pas afficher le groupName s'il s'agit du même type que celui affiché précédemment
+                    // et qu'il s'agit du premier groupe de la colonne (continuité entre colonnes)
+                    const shouldDisplayGroupName = !(index === 0 && groupName === lastGroupNameDisplayed);
+                    
+                    // Mettre à jour le dernier groupName affiché après traitement
+                    if (index === entries.length - 1) {
+                      lastGroupNameDisplayed = groupName;
+                    }
+                    
+                    return (
+                      <div key={`${colIndex}-${groupName}`} className="break-inside-avoid">
+                        {shouldDisplayGroupName && (
+                          <h3 className="text-md font-medium text-gray-800 border-b border-gray-300 pb-1 mb-3">
+                            {groupName}
+                          </h3>
+                        )}
+                        <div className="space-y-2 flex flex-col">
+                          {activities.map((activity: Activity) => (
+                            <Button
+                              key={activity.id}
+                              variant="outline"
+                              className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
+                              onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                            >
+                              <div className="flex items-center w-full">
+                                <div className="flex-shrink-0 mr-2">
+                                  {getFileIcon(activity.name)}
+                                </div>
+                                <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
+                                  {activity.title}
+                                </span>
+                              </div>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+
+            </React.Fragment>
           );
         });
       })()}
@@ -641,7 +650,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
           <div className={`${course.themeChoice === 1 ? 'flex-1' : 'w-full'}`}>
             {hasIpynb && (
               <>
-                <Divider variant="middle" sx={{ my: 2, borderBottomWidth: '2px' }}></Divider>
+                <Divider variant="middle" sx={{ mb: 2, borderBottomWidth: '1px' }}></Divider>
                 <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
                   <div className="flex flex-col gap-4">
                     <Input

@@ -1,7 +1,7 @@
 import React from "react";
-import { FaFile, FaFileImage, FaFilePdf, FaFileCode, FaFileVideo } from "react-icons/fa";
-import { GiSoundOn } from "react-icons/gi";
-import { SiJupyter } from "react-icons/si";
+import { FaFileLines, FaFileImage, FaRegFilePdf, FaFileCode, FaFileVideo, FaPython } from "react-icons/fa6";
+import { GiSoundWaves } from "react-icons/gi";
+
 
 export const getFileIcon = (fileName: string) => {
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -14,9 +14,9 @@ export const getFileIcon = (fileName: string) => {
     case 'webmp':
       return <FaFileImage className="mr-2 h-6 w-6" style={{ color: 'rgba(0, 102, 204, 0.8)' }} />;
     case 'pdf':
-      return <FaFilePdf className="mr-2 h-6 w-6" style={{ color: 'rgba(204, 0, 0, 0.8)' }} />;
+      return <FaRegFilePdf className="mr-2 h-6 w-6" style={{ color: 'rgb(202, 41, 41)' }} />;
     case 'ipynb':
-      return <SiJupyter className="mr-2 h-6 w-6" style={{ color: 'rgba(243, 102, 25, 0.8)' }} />;
+          return <FaPython className="mr-2 h-6 w-6" style={{ color: 'rgb(236, 189, 24)' }} />;  
     case 'mp4':
     case 'avi':
     case 'mov':
@@ -26,9 +26,9 @@ export const getFileIcon = (fileName: string) => {
     case 'ogg':
     case 'aac':
     case 'flac':
-      return <GiSoundOn className="mr-2 h-6 w-6" style={{ color: 'rgba(0, 115, 38, 0.82)' }} />;
+      return <GiSoundWaves className="mr-2 h-6 w-6" style={{ color: 'rgba(61, 148, 90, 0.82)' }} />;
     default:
-      return <FaFile className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
+      return <FaFileLines className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
   }
 };
 

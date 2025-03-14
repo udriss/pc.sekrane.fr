@@ -11,6 +11,8 @@ import { downloadFileWithProgress } from '@/components/courses/donwload-track';
 import { RATE_LIMIT } from '@/lib/rateLimit';
 import { Tooltip } from "@nextui-org/react";
 import { CircleChevronDown } from 'lucide-react';
+import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
+import { Divider } from "@mui/material"; 
 
 interface ActivityListProps {
   themeChoice: number;
@@ -251,34 +253,8 @@ export function ActivityList({
       }
     }
   };
+  
 
-    const getFileIcon = (fileName: string) => {
-      const extension = fileName.split('.').pop()?.toLowerCase();
-      switch (extension) {
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'gif':
-        case 'svg':
-          return <FaRegImage className="mr-2 h-6 w-6" />;
-        case 'pdf':
-          return <FaRegFilePdf className="mr-2 h-6 w-6" />;
-        case 'ipynb':
-          return <FaPython className="mr-2 h-6 w-6" style={{ color: 'rgb(236, 189, 24)' }} />;  
-        case 'mp4':
-        case 'avi':
-        case 'mov':
-          return <FaVideo className="mr-2 h-6 w-6" style={{ color: 'rgba(2, 93, 211, 0.82)' }} />;
-        case 'mp3':
-        case 'wav':
-        case 'ogg':
-        case 'aac':
-        case 'flac':
-          return <GiSoundOn className="mr-2 h-6 w-6" style={{ color: 'rgba(0, 115, 38, 0.82)' }} />;
-        default:
-          return <FaFileInvoice className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
-      }
-    };
 
   const getFileType = (fileName: string): string => {
     const extension = fileName.split('.').pop()?.toLowerCase();
@@ -400,18 +376,18 @@ export function ActivityList({
                   rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
                   transition-opacity duration-300"
               >
-<Button
-  variant="outline"
-  className="w-full justify-start text-left pl-2 py-1.5 h-auto"
-  onClick={() => handleActivityClick(activity.fileUrl, activity)}
->
-  <div className="flex items-center w-full">
-    <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-    <span className="truncate block w-[calc(100%-32px)]" title={activity.title}>
-      {activity.title}
-    </span>
-  </div>
-</Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left pl-2 py-1.5 h-auto"
+                onClick={() => handleActivityClick(activity.fileUrl, activity)}
+              >
+                <div className="flex items-center w-full">
+                  <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                  <span className="truncate block w-[calc(100%-32px)]" title={activity.title}>
+                    {activity.title}
+                  </span>
+                </div>
+              </Button>
               </Tooltip>
             ))}
           </div>

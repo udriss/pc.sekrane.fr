@@ -521,7 +521,7 @@
           "fileUrl": "/18/pdf/TSTI_C8_A3.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
@@ -831,6 +831,28 @@
       "themeChoice": 1
     },
     {
+      "id": "30",
+      "title": "Chapitre 10",
+      "description": "Nature corpusculaire de la lumière, photons, quantification de l’énergie (E= h × f ), spectres atomiques, transitions électroniques, absorption/émission de lumière, applications photovoltaïques et lien avec les niveaux d’énergie des atomes.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1741121463077",
+          "name": "TSTI_C10_A1.pdf",
+          "title": "L’effet photoélectrique",
+          "fileUrl": "/30/pdf/TSTI_C10_A1.pdf"
+        },
+        {
+          "id": "1741121479855",
+          "name": "TSTI_C10_A2.pdf",
+          "title": "Rendement des conversions énergétiques solaires",
+          "fileUrl": "/30/pdf/TSTI_C10_A2.pdf"
+        }
+      ],
+      "themeChoice": 0
+    },
+    {
       "id": "27",
       "title": "Chapitre 11",
       "description": "Spectre électromagnétique, transmission d’ondes (radio, filaire), modulation (amplitude/fréquence), porteuse, signal modulant, applications en télécommunications, antennes et propagation des ondes.",
@@ -854,28 +876,6 @@
           "name": "TSTI_C11_A2.pdf",
           "title": "Communication par fibre optique",
           "fileUrl": "/27/pdf/TSTI_C11_A2.pdf"
-        }
-      ],
-      "themeChoice": 0
-    },
-    {
-      "id": "30",
-      "title": "Chapitre 10",
-      "description": "Nature corpusculaire de la lumière, photons, quantification de l’énergie (E= h × f ), spectres atomiques, transitions électroniques, absorption/émission de lumière, applications photovoltaïques et lien avec les niveaux d’énergie des atomes.",
-      "classe": "Tle STI2D",
-      "theClasseId": "4",
-      "activities": [
-        {
-          "id": "1741121463077",
-          "name": "TSTI_C10_A1.pdf",
-          "title": "L’effet photoélectrique",
-          "fileUrl": "/30/pdf/TSTI_C10_A1.pdf"
-        },
-        {
-          "id": "1741121479855",
-          "name": "TSTI_C10_A2.pdf",
-          "title": "Rendement des conversions énergétiques solaires",
-          "fileUrl": "/30/pdf/TSTI_C10_A2.pdf"
         }
       ],
       "themeChoice": 0
@@ -980,13 +980,13 @@
           "fileUrl": "/1/pdf/TSTI_C9.pdf"
         },
         {
-          "id": "1740904729390",
+          "id": "1741896390645",
           "name": "TSTI_C10.pdf",
           "title": "Chapitre 10 — Énergie transportée par la lumière",
           "fileUrl": "/1/pdf/TSTI_C10.pdf"
         },
         {
-          "id": "1740904740666",
+          "id": "1741896410216",
           "name": "TSTI_C11.pdf",
           "title": "Chapitre 11 — Télécommunications par ondes électromagnétiques",
           "fileUrl": "/1/pdf/TSTI_C11.pdf"
