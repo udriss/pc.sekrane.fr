@@ -70,11 +70,6 @@ export function ActivityList({
   };
 
   const handleActivityClick = async (fileUrl: string, activity: Activity) => {
-    // Si on est en mode accordéon (themeChoice = 2), on le ferme lors du clic
-    if (themeChoice === 2) {
-      setIsAccordionOpen(false);
-    }
-    
     // Clear existing interval if any
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -227,34 +222,68 @@ export function ActivityList({
       const objectUrl = await downloadFileWithProgress(apiUrl);
       handleFileSelection(objectUrl, 'image', activity);
       onSelectActivity(objectUrl, 'image', activity);
+      
+      // Only close accordion after file is processed
+      if (themeChoice === 2) {
+        setIsAccordionOpen(false);
+      }
     } else if (fileExtension && ['mp4','avi','mov'].includes(fileExtension)) {
       onSelectActivity(fileUrl, 'video', activity);
       handleFileSelection(fileUrl, 'video', activity);
+      
+      // Only close accordion after file is processed
+      if (themeChoice === 2) {
+        setIsAccordionOpen(false);
+      }
     } else if (fileExtension && ['tsx'].includes(fileExtension)) {
       onSelectActivity(fileUrl, 'typescript', activity);
+      
+      // Only close accordion after file is processed
+      if (themeChoice === 2) {
+        setIsAccordionOpen(false);
+      }
     } else if (fileExtension && ['pdf'].includes(fileExtension)) {
       const apiUrl = `/api/files${fileUrl}`;
-      const objectUrl = await downloadFileWithProgress(apiUrl); // Only executed after button click
-      onSelectActivity(objectUrl, 'pdfType', activity);
-      handleFileSelection(objectUrl, 'pdfType', activity);
+      try {
+        const objectUrl = await downloadFileWithProgress(apiUrl); // Only executed after button click
+        onSelectActivity(objectUrl, 'pdfType', activity);
+        handleFileSelection(objectUrl, 'pdfType', activity);
+        
+        // Only close accordion after file is processed
+        if (themeChoice === 2) {
+          setIsAccordionOpen(false);
+        }
+      } catch (error) {
+        console.error("Error downloading PDF:", error);
+        toast.error('Erreur lors du téléchargement du PDF');
+      }
     } else if (fileExtension && ['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(fileExtension)) {
       const apiUrl = `/api/files${fileUrl}`;
       const objectUrl = await downloadFileWithProgress(apiUrl);
       handleFileSelection(objectUrl, 'audio', activity);
       onSelectActivity(objectUrl, 'audio', activity);
+      
+      // Only close accordion after file is processed
+      if (themeChoice === 2) {
+        setIsAccordionOpen(false);
+      }
     } else {
       const apiUrl = `/api/files${fileUrl}`;
       try {
         const objectUrl = await downloadFileWithProgress(apiUrl); // Only executed after button click
         onSelectActivity(objectUrl, 'other', activity);
         handleFileSelection(objectUrl, 'other', activity);
+        
+        // Only close accordion after file is processed
+        if (themeChoice === 2) {
+          setIsAccordionOpen(false);
+        }
       } catch (error) {
+        console.error("Error downloading file:", error);
         toast.error('Erreur lors du téléchargement');
       }
     }
   };
-  
-
 
   const getFileType = (fileName: string): string => {
     const extension = fileName.split('.').pop()?.toLowerCase();

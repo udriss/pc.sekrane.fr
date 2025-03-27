@@ -50,7 +50,8 @@
         "31",
         "32",
         "33",
-        "34"
+        "34",
+        "35"
       ],
       "toggleVisibilityClasse": true
     },
@@ -64,7 +65,8 @@
         "20",
         "21",
         "24",
-        "25"
+        "25",
+        "36"
       ],
       "toggleVisibilityClasse": true
     }
@@ -215,7 +217,7 @@
     {
       "id": "15",
       "title": "T1 Chapitre 4",
-      "description": "Concepts essentiels des réactions chimiques incluant l'évolution des quantités des réactifs et de produits : introduction du tableau d'avancement.",
+      "description": "Concepts essentiels des réactions chimiques incluant l'évolution des quantités des réactifs et de produits : introduction du tableau d'avancement. ",
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [
@@ -257,7 +259,7 @@
         }
       ],
       "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 1
     },
     {
       "id": "5",
@@ -492,7 +494,7 @@
           "fileUrl": "/13/autre/tableau_periodique_LEWIS_vide.png"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 1
     },
     {
@@ -611,7 +613,7 @@
           "fileUrl": "/23/pdf/2nd_T3_C1_A5.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
@@ -990,10 +992,54 @@
           "name": "TSTI_C11.pdf",
           "title": "Chapitre 11 — Télécommunications par ondes électromagnétiques",
           "fileUrl": "/1/pdf/TSTI_C11.pdf"
+        },
+        {
+          "id": "1743060751604",
+          "name": "1S_T1_C7_CE1.pdf",
+          "title": "CE1",
+          "fileUrl": "/1/pdf/1S_T1_C7_CE1.pdf"
         }
       ],
       "toggleVisibilityCourse": true,
-      "themeChoice": 2
+      "themeChoice": 1
+    },
+    {
+      "id": "35",
+      "title": "T3 Chapitre 2",
+      "description": " ",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1742897055256",
+          "name": "2nd_T3_C2_A3.pdf",
+          "title": "Spectre d’émission du Soleil",
+          "fileUrl": "/35/pdf/2nd_T3_C2_A3.pdf"
+        },
+        {
+          "id": "1742897071237",
+          "name": "2nd_T3_C2_soleil_vide.ipynb",
+          "title": "Spectre d’émission du Soleil",
+          "fileUrl": "/35/notebook/2nd_T3_C2_soleil_vide.ipynb"
+        }
+      ],
+      "themeChoice": 1
+    },
+    {
+      "id": "36",
+      "title": "Antonin G",
+      "description": " ",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1743059310114",
+          "name": "1S_T1_C7_CE1.pdf",
+          "title": "CE 1",
+          "fileUrl": "/36/pdf/1S_T1_C7_CE1.pdf"
+        }
+      ],
+      "themeChoice": 1
     }
   ]
 }

@@ -13,12 +13,13 @@ import Split from 'react-split';
 import ImageZoom from "@/components/courses/image-zoom";
 import { VideoActions } from "@/components/courses/video-player";
 import { useRouter } from 'next/navigation';
-import { ExternalLink } from 'lucide-react'; // Add this import
-import { toast, Id } from 'react-toastify'; // Add this import
+import { ExternalLink } from 'lucide-react';
+import { toast, Id } from 'react-toastify';
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
-import { Download } from 'lucide-react'; // Add this import
-import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
+import { Download } from 'lucide-react';
+import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; 
+import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -88,19 +89,64 @@ const groupedActivities = useMemo(() => {
   };
 
   // Dans le composant CoursePage, ajouter cette fonction
-const handleActivityClick = (fileUrl: string, activity: Activity) => {
+const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   // Determine file type
   const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
   let type = 'other';
   
-  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension)) type = 'image';
-  if (['pdf'].includes(extension)) type = 'pdfType';
-  if (['ipynb'].includes(extension)) type = 'ipynb';
-  if (['mp4', 'avi', 'mov'].includes(extension)) type = 'video';
-  if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) type = 'audio';
-  if (['tsx', 'jsx', 'ts', 'js', 'html', 'css'].includes(extension)) type = 'typescript';
-  
-  handleSelectActivity(fileUrl, type, activity);
+  // Process the file URL through the API similar to how it's done in ActivityList
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension)) {
+    type = 'image';
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, type, activity);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      toast.error('Erreur lors du téléchargement de l\'image');
+    }
+  } else if (['pdf'].includes(extension)) {
+    type = 'pdfType';
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, type, activity);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error('Erreur lors du téléchargement du PDF');
+    }
+  } else if (['ipynb'].includes(extension)) {
+    type = 'ipynb';
+    handleSelectActivity(fileUrl, type, activity);
+  } else if (['mp4', 'avi', 'mov'].includes(extension)) {
+    type = 'video';
+    handleFileSelection(fileUrl, type, activity);
+    handleSelectActivity(fileUrl, type, activity);
+  } else if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) {
+    type = 'audio';
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, type, activity);
+    } catch (error) {
+      console.error("Error downloading audio:", error);
+      toast.error('Erreur lors du téléchargement de l\'audio');
+    }
+  } else if (['tsx', 'jsx', 'ts', 'js', 'html', 'css'].includes(extension)) {
+    type = 'typescript';
+    handleSelectActivity(fileUrl, type, activity);
+  } else {
+    // Handle other file types
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, 'other', activity);
+      handleSelectActivity(objectUrl, 'other', activity);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error('Erreur lors du téléchargement du fichier');
+    }
+  }
 };
 
   useEffect(() => {
