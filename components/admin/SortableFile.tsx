@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { Grip } from 'lucide-react';
+import { 
+  DragIndicator, 
+} from '@mui/icons-material';
 
 interface PropsSortableFile {
   fileId: string;
@@ -26,7 +28,7 @@ export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortab
     <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-9 justify-between p-2 bg-white rounded-md">
       {/* Drag handle section */}
       <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
-      <Grip strokeWidth={2.25} absoluteStrokeWidth />
+      <DragIndicator fontSize='medium' />
       </div>
 
       {/* File name and delete logic */}

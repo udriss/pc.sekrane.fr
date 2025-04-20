@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ExpandMore as ChevronDown, ExpandLess as ChevronUp } from '@mui/icons-material';
 
 interface Connection {
   deviceInfo: {

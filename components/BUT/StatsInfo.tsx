@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Typography
+  Typography,
+  Box,
+  Paper,
+  Button,
+  Collapse
 } from '@mui/material';
-import { ChevronDown } from 'lucide-react';
+import { ExpandMore as ChevronDown } from '@mui/icons-material';
 
 const configMathJax = {
   loader: { load: ["[tex]/html"] },

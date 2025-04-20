@@ -14,4 +14,3 @@ data.courses.forEach(course => {
 // Écrire le fichier modifié
 fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
 
-console.log("Mise à jour terminée. themeChoice ajouté à tous les cours.");

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import React, { useState, useEffect, useRef } from 'react';
-import { GraduationCap } from "lucide-react";
+import { School as GraduationCap } from "@mui/icons-material";
 import Link from "next/link";
 import './globals.css'; // Importer le fichier CSS pour les styles globaux
 import { generateFingerprint } from '@/lib/fingerprint';

@@ -13,13 +13,21 @@ import Split from 'react-split';
 import ImageZoom from "@/components/courses/image-zoom";
 import { VideoActions } from "@/components/courses/video-player";
 import { useRouter } from 'next/navigation';
-import { ExternalLink } from 'lucide-react';
 import { toast, Id } from 'react-toastify';
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
-import { Download } from 'lucide-react';
 import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; 
 import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
+
+
+import "pdfjs-dist/web/pdf_viewer.css";
+
+import { 
+  OpenInNew as ExternalLink 
+} from '@mui/icons-material';
+import { 
+  FileDownload as Download 
+} from '@mui/icons-material';
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -391,7 +399,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
         onClick={() => window.open(url, '_blank')}
         className="flex items-center gap-2 text-lg"
       >
-        <ExternalLink size={24} />
+        <ExternalLink fontSize='medium' />
         Ouvrir dans un nouvel onglet
       </Button>
     </div>

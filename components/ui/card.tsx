@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { 
+  ExpandMore as ChevronDown, 
+  NavigateNext as ChevronRight 
+} from '@mui/icons-material';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;

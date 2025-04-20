@@ -3,16 +3,14 @@
 import type { Activity } from "@/lib/data";
 import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { FaRegFilePdf, FaFileInvoice, FaRegImage, FaPython, FaVideo } from 'react-icons/fa6';
-import { GiSoundOn } from "react-icons/gi";
 // import { toast } from 'react-hot-toast';
 import { toast, Id } from 'react-toastify';
 import { downloadFileWithProgress } from '@/components/courses/donwload-track';
 import { RATE_LIMIT } from '@/lib/rateLimit';
 import { Tooltip } from "@nextui-org/react";
-import { CircleChevronDown } from 'lucide-react';
-import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
-import { Divider } from "@mui/material"; 
+import { ExpandMore } from '@mui/icons-material';
+import { getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
+
 
 interface ActivityListProps {
   themeChoice: number;
@@ -347,7 +345,7 @@ export function ActivityList({
           >
             <h3 className="text-lg font-medium">Ressources du cours</h3>
           <div className={`transform transition-transform ${isAccordionOpen ? 'rotate-180' : 'rotate-0'}`}>
-          <CircleChevronDown size={28} strokeWidth={1.5} absoluteStrokeWidth />
+          <ExpandMore fontSize='medium' />
           </div>
           </div>
           

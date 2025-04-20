@@ -1,7 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UploadForm } from '@/components/admin/upload-form';
+import { useState, useEffect } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { SortableFile } from '@/components/admin/SortableFile';
+import { 
+  FileUpload as Upload, 
+  KeyboardReturn as ArrowLeft, 
+  Warning as AlertCircle 
+} from '@mui/icons-material';
 import { Header } from "@/components/admin/admin-header";
 import { courses as initialCourses, classes as initialClasses, Course, Classe } from "@/lib/data";
 import { AdminTabs } from '@/components/admin/AdminTabs';

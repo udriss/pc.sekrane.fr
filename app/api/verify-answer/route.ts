@@ -21,6 +21,7 @@ interface SessionRow extends RowDataPacket {
   scoreS: number;
   scoreC: number;
   scoreR: number;
+  updated_at: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -41,7 +42,12 @@ export async function POST(req: NextRequest) {
     if (type in queries) {
       const [rows] = await connection.execute<QuestionRow[]>(queries[type], [questionID]);
       console.log('rows:', rows);
-      correct = rows[0]?.reponse === userAnswer;
+      
+      // Compare answers case-insensitive and trimmed
+      const correctAnswer = rows[0]?.reponse?.trim()?.toLowerCase();
+      const userAnswerCleaned = userAnswer?.trim()?.toLowerCase();
+      correct = correctAnswer === userAnswerCleaned;
+      
       if (correct) {
         const category = type === 'structure' ? 'S' : 
                         type === 'conquete' ? 'C' : 
@@ -51,7 +57,7 @@ export async function POST(req: NextRequest) {
           'SELECT COALESCE(answeredQuestionsS, \'\') as answeredQuestionsS, ' +
           'COALESCE(answeredQuestionsC, \'\') as answeredQuestionsC, ' +
           'COALESCE(answeredQuestionsR, \'\') as answeredQuestionsR, ' +
-          'scoreS, scoreC, scoreR ' +
+          'scoreS, scoreC, scoreR, updated_at ' +
           'FROM parties WHERE ID = ?',
           [gameId]
         );
@@ -67,22 +73,30 @@ export async function POST(req: NextRequest) {
           ? currentData[0][answeredField].split(',').map(Number)
           : [];
 
-          if (!currentAnswered.includes(questionID)) {
-            const newAnswered = [...currentAnswered, questionID].join(',');
-            const currentScore = currentData[0][scoreField] as number;
-            const updatedScore = currentScore + 1;
-            await connection.execute(
-              `UPDATE parties SET ${answeredField} = ?, ${scoreField} = ? WHERE ID = ?`,
-              [newAnswered, updatedScore, gameId]
-            );
+        if (!currentAnswered.includes(questionID)) {
+          const newAnswered = [...currentAnswered, questionID].join(',');
+          const currentScore = currentData[0][scoreField] as number;
+          const updatedScore = currentScore + 1;
           
-            return NextResponse.json({ 
-              correct: true,
-              scoreUpdated: true,
-              updatedAnswers: [...currentAnswered, questionID],
-              updatedScore
-            });
-          }
+          await connection.execute(
+            `UPDATE parties SET ${answeredField} = ?, ${scoreField} = ?, updated_at = CURRENT_TIMESTAMP WHERE ID = ?`,
+            [newAnswered, updatedScore, gameId]
+          );
+          
+          // Récupérer la date de mise à jour
+          const [updatedData] = await connection.execute<SessionRow[]>(
+            'SELECT updated_at FROM parties WHERE ID = ?',
+            [gameId]
+          );
+          
+          return NextResponse.json({ 
+            correct: true,
+            scoreUpdated: true,
+            updatedAnswers: [...currentAnswered, questionID],
+            updatedScore,
+            updated_at: updatedData[0]?.updated_at
+          });
+        }
       }
     }
 

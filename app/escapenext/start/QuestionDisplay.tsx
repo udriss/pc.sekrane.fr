@@ -1,7 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React from 'react';
+import { 
+  Box, 
+  Grid, 
+  Typography, 
+  Paper, 
+  Button, 
+  Stack
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 interface Question {
   ID: number;
@@ -9,49 +17,40 @@ interface Question {
   reponse: string;
 }
 
-
 interface QuestionDisplayProps {
-
   questions: {
-
     conquete: Question[];
-
     structure: Question[];
-
     rebus: Question[];
-
   };
-
   currentQuestion: {
-
     type: 'structure' | 'conquete' | 'rebus';
-
     index: number;
-
     questionID: number;
-
     content?: Question;
-
     imagePath?: string;
-
   } | null;
-
-  onQuestionClick: (type: 'structure' | 'conquete' | 'rebus', index: number, questionID: number) => void;
-
+  onQuestionClick: (type: 'structure' | 'conquete' | 'rebus', index: number) => void;
   answeredQuestions: AnsweredQuestions;
-
 }
-
 
 interface AnsweredQuestions {
-
-  S: number[];  // storing indexes instead of IDs
-
+  S: number[];
   C: number[];
-
   R: number[];
-
 }
+
+// Styled component for question buttons
+const QuestionButton = styled(Button)(({ theme }) => ({
+  padding: theme.spacing(1),
+  width: '100%',
+  justifyContent: 'flex-start',
+  borderRadius: theme.shape.borderRadius,
+  marginBottom: theme.spacing(1),
+  transition: 'background-color 0.3s, color 0.3s',
+  textTransform: 'none',
+  fontWeight: 'normal'
+}));
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ 
   questions, 
@@ -60,78 +59,129 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   answeredQuestions
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h4 className="mb-4 text-lg font-semibold">Structures célestes</h4>
-          <div className="space-y-2">
-            {questions?.structure?.map((question: Question, index: number) => (
-              <div 
-                key={`scores_S${index}`}
-                onClick={() => onQuestionClick('structure', index, question.ID)}
-                className={`p-2 rounded cursor-pointer transition-colors ${
-                  answeredQuestions.S.includes(question.ID)
-                    ? currentQuestion?.type === 'structure' && currentQuestion?.questionID === question.ID
-                      ? 'bg-green-700 text-white hover:bg-green-800'
-                      : 'bg-green-500 text-white hover:bg-green-600'
-                    : currentQuestion?.type === 'structure' && currentQuestion?.questionID === question.ID
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-white hover:bg-gray-100'
-                }`}
-              >
-                Question {index + 1}
-              </div>
-            ))}
-          </div>
-        </div>
+    <Box>
+      <Grid container spacing={2}>
+        {/* Structure Questions */}
+        <Grid size={{ xs:12, md:4 }} >
+          <Paper 
+            elevation={1} 
+            sx={{ 
+              p: 2, 
+              backgroundColor: 'grey.100',
+              height: '100%'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+              Structures célestes
+            </Typography>
+            <Stack spacing={1}>
+              {questions?.structure?.map((question: Question, index: number) => (
+                <QuestionButton
+                  key={`scores_S${index}`}
+                  onClick={() => onQuestionClick('structure', index)}
+                  variant={
+                    currentQuestion?.type === 'structure' && 
+                    currentQuestion?.questionID === question.ID 
+                      ? 'contained' 
+                      : 'outlined'
+                  }
+                  color={
+                    answeredQuestions.S.includes(question.ID)
+                      ? 'success'
+                      : currentQuestion?.type === 'structure' && 
+                        currentQuestion?.questionID === question.ID
+                        ? 'primary'
+                        : 'inherit'
+                  }
+                >
+                  Question {index + 1}
+                </QuestionButton>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
 
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h4 className="mb-4 text-lg font-semibold">Conquêtes spatiales</h4>
-          <div className="space-y-2">
-            {questions?.conquete?.map((question: Question, index: number) => (
-              <div 
-                key={`scores_C${index}`}
-                onClick={() => onQuestionClick('conquete', index, question.ID)}
-                className={`p-2 rounded cursor-pointer transition-colors ${
-                  answeredQuestions.C.includes(question.ID)
-                    ? currentQuestion?.type === 'conquete' && currentQuestion?.questionID === question.ID
-                      ? 'bg-green-700 text-white hover:bg-green-800'
-                      : 'bg-green-500 text-white hover:bg-green-600'
-                    : currentQuestion?.type === 'conquete' && currentQuestion?.questionID === question.ID
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-white hover:bg-gray-100'
-                }`}
-              >
-                Question {index + 1}
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Conquête Questions */}
+        <Grid size={{ xs:12, md:4 }} >
+          <Paper 
+            elevation={1} 
+            sx={{ 
+              p: 2, 
+              backgroundColor: 'grey.100',
+              height: '100%'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+              Conquêtes spatiales
+            </Typography>
+            <Stack spacing={1}>
+              {questions?.conquete?.map((question: Question, index: number) => (
+                <QuestionButton
+                  key={`scores_C${index}`}
+                  onClick={() => onQuestionClick('conquete', index)}
+                  variant={
+                    currentQuestion?.type === 'conquete' && 
+                    currentQuestion?.questionID === question.ID 
+                      ? 'contained' 
+                      : 'outlined'
+                  }
+                  color={
+                    answeredQuestions.C.includes(question.ID)
+                      ? 'success'
+                      : currentQuestion?.type === 'conquete' && 
+                        currentQuestion?.questionID === question.ID
+                        ? 'primary'
+                        : 'inherit'
+                  }
+                >
+                  Question {index + 1}
+                </QuestionButton>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
 
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h4 className="mb-4 text-lg font-semibold">Rébus</h4>
-          <div className="space-y-2">
-            {questions?.rebus?.map((question: Question, index: number) => (
-              <div 
-                key={`scores_R${index}`}
-                onClick={() => onQuestionClick('rebus', index, question.ID)}
-                className={`p-2 rounded cursor-pointer transition-colors ${
-                  answeredQuestions.R.includes(question.ID)
-                    ? currentQuestion?.type === 'rebus' && currentQuestion?.questionID === question.ID
-                      ? 'bg-green-700 text-white hover:bg-green-800'
-                      : 'bg-green-500 text-white hover:bg-green-600'
-                    : currentQuestion?.type === 'rebus' && currentQuestion?.questionID === question.ID
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-white hover:bg-gray-100'
-                }`}
-              >
-                Rébus {index + 1}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+        {/* Rébus Questions */}
+        <Grid size={{ xs:12, md:4 }} >
+          <Paper 
+            elevation={1} 
+            sx={{ 
+              p: 2, 
+              backgroundColor: 'grey.100',
+              height: '100%'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+              Rébus
+            </Typography>
+            <Stack spacing={1}>
+              {questions?.rebus?.map((question: Question, index: number) => (
+                <QuestionButton
+                  key={`scores_R${index}`}
+                  onClick={() => onQuestionClick('rebus', index)}
+                  variant={
+                    currentQuestion?.type === 'rebus' && 
+                    currentQuestion?.questionID === question.ID 
+                      ? 'contained' 
+                      : 'outlined'
+                  }
+                  color={
+                    answeredQuestions.R.includes(question.ID)
+                      ? 'success'
+                      : currentQuestion?.type === 'rebus' && 
+                        currentQuestion?.questionID === question.ID
+                        ? 'primary'
+                        : 'inherit'
+                  }
+                >
+                  Rébus {index + 1}
+                </QuestionButton>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

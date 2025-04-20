@@ -69,8 +69,16 @@ export async function POST(req: NextRequest) {
     );
     enigmesQuestions = enigmesRows;
 
+    // Process answered questions from database strings
+    const answeredQuestionsS = sessionData.answeredQuestionsS ? sessionData.answeredQuestionsS.split(',').map(Number) : [];
+    const answeredQuestionsC = sessionData.answeredQuestionsC ? sessionData.answeredQuestionsC.split(',').map(Number) : [];
+    const answeredQuestionsR = sessionData.answeredQuestionsR ? sessionData.answeredQuestionsR.split(',').map(Number) : [];
+
+    // Format result to match what the client expects
     const result = {
-      ...sessionData,
+      ID: sessionData.ID,
+      gameId: sessionData.ID, // Ensure gameId is properly set for client
+      passSession: sessionData.passSession,
       scores: {
         S: sessionData.scoreS || 0,
         C: sessionData.scoreC || 0,
@@ -83,11 +91,15 @@ export async function POST(req: NextRequest) {
         rebus: rebusQuestions,
         enigmes: enigmesQuestions,
       },
+      // Pass answered questions in proper format
       answeredQuestionsS: sessionData.answeredQuestionsS || '',
       answeredQuestionsC: sessionData.answeredQuestionsC || '',
-      answeredQuestionsR: sessionData.answeredQuestionsR || ''
+      answeredQuestionsR: sessionData.answeredQuestionsR || '',
+      // Include updated_at timestamp
+      updated_at: sessionData.updated_at || new Date().toISOString()
     };
 
+    console.log('Session restored successfully:', result.ID, result.passSession);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Error in get-session:', error);

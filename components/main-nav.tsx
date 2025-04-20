@@ -1,9 +1,15 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { useState } from "react";
 import { useMediaQuery } from "@mui/material";
-import { Book, Menu } from "lucide-react";
+import { 
+  Menu as MenuIcon,
+  School as SchoolIcon 
+} from "@mui/icons-material";
 import { 
   Navbar, 
   NavbarBrand, 
@@ -11,11 +17,7 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarItem, 
-  NavbarMenuToggle, 
-  Link,
-  Button } from "@nextui-org/react";
-import { cn } from "@/lib/utils";
-import { GraduationCap } from "lucide-react";
+  NavbarMenuToggle } from "@nextui-org/react";
 
 export function MainNav() {
   const pathname = usePathname();
@@ -40,12 +42,12 @@ export function MainNav() {
             hover:bg-white/30 transition-all duration-300
             ring-4 ring-white/10 ring-offset-0"
         >
-          <Menu
-            size={42}
-            strokeWidth={1.5}
-            className={`transition-transform duration-300 ${
-              isSideMenuOpen ? "rotate-90" : "rotate-0"
-            }`}
+          <MenuIcon
+            sx={{ 
+              fontSize: 42,
+              transition: 'transform 0.3s',
+              transform: isSideMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)'
+            }}
           />
         </button>
 
@@ -114,7 +116,7 @@ export function MainNav() {
 
         <NavbarBrand className="flex items-center justify-center max-w-[100px]">
           <Link href="/" color="foreground">
-          <GraduationCap className="w-12 h-12 mx-auto text-primary" />
+            <SchoolIcon sx={{ width: 48, height: 48, mx: 'auto', color: 'primary.main' }} />
           </Link>
         </NavbarBrand>
         
@@ -145,13 +147,14 @@ export function MainNav() {
         <NavbarContent className="flex max-w-[100px] w-[100px] justify-center">
           <NavbarItem>
             <Button 
-              as={Link} 
+              asChild
               color="secondary" 
-              href="/admin" 
-              variant="flat"
+              variant='ghost'
               className="font-semibold hover:bg-gradient-to-r hover:from-gray-100/80 hover:by-secondary-600/80 hover:to-gray-100/80 hover:shadow-sm"
             >
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <Link href="/admin">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              </Link>
             </Button>
           </NavbarItem>
         </NavbarContent>

@@ -40,3 +40,7 @@ next-env.d.ts
 /public
 /app/escape/
 .env
+
+# Next.js deployment and development
+deploy.sh
+dev.sh

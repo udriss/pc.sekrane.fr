@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { Grip, Eye} from 'lucide-react';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';import { Visibility } from '@mui/icons-material';
 import Switch from '@mui/material/Switch';
-import { LuEyeClosed } from "react-icons/lu";
 import { TbEyeClosed } from "react-icons/tb";
 
 interface PropsSortableCourse {
@@ -35,7 +34,7 @@ export function SortableCourse({
   return (
     <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-12 justify-between p-2 bg-white rounded-md">
       <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
-        <Grip strokeWidth={2.25} absoluteStrokeWidth />
+        <DragIndicatorIcon fontSize='medium' />
       </div>
 
       <div className='flex-1 col-span-6 flex flex-col justify-start space-x-2'>
@@ -45,7 +44,7 @@ export function SortableCourse({
       <div className="flex col-span-2 items-center">
       <h4 className="text-sm font-medium text-gray-500 mr-2">
           {toggleVisibilityCourse ? (
-            <Eye className="text-green-600" />
+            <Visibility className="text-green-600" />
           ) : (
             <TbEyeClosed className="h-6 w-6 text-red-600" />            
           )}

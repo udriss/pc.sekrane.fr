@@ -1,4 +1,15 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Grid, 
+  Paper, 
+  Stack,
+  ImageList,
+  ImageListItem
+} from '@mui/material';
 
 interface IndiceDisplayProps {
   scoreS: number;
@@ -8,39 +19,112 @@ interface IndiceDisplayProps {
 
 const IndiceDisplay: React.FC<IndiceDisplayProps> = ({ scoreS, scoreC, scoreR }) => {
   const [unlockedCount, setUnlockedCount] = useState(0);
-  console.log('scoreS:', scoreS);
-  console.log('scoreC:', scoreC);
-  console.log('scoreR:', scoreR);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  
   useEffect(() => {
+    
+    
+    // Reset count and debug info
     let count = 0;
-    if (scoreS > 1 && scoreC > 1 && scoreR > 1) count = 1;
-    if (count >= 1 && scoreS > 2 && scoreC > 2 && scoreR > 2) count = 2;
-    if (count >= 2 && scoreS > 5 && scoreC > 3 && scoreR > 3) count = 3;
-    if (count >= 3 && scoreS > 5 && scoreC > 4 && scoreR > 3) count = 4;
-    if (count >= 4 && scoreS > 7 && scoreC > 4 && scoreR > 3) count = 5;
-    if (count >= 5 && scoreS > 9 && scoreC > 4 && scoreR > 3) count = 6;
-    if (count >= 6 && scoreS > 9 && scoreC > 5 && scoreR > 4) count = 7;
+    const debugMessages: string[] = [];
+    
+    // Vérification indépendante pour chaque niveau d'indice
+    if (scoreS >= 2 && scoreC >= 2 && scoreR >= 2) {
+      count = 1;
+      debugMessages.push("Indice 1 débloqué: S≥2, C≥2, R≥2");
+    }
+    
+    if (scoreS >= 3 && scoreC >= 3 && scoreR >= 3) {
+      count = 2;
+      debugMessages.push("Indice 2 débloqué: S≥3, C≥3, R≥3");
+    }
+    
+    if (scoreS >= 6 && scoreC >= 4 && scoreR >= 4) {
+      count = 3;
+      debugMessages.push("Indice 3 débloqué: S≥6, C≥4, R≥4");
+    }
+    
+    if (scoreS >= 6 && scoreC >= 5 && scoreR >= 4) {
+      count = 4;
+      debugMessages.push("Indice 4 débloqué: S≥6, C≥5, R≥4");
+    }
+    
+    if (scoreS >= 8 && scoreC >= 5 && scoreR >= 4) {
+      count = 5;
+      debugMessages.push("Indice 5 débloqué: S≥8, C≥5, R≥4");
+    }
+    
+    if (scoreS >= 10 && scoreC >= 5 && scoreR >= 4) {
+      count = 6;
+      debugMessages.push("Indice 6 débloqué: S≥10, C≥5, R≥4");
+    }
+    
+    if (scoreS >= 10 && scoreC >= 6 && scoreR >= 5) {
+      count = 7;
+      debugMessages.push("Indice 7 débloqué: S≥10, C≥6, R≥5");
+    }
+    
+    
     setUnlockedCount(count);
+    setDebugInfo(debugMessages);
   }, [scoreS, scoreC, scoreR]);
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Indices Débloqués</h2>
-      <div className="flex flex-wrap gap-4">
-        {unlockedCount > 0 ? (
-          Array.from({ length: unlockedCount }).map((_, index) => (
-            <img
-              key={index}
-              src={`/api/indices?id=${index + 1}`}
-              alt={`Indice ${index + 1}`}
-              className="w-32 h-32 object-contain"
-            />
-          ))
-        ) : (
-          <p>Aucun indice débloqué pour l'instant.</p>
-        )}
-      </div>
-    </div>
+    <Paper elevation={2} sx={{ p: 3, width: '100%', maxWidth: 800 }}>
+      <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
+        Indices Débloqués ({unlockedCount}/7)
+      </Typography>
+      
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Pour débloquer plus d'indices, améliorez vos scores dans chaque catégorie.
+      </Typography>
+      
+      {unlockedCount > 0 ? (
+        <ImageList cols={unlockedCount > 2 ? 3 : unlockedCount} gap={16} sx={{ maxHeight: 'none' }}>
+          {Array.from({ length: unlockedCount }).map((_, index) => (
+            <ImageListItem key={index} sx={{ overflow: 'hidden', borderRadius: 1 }}>
+              <Box
+                component="img"
+                src={`/api/indices?id=${index + 1}`}
+                alt={`Indice ${index + 1}`}
+                sx={{ 
+                  width: '100%', 
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block',
+                  border: '1px solid #e0e0e0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              />
+              <Typography 
+                variant="caption" 
+                align="center" 
+                sx={{ 
+                  display: 'block', 
+                  mt: 0.5, 
+                  fontWeight: 'medium', 
+                  color: 'primary.main' 
+                }}
+              >
+                Indice {index + 1}
+              </Typography>
+            </ImageListItem>
+          ))}
+        </ImageList>
+      ) : (
+        <Box sx={{ 
+          textAlign: 'center', 
+          p: 3, 
+          bgcolor: 'rgba(0,0,0,0.03)', 
+          borderRadius: 2,
+          border: '1px dashed #ccc'
+        }}>
+          <Typography variant="overline" color="text.secondary">
+            Aucun indice débloqué pour l'instant.
+          </Typography>
+        </Box>
+      )}
+    </Paper>
   );
 };
 

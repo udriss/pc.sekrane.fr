@@ -55,7 +55,7 @@ async function storeUniqueId(uniqueId: string, dirPath: string, orginalFileName:
     });
 
     await fs.writeFile(filePath, JSON.stringify(storedData, null, 2), 'utf8');
-    console.log('Unique ID and dirPath stored successfully');
+    
   } catch (error) {
     console.error('Error storing data:', error);
   }

@@ -33,7 +33,8 @@
         "8",
         "9",
         "19",
-        "28"
+        "28",
+        "37"
       ],
       "toggleVisibilityClasse": true
     },
@@ -73,18 +74,8 @@
   ],
   "courses": [
     {
-      "id": "9",
-      "title": "1 — Internet",
-      "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
-      "classe": "SNT",
-      "theClasseId": "5",
-      "activities": [],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 0
-    },
-    {
       "id": "19",
-      "title": "4 — Algo",
+      "title": "0 — Algo",
       "description": "Apprendre à définir, afficher et manipuler des variables en Python à travers des algorithmes et des exercices pratiques.",
       "classe": "SNT",
       "theClasseId": "5",
@@ -106,21 +97,65 @@
       "themeChoice": 1
     },
     {
-      "id": "8",
-      "title": "8 — IA",
-      "description": "Exploration de l'IA en santé via des dessins, applications en ligne, création de modèles IA, et sensibilisation aux biais des données.",
+      "id": "9",
+      "title": "1 — Internet",
+      "description": "Tracer l'évolution d'Internet, analyser ses défis, étudier ses protocoles, modéliser un réseau domestique et expliquer TCP/IP.",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": [],
+      "toggleVisibilityCourse": false,
+      "themeChoice": 0
+    },
+    {
+      "id": "28",
+      "title": "2 — Web",
+      "description": "",
       "classe": "SNT",
       "theClasseId": "5",
       "activities": [
         {
-          "id": "1735757430960",
-          "name": "2SNT_IA.pdf",
-          "title": "Parcours d'activités",
-          "fileUrl": "/8/pdf/2SNT_IA.pdf"
+          "id": "1741017607265",
+          "name": "2sntS_web_bilan.pdf",
+          "title": "Cours",
+          "fileUrl": "/28/pdf/2sntS_web_bilan.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
+    },
+    {
+      "id": "37",
+      "title": "4 — Données structurées",
+      "description": "",
+      "classe": "SNT",
+      "theClasseId": "5",
+      "activities": [
+        {
+          "id": "1743486997824",
+          "name": "donnees_commerce.csv",
+          "title": "donnees_commerce.csv",
+          "fileUrl": "/37/autre/donnees_commerce.csv"
+        },
+        {
+          "id": "1743489306689",
+          "name": "2SNT_T4_recensement_France.csv",
+          "title": "recensement_France.csv",
+          "fileUrl": "/37/autre/2SNT_T4_recensement_France.csv"
+        },
+        {
+          "id": "1743492359800",
+          "name": "2SNT_T4_resencement_vide.ipynb",
+          "title": "Recensement",
+          "fileUrl": "/37/notebook/2SNT_T4_resencement_vide.ipynb"
+        },
+        {
+          "id": "1743494257321",
+          "name": "2SNT_T4_4_fichiers.zip",
+          "title": "Archive de 4 fichiers",
+          "fileUrl": "/37/autre/2SNT_T4_4_fichiers.zip"
+        }
+      ],
+      "themeChoice": 1
     },
     {
       "id": "2",
@@ -611,9 +646,15 @@
           "name": "2nd_T3_C1_A5.pdf",
           "title": "Activité 5",
           "fileUrl": "/23/pdf/2nd_T3_C1_A5.pdf"
+        },
+        {
+          "id": "1744100935391",
+          "name": "2nd_T3_C1_A4.pdf",
+          "title": "Activité 4",
+          "fileUrl": "/23/pdf/2nd_T3_C1_A4.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
+      "toggleVisibilityCourse": true,
       "themeChoice": 0
     },
     {
@@ -634,9 +675,21 @@
           "name": "1S_T1_C8_A3.pdf",
           "title": "Identification de substances chimiques",
           "fileUrl": "/24/pdf/1S_T1_C8_A3.pdf"
+        },
+        {
+          "id": "1743061773639",
+          "name": "1S_T1_C8_A2_molecules.pdf",
+          "title": "Molécules à classer",
+          "fileUrl": "/24/pdf/1S_T1_C8_A2_molecules.pdf"
+        },
+        {
+          "id": "1743061774387",
+          "name": "1S_T1_C8_A2_molecules_1.pdf",
+          "title": "Molécules à classer",
+          "fileUrl": "/24/pdf/1S_T1_C8_A2_molecules_1.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
+      "toggleVisibilityCourse": true,
       "themeChoice": 0
     },
     {
@@ -646,7 +699,7 @@
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
@@ -883,19 +936,20 @@
       "themeChoice": 0
     },
     {
-      "id": "28",
-      "title": "2 — Web",
-      "description": "",
+      "id": "8",
+      "title": "8 — IA",
+      "description": "Exploration de l'IA en santé via des dessins, applications en ligne, création de modèles IA, et sensibilisation aux biais des données.",
       "classe": "SNT",
       "theClasseId": "5",
       "activities": [
         {
-          "id": "1741017607265",
-          "name": "2sntS_web_bilan.pdf",
-          "title": "Cours",
-          "fileUrl": "/28/pdf/2sntS_web_bilan.pdf"
+          "id": "1735757430960",
+          "name": "2SNT_IA.pdf",
+          "title": "Parcours d'activités",
+          "fileUrl": "/8/pdf/2SNT_IA.pdf"
         }
       ],
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
@@ -998,6 +1052,18 @@
           "name": "1S_T1_C7_CE1.pdf",
           "title": "CE1",
           "fileUrl": "/1/pdf/1S_T1_C7_CE1.pdf"
+        },
+        {
+          "id": "1743792343331",
+          "name": "TSTI_C12.pdf",
+          "title": "Chapitre 12 — Ondes sonores",
+          "fileUrl": "/1/pdf/TSTI_C12.pdf"
+        },
+        {
+          "id": "1743792404354",
+          "name": "TSTI_C13.pdf",
+          "title": "Chapitre 13 — Dynamique des solides",
+          "fileUrl": "/1/pdf/TSTI_C13.pdf"
         }
       ],
       "toggleVisibilityCourse": true,
@@ -1039,7 +1105,8 @@
           "fileUrl": "/36/pdf/1S_T1_C7_CE1.pdf"
         }
       ],
-      "themeChoice": 1
+      "themeChoice": 1,
+      "toggleVisibilityCourse": false
     }
   ]
 }

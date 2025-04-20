@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BookX, School, GraduationCap, FileQuestion } from 'lucide-react';
+import { 
+  MenuBook as BookX, 
+  School, 
+  School as GraduationCap, 
+  HelpOutline as FileQuestion 
+} from '@mui/icons-material';
 
 function NotFoundContent() {
   return (

@@ -3,24 +3,43 @@
 import { useState, useEffect, useRef } from "react";
 import { CourseCard } from "@/components/courses/course-card";
 import { Course, Classe } from "@/lib/dataTemplate";
-import Select from "@mui/material/Select";
-import { MenuItem } from "@mui/material";
+import { 
+  Select, 
+  MenuItem, 
+  Chip, 
+  Box, 
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+  Paper,
+  Typography,
+  Grid,
+  Container,
+  useTheme
+} from "@mui/material";
 import Cookies from 'js-cookie';
 
 export const dynamic = "force-dynamic";
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+
 export default function CoursesPage() {
-  const [selectedClasse, setSelectedClasse] = useState<string>("");
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   useEffect(() => {
-    // Load saved class from cookie
-    const savedClasse = Cookies.get('selectedClasse');
-    if (savedClasse) {
-      setSelectedClasse(savedClasse);
+    // Load saved classes from cookie
+    const savedClasses = Cookies.get('selectedClasses');
+    if (savedClasses) {
+      try {
+        setSelectedClasses(JSON.parse(savedClasses));
+      } catch (e) {
+        // If parsing fails, reset the cookie
+        Cookies.remove('selectedClasses');
+      }
     }
 
     fetch("/api/courses")
@@ -32,103 +51,267 @@ export default function CoursesPage() {
       });
   }, []);
 
-  const handleClasseChange = (value: string) => {
-    setSelectedClasse(value);
-    Cookies.set('selectedClasse', value, { expires: 365 }); // Cookie expires in 1 year
-    selectRef.current?.querySelector('input')?.blur();
+  const handleClassesChange = (event: any) => {
+    const { value } = event.target;
+    setSelectedClasses(typeof value === 'string' ? value.split(',') : value);
+    Cookies.set('selectedClasses', JSON.stringify(typeof value === 'string' ? value.split(',') : value), { expires: 365 });
   };
 
-  const filteredCourses = selectedClasse
+  const filteredCourses = selectedClasses.length > 0
     ? courses.filter((course) => 
-        course.classe === selectedClasse && 
+        selectedClasses.includes(course.classe) && 
         (course.toggleVisibilityCourse !== false)
       )
     : courses.filter((course) => course.toggleVisibilityCourse !== false);
 
-  filteredCourses.sort((a, b) => a.classe.localeCompare(b.classe));
+  // Sort courses by class name then by course title
+  filteredCourses.sort((a, b) => {
+    if (a.classe !== b.classe) {
+      return a.classe.localeCompare(b.classe);
+    }
+    return a.title.localeCompare(b.title);
+  });
 
   return (
-    <div className="">
-      <h1 className="text-3xl font-bold mb-8">Cours disponibles</h1>
-      <div className="mb-4 flex items-center justify-center">
-      <Select
-          ref={selectRef}
-          value={selectedClasse}
-          onChange={(e) => handleClasseChange(e.target.value as string)}
-          onOpen={() => setIsSelectOpen(true)}
-          onClose={() => setIsSelectOpen(false)}
-          displayEmpty
-          MenuProps={{
-            PaperProps: {
-              sx: {
-                ul: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                },
-                borderRadius: '12px',
-                display: 'flex',
-                justifyContent: 'center',
-                textAlign: 'center',
-                color: 'white',
-                fontWeight: 'bold',
-                width: '400px',
-                bgcolor: 'rgba(53, 53, 53, 0.43)',
-                backdropFilter: 'blur(6px)',
-                minWidth: '300px',
-                '& .MuiMenuItem-root': {
-                  display: 'flex',
-                  fontWeight: 'bold',
-                  justifyContent: 'center',
-                  bgcolor: 'transparent',
-                  width: 'fit-content',
-                  textAlign: 'center',
-                  '&.Mui-selected': {
-                    width: 'fit-content',
-                    borderRadius: '12px',
-                    color: 'black',
-                    fontWeight: 'bold',
-                    backgroundColor: 'rgb(139, 167, 201) !important'
-                  },
-                  '&:hover': {
-                    borderRadius: '12px',
-                    backgroundColor: 'rgb(0, 0, 0)'
-                  }
-                }
-              }
-            }
-          }}
-          sx={{
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderRadius: '12px',
-              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit'),
-            },
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit'),
-            },
-            '.MuiOutlinedInput-notchedOutline': {
-              borderRadius: '12px',
-              borderColor: isSelectOpen ? 'orange' : (selectedClasse ? 'green' : 'inherit')
-            }
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography 
+        variant="h3" 
+        component="h1" 
+        sx={{ 
+          mb: 4, 
+          textAlign: 'center', 
+          fontWeight: 'bold',
+          color: '#1a237e',
+          position: 'relative',
+          '&:after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '80px',
+            height: '4px',
+            backgroundColor: '#303f9f',
+            borderRadius: '2px'
+          }
+        }}
+      >
+        Cours disponibles
+      </Typography>
+
+      <Box 
+        sx={{ 
+          position: 'sticky',
+          top: 20,
+          zIndex: 10,
+          mb: 5, 
+          display: 'flex', 
+          justifyContent: 'center'
+        }}
+      >
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            padding: 2, 
+            borderRadius: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(8px)',
+            width: { xs: '100%', sm: 500 },
+            maxWidth: '100%'
           }}
         >
-          <MenuItem sx={{ display: 'flex', justifyContent: 'center' }}
-            value="" 
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              mb: 1, 
+              fontWeight: 'medium', 
+              color: '#3f51b5',
+              textAlign: 'center'
+            }}
           >
-            <span className="text-blue-800/40">Sélectionner une classe</span>
-          </MenuItem>
-          {classes.map((classe) => (
-            <MenuItem key={classe.id} value={classe.name}>
-              {classe.name}
-            </MenuItem>
+            Sélectionnez vos classes
+          </Typography>
+
+          <Box 
+            sx={{ 
+              maxHeight: '200px', 
+              overflowY: 'auto',
+              backgroundColor: '#f5f5f5',
+              borderRadius: 2,
+              p: 1,
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'rgba(0,0,0,0.05)',
+                borderRadius: '10px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#bdbdbd',
+                borderRadius: '10px',
+                '&:hover': {
+                  backgroundColor: '#9e9e9e',
+                },
+              },
+            }}
+          >
+            {classes.map((classe) => (
+              <Box
+                key={classe.id}
+                onClick={() => {
+                  const newSelected = selectedClasses.includes(classe.name)
+                    ? selectedClasses.filter(c => c !== classe.name)
+                    : [...selectedClasses, classe.name];
+                  
+                  setSelectedClasses(newSelected);
+                  Cookies.set('selectedClasses', JSON.stringify(newSelected), { expires: 365 });
+                }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  borderRadius: 1,
+                  margin: '4px 0',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: selectedClasses.includes(classe.name) 
+                    ? 'rgba(63, 81, 181, 0.15)' 
+                    : 'white',
+                  border: '1px solid',
+                  borderColor: selectedClasses.includes(classe.name) 
+                    ? '#3f51b5' 
+                    : 'rgba(0, 0, 0, 0.12)',
+                  '&:hover': {
+                    backgroundColor: selectedClasses.includes(classe.name)
+                      ? 'rgba(63, 81, 181, 0.25)'
+                      : 'rgba(0, 0, 0, 0.04)',
+                  }
+                }}
+              >
+                <Box 
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '4px',
+                    border: '2px solid',
+                    borderColor: selectedClasses.includes(classe.name) ? '#3f51b5' : '#9e9e9e',
+                    mr: 1.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: selectedClasses.includes(classe.name) ? '#3f51b5' : 'transparent',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {selectedClasses.includes(classe.name) && (
+                    <Box 
+                      component="span"
+                      sx={{
+                        color: 'white',
+                        fontSize: '0.8rem',
+                        lineHeight: 1,
+                      }}
+                    >
+                      ✓
+                    </Box>
+                  )}
+                </Box>
+                <Typography 
+                  sx={{ 
+                    fontWeight: selectedClasses.includes(classe.name) ? 'bold' : 'normal',
+                    color: selectedClasses.includes(classe.name) ? '#3f51b5' : 'text.primary',
+                  }}
+                >
+                  {classe.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {selectedClasses.length > 0 && (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 0.5, 
+                mt: 2,
+                justifyContent: 'center'
+              }}
+            >
+              {selectedClasses.map((value) => (
+                <Chip 
+                  key={value} 
+                  label={value}
+                  onDelete={() => {
+                    const newSelected = selectedClasses.filter(c => c !== value);
+                    setSelectedClasses(newSelected);
+                    Cookies.set('selectedClasses', JSON.stringify(newSelected), { expires: 365 });
+                  }}
+                  sx={{ 
+                    bgcolor: '#3f51b5', 
+                    color: 'white',
+                    fontWeight: 'medium',
+                    '& .MuiChip-deleteIcon': {
+                      color: 'rgba(255,255,255,0.7)',
+                      '&:hover': {
+                        color: 'white'
+                      }
+                    }
+                  }} 
+                />
+              ))}
+              {selectedClasses.length > 1 && (
+                <Chip 
+                  label="Tout effacer"
+                  onClick={() => {
+                    setSelectedClasses([]);
+                    Cookies.remove('selectedClasses');
+                  }}
+                  sx={{ 
+                    bgcolor: '#f44336', 
+                    color: 'white',
+                    fontWeight: 'medium',
+                  }} 
+                />
+              )}
+            </Box>
+          )}
+        </Paper>
+      </Box>
+
+      {filteredCourses.length > 0 ? (
+        <Grid container spacing={3}>
+          {filteredCourses.map((course) => (
+            <Grid size={{ xs:12, sm:6, md:4 }}  key={course.id}>
+              <Paper
+                elevation={2}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)',
+                  }
+                }}
+              >
+                <CourseCard course={course} />
+              </Paper>
+            </Grid>
           ))}
-        </Select>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredCourses.map((course) => (
-          <CourseCard key={course.id} course={course} />
-        ))}
-      </div>
-    </div>
+        </Grid>
+      ) : (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="h6" color="text.secondary">
+            {selectedClasses.length > 0 
+              ? "Aucun cours disponible pour les classes sélectionnées" 
+              : "Sélectionnez une classe pour voir les cours disponibles"}
+          </Typography>
+        </Box>
+      )}
+    </Container>
   );
 }

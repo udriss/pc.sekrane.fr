@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { Download, Loader2 } from "lucide-react";
+import React, { useState } from 'react';
+
+import { CircularProgress } from "@mui/material";
 import { RegressionModelSelector } from './RegressionModelSelector';
-import { FaLess } from 'react-icons/fa6';
+
 import dynamic from 'next/dynamic';
 
 const Plot = dynamic(() => import('react-plotly.js'), {
@@ -137,7 +138,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
     <div ref={containerRef} className="w-full border rounded p-4 bg-white shadow-sm">
       {loading ? (
         <div className="flex justify-center items-center h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <CircularProgress className="h-8 w-8 animate-spin text-gray-500" />
         </div>
       ) : (
         <div ref={chartRef}>
@@ -237,7 +238,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
           className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
         >
           {isExporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <CircularProgress className="h-4 w-4 animate-spin" />
           ) : (
             <Download className="w-4 h-4" />
           )}

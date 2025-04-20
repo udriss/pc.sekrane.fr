@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
               </button>
             </div>
             {error && <p id="password-error" className="text-sm text-red-500">{error}</p>}
