@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 
     const [conquete] = await connection.execute('SELECT ID, question, reponse FROM conquete ORDER BY rand() LIMIT 7');
     const [structure] = await connection.execute('SELECT ID, question, reponse FROM structure ORDER BY rand() LIMIT 9');
-    const [rebus] = await connection.execute('SELECT ID, reponse FROM rebus ORDER BY rand() LIMIT 5');
+    const [rebus] = await connection.execute('SELECT ID, reponse FROM rebus ORDER BY rand() LIMIT 10');
     const [enigmes] = await connection.execute('SELECT ID, question, reponse FROM enigmes');
 
     const questions = {

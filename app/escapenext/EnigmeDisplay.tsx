@@ -202,7 +202,7 @@ const EnigmeDisplay: React.FC<EnigmeDisplayProps> = ({
         </Box>
       </Box>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={2} sx={{ mb: 12 }}>
         {ENIGMES_REQUIREMENTS.map((enigme) => {
           const isUnlocked = isEnigmeUnlocked(enigme.id);
           const missingIndices = getMissingIndicesCount(enigme.id);

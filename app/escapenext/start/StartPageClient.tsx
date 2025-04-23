@@ -108,13 +108,13 @@ const StartPageClient: React.FC<StartPageProps> = ({
     
     // Définition des critères de déblocage pour chaque indice
     const indiceRequirements = [
-      { level: 1, requirements: { S: 2, C: 2, R: 2 } },
-      { level: 2, requirements: { S: 3, C: 3, R: 3 } },
-      { level: 3, requirements: { S: 6, C: 4, R: 4 } },
-      { level: 4, requirements: { S: 6, C: 5, R: 4 } },
-      { level: 5, requirements: { S: 8, C: 5, R: 4 } },
-      { level: 6, requirements: { S: 10, C: 5, R: 4 } },
-      { level: 7, requirements: { S: 10, C: 6, R: 5 } }
+      { level: 1, requirements: { S: 2, C: 2, R: 4 } },
+      { level: 2, requirements: { S: 3, C: 3, R: 6 } },
+      { level: 3, requirements: { S: 6, C: 4, R: 8 } },
+      { level: 4, requirements: { S: 6, C: 5, R: 8 } },
+      { level: 5, requirements: { S: 8, C: 5, R: 8 } },
+      { level: 6, requirements: { S: 10, C: 5, R: 8 } },
+      { level: 7, requirements: { S: 10, C: 6, R: 10 } }
     ];
     
     for (const indice of indiceRequirements) {
@@ -411,7 +411,7 @@ const StartPageClient: React.FC<StartPageProps> = ({
         <CardContent sx={{ p: 2 }}>
           <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="h5" component="div">
-              Progression: {progress}%
+              Progression : {progress} %
             </Typography>
             <Button 
               variant="contained" 

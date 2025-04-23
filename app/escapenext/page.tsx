@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
@@ -13,13 +13,12 @@ import {
   List, 
   ListItem, 
   ListItemText,
-  TextField,
   Container,
-  Paper,
   Grid,
   Alert,
   CircularProgress,
-  Divider
+  Divider,
+  TextField
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { 
@@ -28,6 +27,7 @@ import {
   Add as AddIcon, 
   ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
+import { OTP } from './OTPInput';
 
 // Définir les interfaces pour typer correctement les données
 interface Question {
@@ -55,6 +55,7 @@ interface SessionData {
   answeredQuestionsS?: string;
   answeredQuestionsC?: string;
   answeredQuestionsR?: string;
+  answeredQuestionsE?: string;
   updated_at?: string;
 }
 
@@ -99,6 +100,7 @@ const EscapePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detectedSession, setDetectedSession] = useState<string | null>(null);
+  const [sessionCode, setSessionCode] = useState('');
   const router = useRouter();
   
   // Refs pour les inputs de code
@@ -188,8 +190,7 @@ const EscapePage: React.FC = () => {
   const handleRestoreSession = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const otp = otpValues.join('');
-    if (!otp || otp.length !== 7) {
+    if (!sessionCode || sessionCode.length !== 7) {
       setError("Veuillez entrer un code de session valide (7 caractères)");
       return;
     }
@@ -198,27 +199,23 @@ const EscapePage: React.FC = () => {
     setError(null);
     
     try {
-      
-      
       // Clear existing cookies first
       Cookies.remove('passSession');
       
       // Set the passSession cookie first
-      Cookies.set('passSession', otp, { 
+      Cookies.set('passSession', sessionCode, { 
         expires: 1, // 1 day
         path: '/',
         sameSite: 'strict'
       });
       
       // Then retrieve the session data
-      const response = await axios.post<SessionData>('/api/get-session', { passSession: otp });
+      const response = await axios.post<SessionData>('/api/get-session', { passSession: sessionCode });
       const data = response.data;
       
       if (!data || (!data.ID && !data.gameId)) {
         throw new Error("Session invalide ou expirée");
       }
-      
-      
       
       // Use a small delay to ensure cookie is properly set
       setTimeout(() => {
@@ -323,37 +320,29 @@ const EscapePage: React.FC = () => {
 
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h5" color="primary" gutterBottom>
-                Restaurer session
+                Session sauvegardée
               </Typography>
               <Typography variant="body1" sx={{ mb: 3 }}>
                 Rentrer un code session pour restaurer :
               </Typography>
               
               <form onSubmit={handleRestoreSession} name='login'>
-                <SessionCodeInput>
-                  {Array(7).fill(0).map((_, index) => (
-                    <CodeInput
-                      key={index}
-                      inputRef={(el) => inputRefs.current[index] = el}
-                      value={otpValues[index]}
-                      onChange={(e) => handleCodeInputChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      variant="outlined"
-                      inputProps={{ 
-                        maxLength: 1,
-                        style: { textAlign: 'center' },
-                        disabled: isLoading
-                      }}
-                    />
-                  ))}
-                </SessionCodeInput>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                  <OTP 
+                    length={7} 
+                    value={sessionCode} 
+                    onChange={setSessionCode}
+                    disabled={isLoading}
+                    separator={<span>-</span>}
+                  />
+                </Box>
                 
                 <Box textAlign="center" mt={3}>
                   <Button 
                     type='submit'
                     variant="contained" 
                     color="secondary"
-                    disabled={isLoading || otpValues.join('').length !== 7}
+                    disabled={isLoading || sessionCode.length !== 7}
                     startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <RestoreIcon />}
                     sx={{ px: 3, py: 1.5 }}
                   >

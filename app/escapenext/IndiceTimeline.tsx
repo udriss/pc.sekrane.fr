@@ -26,13 +26,13 @@ interface IndiceTimelineProps {
 
 // Définition des critères de déblocage des indices
 const indiceRequirements = [
-  { level: 1, requirements: { S: 2, C: 2, R: 2 }, label: 'Indice 1' },
-  { level: 2, requirements: { S: 3, C: 3, R: 3 }, label: 'Indice 2' },
-  { level: 3, requirements: { S: 6, C: 4, R: 4 }, label: 'Indice 3' },
-  { level: 4, requirements: { S: 6, C: 5, R: 4 }, label: 'Indice 4' },
-  { level: 5, requirements: { S: 8, C: 5, R: 4 }, label: 'Indice 5' },
-  { level: 6, requirements: { S: 10, C: 5, R: 4 }, label: 'Indice 6' },
-  { level: 7, requirements: { S: 10, C: 6, R: 5 }, label: 'Indice 7' }
+  { level: 1, requirements: { S: 2, C: 2, R: 4 }, label: 'Indice 1' },
+  { level: 2, requirements: { S: 3, C: 3, R: 6 }, label: 'Indice 2' },
+  { level: 3, requirements: { S: 6, C: 4, R: 8 }, label: 'Indice 3' },
+  { level: 4, requirements: { S: 6, C: 5, R: 8 }, label: 'Indice 4' },
+  { level: 5, requirements: { S: 8, C: 5, R: 8 }, label: 'Indice 5' },
+  { level: 6, requirements: { S: 10, C: 5, R: 8 }, label: 'Indice 6' },
+  { level: 7, requirements: { S: 10, C: 6, R: 10 }, label: 'Indice 7' }
 ];
 
 // Styles pour les éléments de la timeline

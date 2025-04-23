@@ -1,124 +1,115 @@
-import { getDatabaseConnection } from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import StartPageClient from './StartPageClient';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
+import { CircularProgress, Box, Typography, Alert } from '@mui/material';
+import Cookies from 'js-cookie';
 
-interface SessionData extends RowDataPacket {
-  ID: number;
-  passSession: string;
-  scoreS: number;
-  scoreC: number;
-  scoreR: number;
-  scoreE: number;
-  answeredQuestionsS: string;
-  answeredQuestionsC: string;
-  answeredQuestionsR: string;
-}
+export default function Page() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
 
-async function getSessionData(passSession: string) {
-  let connection;
-  try {
-    connection = await getDatabaseConnection();
-    const [rows] = await connection.execute<SessionData[]>(
-      'SELECT * FROM parties WHERE passSession = ?',
-      [passSession]
-    );
-    return rows[0];
-  } finally {
-    if (connection) connection.release();
-  }
-}
-
-async function getSessionQuestions(passSession: string, baseUrl: string) {
-  try {
-    const response = await fetch(`${baseUrl}/api/get-session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ passSession }),
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching session questions:", error);
-    throw error;
-  }
-}
-
-export default async function Page() {
-  
-  
-  const cookieStore = await cookies();
-  const passSessionCookie = cookieStore.get('passSession');
-
-  if (!passSessionCookie?.value) {
-    
-    redirect('/escapenext');
-  }
-  
-  const passSession = passSessionCookie.value;
-  
-
-  try {
-    const sessionDataDirect = await getSessionData(passSession);
-    
-    if (sessionDataDirect) {
+  useEffect(() => {
+    async function loadSession() {
+      const passSessionCookie = Cookies.get('passSession');
       
-      
-      const headersList = await headers();
-      const host = headersList.get('host') || 'localhost:8000';
-      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-      const baseUrl = `${protocol}://${host}`;
-      
-      
-      
-      try {
-        const sessionData = await getSessionQuestions(passSession, baseUrl);
-        
-        if (!sessionData || !sessionData.ID) {
-          
-          redirect('/escapenext');
-        }
-        
-        
-        return <StartPageClient gameId={sessionData.ID} sessionData={sessionData} />;
-      } catch (error) {
-        console.error("Error loading session questions:", error);
-        
-        const fallbackSessionData = {
-          ID: sessionDataDirect.ID,
-          gameId: sessionDataDirect.ID,
-          passSession: sessionDataDirect.passSession,
-          scores: {
-            S: sessionDataDirect.scoreS || 0,
-            C: sessionDataDirect.scoreC || 0,
-            R: sessionDataDirect.scoreR || 0,
-            E: sessionDataDirect.scoreE || 0
-          },
-          questions: { conquete: [], structure: [], rebus: [], enigmes: [] },
-          answeredQuestionsS: sessionDataDirect.answeredQuestionsS || '',
-          answeredQuestionsC: sessionDataDirect.answeredQuestionsC || '',
-          answeredQuestionsR: sessionDataDirect.answeredQuestionsR || ''
-        };
-        
-        
-        return <StartPageClient gameId={fallbackSessionData.ID} sessionData={fallbackSessionData} />;
+      if (!passSessionCookie) {
+        router.push('/escapenext');
+        return;
       }
-    } else {
-      
-      redirect('/escapenext');
+
+      try {
+        // Appel à l'API pour récupérer les données de session
+        const response = await fetch('/api/get-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ passSession: passSessionCookie })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data || !data.ID) {
+          router.push('/escapenext');
+          return;
+        }
+
+        setSessionData(data);
+      } catch (error) {
+        console.error("Error loading session:", error);
+        setError("Erreur lors du chargement de la session. Veuillez réessayer.");
+      } finally {
+        setIsLoading(false);
+      }
     }
-  } catch (error) {
-    console.error("Error loading session:", error);
-    redirect('/escapenext');
+
+    loadSession();
+  }, [router]);
+
+  // Si la page est en chargement, afficher une animation de chargement
+  if (isLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh',
+        gap: 2
+      }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6">Chargement de votre session...</Typography>
+      </Box>
+    );
   }
+
+  // Si une erreur s'est produite, afficher un message d'erreur
+  if (error) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh',
+        px: 3
+      }}>
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3, maxWidth: 600 }}
+        >
+          {error}
+        </Alert>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          Impossible de charger les données de session. Veuillez retourner à la page d'accueil.
+        </Typography>
+        <button 
+          onClick={() => router.push('/escapenext')}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Retour à l'accueil
+        </button>
+      </Box>
+    );
+  }
+
+  // Si les données de session sont chargées avec succès, afficher le composant client
+  return sessionData ? (
+    <StartPageClient gameId={sessionData.ID} sessionData={sessionData} />
+  ) : null;
 }

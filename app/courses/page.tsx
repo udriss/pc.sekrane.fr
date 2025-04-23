@@ -101,8 +101,8 @@ export default function CoursesPage() {
 
       <Box 
         sx={{ 
-          position: 'sticky',
-          top: 20,
+          position: 'relative',
+          // top: 20,
           zIndex: 10,
           mb: 5, 
           display: 'flex', 
@@ -282,7 +282,7 @@ export default function CoursesPage() {
       {filteredCourses.length > 0 ? (
         <Grid container spacing={3}>
           {filteredCourses.map((course) => (
-            <Grid size={{ xs:12, sm:6, md:4 }}  key={course.id}>
+            <Grid size={{ xs:12, sm:12, md:6, lg:4 }}  key={course.id}>
               <Paper
                 elevation={2}
                 sx={{
