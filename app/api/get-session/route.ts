@@ -99,7 +99,6 @@ export async function POST(req: NextRequest) {
       updated_at: sessionData.updated_at || new Date().toISOString()
     };
 
-    console.log('Session restored successfully:', result.ID, result.passSession);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Error in get-session:', error);

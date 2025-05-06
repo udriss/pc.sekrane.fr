@@ -14,7 +14,11 @@ const getCoeffSymbols = (count: number) => {
   return ["a", "b", "c", "d", "e"].slice(0, count);
 };
 
-
+// Helper pour afficher un coefficient avec son signe (pour l'affichage d'équation)
+function formatSignedNumber(num: number, formatNumber: (n: number) => string) {
+  if (num < 0) return `- ${formatNumber(Math.abs(num))}`;
+  return `+ ${formatNumber(num)}`;
+}
 
 function renderEquationAndCoefficients(stats: any, selectedModel: string, formatNumber: (num: number) => string) {
   const model = stats?.results?.find((m: any) => m.type === selectedModel);
@@ -34,37 +38,59 @@ function renderEquationAndCoefficients(stats: any, selectedModel: string, format
   const coeffs = model.coefficients;
   const symbols = getCoeffSymbols(coeffs.length);
   let equation = <></>;
+  let equationLatex = '';
 
+  // Correction : r2 peut être un objet (ex: {r2: ..., chi2: ...}) ou un nombre
+  let r2Value = model.r2;
+  if (typeof r2Value === 'object' && r2Value !== null && 'r2' in r2Value) {
+    r2Value = r2Value.r2;
+  }
+
+  // Génération dynamique de l'équation avec les coefficients formatés pour tous les modèles
   switch(selectedModel) {
     case "linear":
-      equation = <TeX math="y = ax + b" />;
+      equationLatex = `y = ${formatNumber(coeffs[0])} \\; x ${formatSignedNumber(coeffs[1], formatNumber)}`;
       break;
-    case "polynomial2":
-      equation = <TeX math="y = ax^2 + bx + c" />;
+    case "polynomial2": {
+      const [a, b, c] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} \\; x^2 ${formatSignedNumber(b, formatNumber)} \\; x ${formatSignedNumber(c, formatNumber)}`;
       break;
-    case "polynomial3":
-      equation = <TeX math="y = ax^3 + bx^2 + cx + d" />;
+    }
+    case "polynomial3": {
+      const [a, b, c, d] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} \\; x^3 ${formatSignedNumber(b, formatNumber)} \\; x^2 ${formatSignedNumber(c, formatNumber)} \\; x ${formatSignedNumber(d, formatNumber)}`;
       break;
-    case "logarithmic10":
-      equation = <TeX math="y = a + b\log_{10}(x)" />;
+    }
+    case "logarithmic10": {
+      const [a, b] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} ${formatSignedNumber(b, formatNumber)} \\; \\log_{10}(x)`;
       break;
-    case "logarithmicE":
-      equation = <TeX math="y = a + b\ln(x)" />;
+    }
+    case "logarithmicE": {
+      const [a, b] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} ${formatSignedNumber(b, formatNumber)} \\; \\ln(x)`;
       break;
-    case "exponential":
-      equation = <TeX math="y = ae^{bx}" />;
+    }
+    case "exponential": {
+      // ATTENTION : ml-regression retourne [b, a] pour y = a·e^{b·x}
+      const [b, a] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} \\; e^{${formatNumber(b)} x}`;
       break;
-    case "power":
-      equation = <TeX math="y = ax^b" />;
+    }
+    case "power": {
+      const [a, b] = coeffs;
+      equationLatex = `y = ${formatNumber(a)} \\; x^{${formatNumber(b)}}`;
       break;
+    }
     default:
-      equation = <></>;
+      equationLatex = '';
   }
 
   return (
     <div className="mt-4">
-      <div className='flex justify-center'>
-        {equation}
+      <div className='flex flex-col items-center gap-2'>
+        <TeX math={equationLatex} />
+        {/* <span className="text-xs text-gray-500">(coefficients à 4 chiffres significatifs)</span> */}
       </div>
       <TableContainer component={Paper} sx={{ mt: 2, maxWidth: 300, mx: 'auto' }}>
         <Table size="small">
@@ -84,7 +110,7 @@ function renderEquationAndCoefficients(stats: any, selectedModel: string, format
                 <TeX math="R^2" />
               </TableCell>
               <TableCell align="right">
-                <TeX math={formatNumber(model.r2)} />
+                <TeX math={formatNumber(r2Value)} />
               </TableCell>
             </TableRow>
           </TableBody>

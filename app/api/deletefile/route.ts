@@ -40,7 +40,6 @@ export async function DELETE(req: NextRequest) {
       const filePath = path.join(process.cwd(), 'public',deletedActivity.fileUrl);
       try {
         await fs.unlink(filePath);
-        console.log(`File ${fileName} deleted successfully`);
       } catch (unlinkError: any) {
         console.error(`Error deleting file ${fileName}:`, unlinkError);
         return NextResponse.json({ error: `Error deleting file ${fileName} from disk` }, { status: 500 });

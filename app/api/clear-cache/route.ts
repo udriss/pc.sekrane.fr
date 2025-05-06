@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
           { status: 500 }
         );
       }
-      console.log(`Cache cleared: ${stdout}`);
     });
 
     return NextResponse.json({ success: true });

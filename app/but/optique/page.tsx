@@ -22,7 +22,8 @@ import {
   Numbers,
   DataArray,
   Science,
-  BarChart
+  BarChart,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { Button } from "@/components/ui/button";
 import { MathInput } from "@/components/BUT/MathInput";
@@ -158,6 +159,19 @@ export default function StatisticsPage() {
     }
   };
 
+  // Suppression d'une ligne spécifique
+  const removeRow = (index: number) => {
+    if (xExpressions.length <= 1) return;
+    const newXExpr = xExpressions.filter((_, i) => i !== index);
+    const newYExpr = yExpressions.filter((_, i) => i !== index);
+    const newXVals = xValues.filter((_, i) => i !== index);
+    const newYVals = yValues.filter((_, i) => i !== index);
+    setXExpressions(newXExpr);
+    setYExpressions(newYExpr);
+    setXValues(newXVals);
+    setYValues(newYVals);
+    saveToCookies(newXExpr, newYExpr, newXVals, newYVals);
+  };
 
 
   const handleExpressionChange = (column: 'x' | 'y', index: number, expression: string, evaluated: number) => {
@@ -285,10 +299,26 @@ const submitData = async () => {
       return { points, regressionLine: [] };
     }
 
+    // Pour les polynômes, ml-regression retourne les coefficients dans l'ordre [c, b, a] (degré 2) ou [d, c, b, a] (degré 3)
+    // Pour l'exponentielle, ml-regression retourne [b, a] pour y = a * exp(b * x)
+    // Pour le logarithmique, ml-regression retourne [b, a] pour y = a + b * log(x)
+    let coeffs = selectedReg.coefficients;
+    if (model === 'polynomial2' && coeffs.length === 3) {
+      coeffs = [...coeffs].reverse();
+    }
+    if (model === 'polynomial3' && coeffs.length === 4) {
+      coeffs = [...coeffs].reverse();
+    }
+    if (model === 'exponential' && coeffs.length === 2) {
+      coeffs = [coeffs[1], coeffs[0]]; // [a, b] pour y = a * exp(b * x)
+    }
+    if ((model === 'logarithmicE' || model === 'logarithmic10') && coeffs.length === 2) {
+      coeffs = [coeffs[0], coeffs[1]]; // [a, b] pour y = a + b * log(x)
+    }
+
     // Calculate x range from valid points only
     const xMin = Math.min(...points.map(p => p.x));
     const xMax = Math.max(...points.map(p => p.x));
-
     const xDepart = xMin - (xMax - xMin) * 0.2;
     const xArrive = xMax + (xMax - xMin) * 0.2;
     // Generate regression line
@@ -303,26 +333,26 @@ const submitData = async () => {
       try {
         switch (model) {
           case 'linear':
-            y = selectedReg.coefficients[0] * x + selectedReg.coefficients[1];
+            y = coeffs[0] * x + coeffs[1];
             break;
           case 'polynomial2':
-            y = selectedReg.coefficients[0] * Math.pow(x, 2) + 
-                selectedReg.coefficients[1] * x + 
-                selectedReg.coefficients[2];
+            y = coeffs[0] * Math.pow(x, 2) + coeffs[1] * x + coeffs[2];
             break;
           case 'polynomial3':
-            y = selectedReg.coefficients[0] * Math.pow(x, 3) + 
-                selectedReg.coefficients[1] * Math.pow(x, 2) + 
-                selectedReg.coefficients[2] * x + 
-                selectedReg.coefficients[3];
+            y = coeffs[0] * Math.pow(x, 3) + coeffs[1] * Math.pow(x, 2) + coeffs[2] * x + coeffs[3];
             break;
           case 'logarithmicE':
-            if (x > 0) {
-              y = selectedReg.coefficients[0] + selectedReg.coefficients[1] * Math.log(x);
+            if (x > 0 && coeffs.length === 2) {
+              y = coeffs[0] + coeffs[1] * Math.log(x);
+            } else {y=NaN}
+            break;
+          case 'logarithmic10':
+            if (x > 0 && coeffs.length === 2) {
+              y = coeffs[0] + coeffs[1] * Math.log10(x);
             } else {y=NaN}
             break;
           case 'exponential':
-            y = selectedReg.coefficients[0] * Math.exp(selectedReg.coefficients[1] * x);
+            y = coeffs[0] * Math.exp(coeffs[1] * x);
             break;
           case 'power':
             if (x > 0) {
@@ -342,8 +372,6 @@ const submitData = async () => {
 
     return { points, regressionLine };
   }
-
-
 
   // Clear all data
 const clearData = () => {
@@ -405,11 +433,22 @@ const clearData = () => {
           <h2 className="text-xl font-bold mb-4 w-full text-center">Colonne X</h2>
           <div className="space-y-2">
             {(xExpressions || ['']).map((expr, index) => (
-              <MathInput
-                key={index}
-                value={expr}
-                onChange={(expr, evaluated) => handleExpressionChange('x', index, expr, evaluated ?? 0)}
-              />
+              <div key={index} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Supprimer la ligne"
+                  className="text-red-500 hover:text-red-700 focus:outline-none"
+                  onClick={() => removeRow(index)}
+                  disabled={xExpressions.length <= 1}
+                  style={{ visibility: xExpressions.length > 1 ? 'visible' : 'hidden' }}
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+                <MathInput
+                  value={expr}
+                  onChange={(expr, evaluated) => handleExpressionChange('x', index, expr, evaluated ?? 0)}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -419,11 +458,22 @@ const clearData = () => {
           <h2 className="text-xl font-bold mb-4 w-full text-center">Colonne Y</h2>
           <div className="space-y-2">
             {(yExpressions || ['']).map((expr, index) => (
-              <MathInput
-                key={index}
-                value={expr}
-                onChange={(expr, evaluated) => handleExpressionChange('y', index, expr, evaluated ?? 0)}
-              />
+              <div key={index} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Supprimer la ligne"
+                  className="text-red-500 hover:text-red-700 focus:outline-none"
+                  onClick={() => removeRow(index)}
+                  disabled={yExpressions.length <= 1}
+                  style={{ visibility: yExpressions.length > 1 ? 'visible' : 'hidden' }}
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+                <MathInput
+                  value={expr}
+                  onChange={(expr, evaluated) => handleExpressionChange('y', index, expr, evaluated ?? 0)}
+                />
+              </div>
             ))}
           </div>
         </div>

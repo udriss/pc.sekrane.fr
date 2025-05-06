@@ -282,7 +282,7 @@ export default function CoursesPage() {
       {filteredCourses.length > 0 ? (
         <Grid container spacing={3}>
           {filteredCourses.map((course) => (
-            <Grid size={{ xs:12, sm:12, md:6, lg:4 }}  key={course.id}>
+            <Grid size={{ xs:12, sm:12, md:6, lg:6 }} key={course.id}>
               <Paper
                 elevation={2}
                 sx={{
