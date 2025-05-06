@@ -76,57 +76,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
     setSelectedModel(event.target.value);
   };
 
-  const handleExport = async () => {
-    if (!chartRef.current) return;
-    setIsExporting(true);
-    setShowExportDetails(true); // Affiche l'équation et le tableau pour l'export
-    await new Promise(resolve => setTimeout(resolve, 100)); // Laisse le DOM se mettre à jour
-    try {
-      const exportContainer = chartRef.current.querySelector('.export-container') || chartRef.current;
-      const svgElement = exportContainer.querySelector('svg');
-      const details = exportContainer.querySelector('.export-details');
-      if (!svgElement || !details) return;
 
-      const scale = 2;
-      const { width, height } = svgElement.getBoundingClientRect();
-      const detailsRect = details.getBoundingClientRect();
-      const detailsHeight = detailsRect.height;
-      const canvas = document.createElement('canvas');
-      canvas.width = width * scale;
-      canvas.height = (height + detailsHeight + 32) * scale; // 32px marge de sécurité
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // Set white background
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Export SVG chart
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const img = new Image();
-      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-      ctx.drawImage(img, 0, 0, canvas.width, height * scale);
-
-      // Export equation and table as HTML (rendu DOM)
-      const detailsCanvas = await html2canvas(details as HTMLElement, { backgroundColor: null, scale });
-      ctx.drawImage(detailsCanvas, 0, height * scale);
-
-      const pngData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = pngData;
-      link.download = 'regression-chart.png';
-      link.click();
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setShowExportDetails(false); // Cache à nouveau après export
-      setIsExporting(false);
-    }
-  };
 
   const handleExportPlotly = async () => {
     setIsExportingPlotly(true);
