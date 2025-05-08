@@ -265,6 +265,14 @@ export function ActivityList({
       if (themeChoice === 2) {
         setIsAccordionOpen(false);
       }
+    } else if (fileExtension && ['html'].includes(fileExtension)) {
+      const apiUrl = `/api/files${fileUrl}`;
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      onSelectActivity(objectUrl, 'html', activity);
+      handleFileSelection(objectUrl, 'html', activity);
+      if (themeChoice === 2) {
+        setIsAccordionOpen(false);
+      }
     } else {
       const apiUrl = `/api/files${fileUrl}`;
       try {

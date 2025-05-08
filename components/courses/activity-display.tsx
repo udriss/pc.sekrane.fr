@@ -77,6 +77,7 @@ const groupedActivities = useMemo(() => {
     if (['ipynb'].includes(extension)) fileType = 'Notebooks Python';
     if (['mp4', 'avi', 'mov'].includes(extension)) fileType = 'Vidéos';
     if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) fileType = 'Audio';
+    if (['html'].includes(extension)) fileType = 'Documents HTML';
     
     if (!groups[fileType]) {
       groups[fileType] = [];
@@ -140,7 +141,17 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
       console.error("Error downloading audio:", error);
       toast.error('Erreur lors du téléchargement de l\'audio');
     }
-  } else if (['tsx', 'jsx', 'ts', 'js', 'html', 'css'].includes(extension)) {
+  } else if (['html'].includes(extension)) {
+    type = 'html';
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      const objectUrl = await downloadFileWithProgress(apiUrl);
+      handleFileSelection(objectUrl, type, activity);
+    } catch (error) {
+      console.error("Error downloading HTML:", error);
+      toast.error('Erreur lors du téléchargement du fichier HTML');
+    }
+  } else if (['tsx', 'jsx', 'ts', 'js', 'css'].includes(extension)) {
     type = 'typescript';
     handleSelectActivity(fileUrl, type, activity);
   } else {
@@ -568,6 +579,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
   );
 };
 
+console.log('leftFileType', leftFileType);
 
   return (
     <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1400px] mx-auto px-4 md:px-0">
@@ -814,6 +826,15 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   />
                 </div>
               )}
+              {leftFileType === 'html' && selectedFileLeft && (
+                <iframe 
+                  src={selectedFileLeft}
+                  className="w-full h-full"
+                  style={{ border: 'none' }}
+                  sandbox="allow-scripts allow-same-origin"
+                  title="HTML Preview"
+                />
+              )}
               {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
                 <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
               )}
@@ -875,6 +896,15 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   src={selectedFileLeft}
                   className="w-full h-full"
                   allowFullScreen
+                />
+              )}
+              {leftFileType === 'html' && selectedFileLeft && (
+                <iframe 
+                  src={selectedFileLeft}
+                  className="w-full h-full"
+                  style={{ border: 'none' }}
+                  sandbox="allow-scripts allow-same-origin"
+                  title="HTML Preview"
                 />
               )}
               {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
