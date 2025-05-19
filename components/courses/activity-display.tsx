@@ -41,6 +41,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [course, setCourse] = useState<Course | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
   const [selectedFileLeft, setSelectedFileLeft] = useState<string | null>(null);
+  const [selectedFileLeftOrigin, setSelectedFileLeftOrigin] = useState<string | null>(null); // Ajout pour la comparaison fiable
   const [selectedFileRight, setSelectedFileRight] = useState<string | null>(null);
   const [showSideBySide, setShowSideBySide] = useState<boolean>(false);
   const [lastClickedType, setLastClickedType] = useState<string | null>(null);
@@ -99,106 +100,106 @@ const groupedActivities = useMemo(() => {
 
   // Dans le composant CoursePage, ajouter cette fonction
 const handleActivityClick = async (fileUrl: string, activity: Activity) => {
-  // Determine file type
+  // Déterminer le type de fichier AVANT toute action
   const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
   let type = 'other';
-  
+  if (["jpg", "jpeg", "png", "gif", "svg", "webmp"].includes(extension)) type = 'image';
+  else if (["pdf"].includes(extension)) type = 'pdfType';
+  else if (["ipynb"].includes(extension)) type = 'ipynb';
+  else if (["mp4", "avi", "mov"].includes(extension)) type = 'video';
+  else if (["mp3", "wav", "ogg", "aac", "flac"].includes(extension)) type = 'audio';
+  else if (["html"].includes(extension)) type = 'html';
+  else if (["txt", "rtf"].includes(extension)) type = 'txt';
+  else if (["tsx", "jsx", "ts", "js", "css"].includes(extension)) type = 'typescript';
+
+  // Vérifier si le fichier est déjà affiché (empêche toute action inutile)
+  if ((type === 'ipynb' && selectedFileRight === fileUrl) || (type !== 'ipynb' && selectedFileLeftOrigin === fileUrl)) {
+    return;
+  }
+
   // Process the file URL through the API similar to how it's done in ActivityList
-  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webmp'].includes(extension)) {
+  if (["jpg", "jpeg", "png", "gif", "svg", "webmp"].includes(extension)) {
     type = 'image';
     const apiUrl = `/api/files${fileUrl}`;
     try {
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, type, activity);
+      handleFileSelection(objectUrl, type, activity, fileUrl); // Correction ici
     } catch (error) {
       console.error("Error downloading image:", error);
       toast.error('Erreur lors du téléchargement de l\'image');
     }
-  } else if (['pdf'].includes(extension)) {
+  } else if (["pdf"].includes(extension)) {
     type = 'pdfType';
     const apiUrl = `/api/files${fileUrl}`;
     try {
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, type, activity);
+      handleFileSelection(objectUrl, type, activity, fileUrl); // Correction ici
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error('Erreur lors du téléchargement du PDF');
     }
-  } else if (['ipynb'].includes(extension)) {
+  } else if (["ipynb"].includes(extension)) {
     type = 'ipynb';
     handleSelectActivity(fileUrl, type, activity);
-  } else if (['mp4', 'avi', 'mov'].includes(extension)) {
+  } else if (["mp4", "avi", "mov"].includes(extension)) {
     type = 'video';
-    handleFileSelection(fileUrl, type, activity);
+    handleFileSelection(fileUrl, type, activity, fileUrl); // Correction ici
     handleSelectActivity(fileUrl, type, activity);
-  } else if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension)) {
+  } else if (["mp3", "wav", "ogg", "aac", "flac"].includes(extension)) {
     type = 'audio';
     const apiUrl = `/api/files${fileUrl}`;
     try {
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, type, activity);
+      handleFileSelection(objectUrl, type, activity, fileUrl); // Correction ici
     } catch (error) {
       console.error("Error downloading audio:", error);
       toast.error('Erreur lors du téléchargement de l\'audio');
     }
-  } else if (['html'].includes(extension)) {
+  } else if (["html"].includes(extension)) {
     type = 'html';
     const apiUrl = `/api/files${fileUrl}`;
     try {
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, type, activity);
+      handleFileSelection(objectUrl, type, activity, fileUrl); // Correction ici
     } catch (error) {
       console.error("Error downloading HTML:", error);
       toast.error('Erreur lors du téléchargement du fichier HTML');
     }
-  }  else if (['txt', 'rtf'].includes(extension)) {
+  }  else if (["txt", "rtf"].includes(extension)) {
     type = 'txt';
     const apiUrl = `/api/files${fileUrl}`;
     try {
-      // Utilisation directe de fetch au lieu de downloadFileWithProgress pour obtenir le contenu brut
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
       const rawText = await response.text();
-      
-      // Traiter différemment selon l'extension
       let processedText = rawText;
       if (extension === 'rtf') {
-        // Pour les fichiers RTF, extraire uniquement le contenu textuel
-        // Méthode générale pour extraire le texte d'un RTF quelle que soit sa nature
-          
-        // 1. Supprime toutes les commandes RTF commençant par "\"
         processedText = rawText.replace(/\\[a-z0-9]+\s?/g, '');
-        
-        // 2. Recherche le texte principal entre accolades, généralement après des groupes de contrôle
         const mainContentMatch = processedText.match(/\{[^\{]*\\pard[^\}]*\s+([^\\]+)/);
         if (mainContentMatch && mainContentMatch[1]) {
           processedText = mainContentMatch[1].trim();
         } else {
-          // 3. Méthode alternative: on nettoie tout ce qui est entre accolades et les accolades
           processedText = processedText
-            .replace(/\{[^\}]*\}/g, ' ')  // Supprime les groupes entre accolades
-            .replace(/\{|\}/g, '')        // Supprime les accolades restantes
-            .replace(/\\[a-z0-9]+/g, ' ') // Supprime les commandes RTF restantes
-            .replace(/\s+/g, ' ')         // Normalise les espaces
+            .replace(/\{[^\}]*\}/g, ' ')
+            .replace(/\{|\}/g, '')
+            .replace(/\\[a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
             .trim();
         }
       }
-      
-      // Passer le texte traité
-      handleFileSelection(processedText, type, activity);
+      handleFileSelection(processedText, type, activity, fileUrl); // Correction ici
     } catch (error) {
       console.error("Error downloading text file:", error);
       toast.error('Erreur lors du téléchargement du fichier texte');
     }
-  } else if (['tsx', 'jsx', 'ts', 'js', 'css'].includes(extension)) {
+  } else if (["tsx", "jsx", "ts", "js", "css"].includes(extension)) {
     type = 'typescript';
     handleSelectActivity(fileUrl, type, activity);
   } else {
-    // Handle other file types
     const apiUrl = `/api/files${fileUrl}`;
     try {
       const objectUrl = await downloadFileWithProgress(apiUrl);
-      handleFileSelection(objectUrl, 'other', activity);
+      handleFileSelection(objectUrl, 'other', activity, fileUrl); // Correction ici
       handleSelectActivity(objectUrl, 'other', activity);
     } catch (error) {
       console.error("Error downloading file:", error);
@@ -221,7 +222,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     }
   }, [userName, setUserName]);
 
-  const handleFileSelection = (fileUrl: string, fileType: string, activity: Activity) => {
+  const handleFileSelection = (fileUrl: string, fileType: string, activity: Activity, originFileUrl?: string) => {
     if (fileType === 'pdfType' && isMobileDevice()) {
       // Open PDF in new tab on mobile
       window.open(fileUrl, '_blank');
@@ -239,6 +240,11 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     setSelectedActivity(activity);
     setSelectedFileLeft(fileUrl);
     setLeftFileType(fileType);
+    if (originFileUrl) {
+      setSelectedFileLeftOrigin(originFileUrl);
+    } else {
+      setSelectedFileLeftOrigin(activity.fileUrl);
+    }
   };
 
   useEffect(() => {
@@ -459,6 +465,28 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   const DownloadButton = ({ fileUrl, title, fileType, activity }: { fileUrl: string, title: string, fileType?: string, activity?: Activity }) => {
     const handleDownload = async () => {
       try {
+        // --- RATE LIMIT PAR FICHIER ---
+        const rateLimitKey = `downloadRateLimit_${activity?.fileUrl || fileUrl}`;
+        const lastDownload = localStorage.getItem(rateLimitKey);
+        const now = Date.now();
+        const RATE_LIMIT_MS = 10000; // 10 secondes
+        if (lastDownload && now - parseInt(lastDownload, 10) < RATE_LIMIT_MS) {
+          toast.error('Patientez avant de retélécharger ce fichier !', {
+            className: "toast-centered",
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
+            style: {
+              width: '400px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              alignItems: 'center',
+            }
+          });
+          return;
+        }
+        localStorage.setItem(rateLimitKey, now.toString());
+        // --- FIN RATE LIMIT ---
         // Pour les fichiers texte, le contenu est déjà chargé dans fileUrl
         if (fileType === 'txt' && typeof fileUrl === 'string' && !fileUrl.startsWith('http')) {
           // Créer un Blob à partir du texte
@@ -477,7 +505,13 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
           document.body.removeChild(downloadLink);
           
           // Message de succès
-          toast.success(`Téléchargement de "${title}" démarré`);
+          toast.success(`Téléchargement de "${title}" démarré`, {
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
+            style: {
+              minWidth: '300px'
+            }
+          });
           return;
         }
 
@@ -492,7 +526,13 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
           document.body.appendChild(downloadLink);
           downloadLink.click();
           document.body.removeChild(downloadLink);
-          toast.success(`Téléchargement de "${title}" démarré`);
+          toast.success(`Téléchargement de "${title}" démarré`, {
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
+            style: {
+              minWidth: '300px'
+            }
+          });
           return;
         }
         
@@ -514,7 +554,13 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-        toast.success(`Téléchargement de "${title}" démarré`);
+        toast.success(`Téléchargement de "${title}" démarré`, {
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
+            style: {
+              minWidth: '300px'
+            }
+          });
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
         toast.error('Erreur lors du téléchargement du fichier');
@@ -657,7 +703,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
   );
 };
 
-console.log('leftFileType', leftFileType);
+
 
   return (
     <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1400px] mx-auto px-4 md:px-0">
@@ -679,6 +725,8 @@ console.log('leftFileType', leftFileType);
             userName={userName}
             setUserName={setUserName}
             onUniqueIdReceived={handleUniqueIdReceived}
+            selectedFileLeftOrigin={selectedFileLeftOrigin}
+            selectedFileRight={selectedFileRight}
           />
         )}
 
@@ -757,23 +805,29 @@ console.log('leftFileType', leftFileType);
                           </h3>
                         )}
                         <div className="space-y-2 flex flex-col">
-                          {activities.map((activity: Activity) => (
-                            <Button
-                              key={activity.id}
-                              variant="outline"
-                              className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
-                              onClick={() => handleActivityClick(activity.fileUrl, activity)}
-                            >
-                              <div className="flex items-center w-full">
-                                <div className="flex-shrink-0 mr-2">
-                                  {getFileIcon(activity.name)}
+                          {activities.map((activity: Activity) => {
+                            // Désactiver le bouton si le fichier est déjà affiché (peu importe le type)
+                            const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+                            return (
+                              <Button
+                                key={activity.id}
+                                variant="outline"
+                                className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
+                                onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                                disabled={isAlreadyDisplayed}
+                                style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+                              >
+                                <div className="flex items-center w-full">
+                                  <div className="flex-shrink-0 mr-2">
+                                    {getFileIcon(activity.name)}
+                                  </div>
+                                  <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
+                                    {activity.title}
+                                  </span>
                                 </div>
-                                <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
-                                  {activity.title}
-                                </span>
-                              </div>
-                            </Button>
-                          ))}
+                              </Button>
+                            );
+                          })}
                         </div>
                       </div>
                     );

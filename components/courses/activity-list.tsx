@@ -21,6 +21,8 @@ interface ActivityListProps {
   userName: string;                                // Reçu du parent
   setUserName: React.Dispatch<React.SetStateAction<string>>; // Reçu du parent
   onUniqueIdReceived: (uniqueId: string) => void;
+  selectedFileLeftOrigin?: string | null;
+  selectedFileRight?: string | null;
 }
 
 export function ActivityList({
@@ -31,7 +33,9 @@ export function ActivityList({
   handleFileSelection,
   userName,
   setUserName,
-  onUniqueIdReceived
+  onUniqueIdReceived,
+  selectedFileLeftOrigin,
+  selectedFileRight
 }: ActivityListProps) {
 
   const [toastId, setToastId] = useState<Id | null>(null);
@@ -364,25 +368,32 @@ export function ActivityList({
   if (themeChoice === 0) {
     return (
       <div className="flex flex-wrap flex-row gap-4 px-2">
-        {activities.map((activity) => (
-          <Tooltip 
-            key={activity.id}
-            content={activity.title}
-            closeDelay={550}
-            className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
-              rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
-              transition-opacity duration-300"
-          >
-            <Button
-              variant="outline"
-              className="inline-flex items-center justify-start w-auto min-w-[100px] max-w-[300px] truncate"
-              onClick={() => handleActivityClick(activity.fileUrl, activity)}
+        {activities.map((activity) => {
+          const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+          return (
+            <Tooltip 
+              key={activity.id}
+              content={activity.title}
+              closeDelay={550}
+              className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
+                rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
+                transition-opacity duration-300"
             >
-              <div className="flex items-center justify-center w-8 h-8 mr-2">{getFileIcon(activity.name)}</div>
-              <span className="truncate">{activity.title}</span>
-            </Button>
-          </Tooltip>
-        ))}
+              <Button
+                variant="outline"
+                className="inline-flex items-center justify-start w-auto min-w-[100px] max-w-[300px] truncate"
+                onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                disabled={isAlreadyDisplayed}
+                style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                  <span className="truncate">{activity.title}</span>
+                </div>
+              </Button>
+            </Tooltip>
+          );
+        })}
       </div>
     );
   }
@@ -390,46 +401,51 @@ export function ActivityList({
   // Affichage accordéon (themeChoice = 2)
   if (themeChoice === 2) {
     return (
-        <div className={`w-full transition-all duration-300 ${isAccordionOpen ? 'mb-6' : 'mb-0'}`}>
-          <div 
-            className="flex items-center justify-between bg-gray-200 p-3 rounded-t-2xl cursor-pointer select-none"
-            onClick={() => setIsAccordionOpen(!isAccordionOpen)}
-          >
-            <h3 className="text-lg font-medium">Ressources du cours</h3>
+      <div className={`w-full transition-all duration-300 ${isAccordionOpen ? 'mb-6' : 'mb-0'}`}>
+        <div 
+          className="flex items-center justify-between bg-gray-200 p-3 rounded-t-2xl cursor-pointer select-none"
+          onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+        >
+          <h3 className="text-lg font-medium">Ressources du cours</h3>
           <div className={`transform transition-transform ${isAccordionOpen ? 'rotate-180' : 'rotate-0'}`}>
-          <ExpandMore fontSize='medium' />
+            <ExpandMore fontSize='medium' />
           </div>
-          </div>
-          
-          <div 
-            className={`transition-all duration-300 overflow-hidden bg-white border-x border-b border-gray-200 rounded-b-md
+        </div>
+        
+        <div 
+          className={`transition-all duration-300 overflow-hidden bg-white border-x border-b border-gray-200 rounded-b-md
           ${isAccordionOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
-          >
-            <div className="p-4 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-3">
-          {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
-            <div key={groupName} className="mb-4">
-              <div className="space-y-2">
-            {groupActivities.map(activity => (
-              <Tooltip 
-                key={activity.id}
-                content={activity.title}
-                closeDelay={550}
-                className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
-              rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
-              transition-opacity duration-300"
-            >
+        >
+          <div className="p-4 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-3">
+            {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
+              <div key={groupName} className="mb-4">
+                <div className="space-y-2">
+                  {groupActivities.map(activity => {
+                    const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+                    return (
+                      <Tooltip 
+                        key={activity.id}
+                        content={activity.title}
+                        closeDelay={550}
+                        className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
+                          rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
+                          transition-opacity duration-300"
+                      >
                         <Button
-                        variant="outline"
-                        className="w-auto justify-start text-left h-auto mx-1"
-                        onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                          variant="outline"
+                          className="w-auto justify-start text-left h-auto mx-1"
+                          onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                          disabled={isAlreadyDisplayed}
+                          style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
                         >
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-                          <span className="truncate">{activity.title}</span>
-                        </div>
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                            <span className="truncate">{activity.title}</span>
+                          </div>
                         </Button>
-                    </Tooltip>
-                  ))}
+                      </Tooltip>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -446,29 +462,34 @@ export function ActivityList({
         <div key={groupName} className="mb-6">
           <h3 className="text-md font-medium text-gray-700 mb-2">{groupName}</h3>
           <div className="space-y-2">
-            {groupActivities.map(activity => (
-              <Tooltip 
-                key={activity.id}
-                content={activity.title}
-                closeDelay={550}
-                className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 
-                  rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 
-                  transition-opacity duration-300"
-              >
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left pl-2 py-1.5 h-auto"
-                onClick={() => handleActivityClick(activity.fileUrl, activity)}
-              >
-                <div className="flex items-center w-full">
-                  <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-                  <span className="truncate block w-[calc(100%-32px)]" title={activity.title}>
-                    {activity.title}
-                  </span>
-                </div>
-              </Button>
-              </Tooltip>
-            ))}
+            {groupActivities.map(activity => {
+              const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+              return (
+                <Tooltip 
+                  key={activity.id}
+                  content={activity.title}
+                  closeDelay={550}
+                  className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
+                    rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
+                    transition-opacity duration-300"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left pl-2 py-1.5 h-auto"
+                    onClick={() => handleActivityClick(activity.fileUrl, activity)}
+                    disabled={isAlreadyDisplayed}
+                    style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+                  >
+                    <div className="flex items-center w-full">
+                      <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
+                      <span className="truncate block w-[calc(100%-32px)]" title={activity.title}>
+                        {activity.title}
+                      </span>
+                    </div>
+                  </Button>
+                </Tooltip>
+              );
+            })}
           </div>
         </div>
       ))}

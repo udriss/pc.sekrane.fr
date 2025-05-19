@@ -892,7 +892,8 @@
           "fileUrl": "/26/autre/TSTI_C9_Ac5.xlsx"
         }
       ],
-      "themeChoice": 1
+      "themeChoice": 1,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "30",
@@ -914,7 +915,8 @@
           "fileUrl": "/30/pdf/TSTI_C10_A2.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "27",
@@ -942,7 +944,8 @@
           "fileUrl": "/27/pdf/TSTI_C11_A2.pdf"
         }
       ],
-      "themeChoice": 0
+      "themeChoice": 0,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "8",
@@ -960,6 +963,76 @@
       ],
       "toggleVisibilityCourse": false,
       "themeChoice": 0
+    },
+    {
+      "id": "35",
+      "title": "T3 Chapitre 2",
+      "description": " ",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1742897055256",
+          "name": "2nd_T3_C2_A3.pdf",
+          "title": "Spectre d’émission du Soleil",
+          "fileUrl": "/35/pdf/2nd_T3_C2_A3.pdf"
+        },
+        {
+          "id": "1742897071237",
+          "name": "2nd_T3_C2_soleil_vide.ipynb",
+          "title": "Spectre d’émission du Soleil",
+          "fileUrl": "/35/notebook/2nd_T3_C2_soleil_vide.ipynb"
+        }
+      ],
+      "themeChoice": 1
+    },
+    {
+      "id": "38",
+      "title": "T2 Chapitre 2",
+      "description": "Interactions fondamentales : étude des charges, forces électrostatiques et gravitationnelles, et champs associés dans l'espace.",
+      "classe": "1 Spé",
+      "theClasseId": "7",
+      "activities": [
+        {
+          "id": "1747022885794",
+          "name": "Lien_Chronophys.txt",
+          "title": "Lien Chronophys",
+          "fileUrl": "/38/autre/Lien_Chronophys.txt"
+        }
+      ]
+    },
+    {
+      "id": "39",
+      "title": "Chapitre 13",
+      "description": "Étude des forces, frottements, travail, énergie cinétique et rotation des solides, avec applications aux systèmes en mouvement.",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1747644331149",
+          "name": "chronophys_prise_en_main.pdf",
+          "title": "Prise en main Chronophys",
+          "fileUrl": "/39/pdf/chronophys_prise_en_main.pdf"
+        },
+        {
+          "id": "1747644380730",
+          "name": "Lien_Chronophys.txt",
+          "title": "Lien Chronophys",
+          "fileUrl": "/39/autre/Lien_Chronophys.txt"
+        },
+        {
+          "id": "1747648688656",
+          "name": "TSTI_C13_A5_rotation_disque.mp4",
+          "title": "Rotation disque",
+          "fileUrl": "/39/autre/TSTI_C13_A5_rotation_disque.mp4"
+        },
+        {
+          "id": "1747661103725",
+          "name": "TSTI_C13_A1_twingo.mp4",
+          "title": "Twingo qui roule",
+          "fileUrl": "/39/autre/TSTI_C13_A1_twingo.mp4"
+        }
+      ]
     },
     {
       "id": "29",
@@ -1077,82 +1150,6 @@
       ],
       "toggleVisibilityCourse": true,
       "themeChoice": 1
-    },
-    {
-      "id": "35",
-      "title": "T3 Chapitre 2",
-      "description": " ",
-      "classe": "Seconde",
-      "theClasseId": "6",
-      "activities": [
-        {
-          "id": "1742897055256",
-          "name": "2nd_T3_C2_A3.pdf",
-          "title": "Spectre d’émission du Soleil",
-          "fileUrl": "/35/pdf/2nd_T3_C2_A3.pdf"
-        },
-        {
-          "id": "1742897071237",
-          "name": "2nd_T3_C2_soleil_vide.ipynb",
-          "title": "Spectre d’émission du Soleil",
-          "fileUrl": "/35/notebook/2nd_T3_C2_soleil_vide.ipynb"
-        }
-      ],
-      "themeChoice": 1
-    },
-    {
-      "id": "38",
-      "title": "T2 Chapitre 2",
-      "description": "Interactions fondamentales : étude des charges, forces électrostatiques et gravitationnelles, et champs associés dans l'espace.",
-      "classe": "1 Spé",
-      "theClasseId": "7",
-      "activities": [
-        {
-          "id": "1747022885794",
-          "name": "Lien_Chronophys.txt",
-          "title": "Lien Chronophys",
-          "fileUrl": "/38/autre/Lien_Chronophys.txt"
-        }
-      ]
-    },
-    {
-      "id": "39",
-      "title": "Chapitre 13",
-      "description": "",
-      "classe": "Tle STI2D",
-      "theClasseId": "4",
-      "activities": [
-        {
-          "id": "1747644331149",
-          "name": "chronophys_prise_en_main.pdf",
-          "title": "Prise en main Chronophys",
-          "fileUrl": "/39/pdf/chronophys_prise_en_main.pdf"
-        },
-        {
-          "id": "1747644380730",
-          "name": "Lien_Chronophys.txt",
-          "title": "Lien Chronophys",
-          "fileUrl": "/39/autre/Lien_Chronophys.txt"
-        },
-        {
-          "id": "1747648688656",
-          "name": "TSTI_C13_A5_rotation_disque.mp4",
-          "title": "Rotation disque",
-          "fileUrl": "/39/autre/TSTI_C13_A5_rotation_disque.mp4"
-        },
-        {
-          "id": "1747661103725",
-          "name": "TSTI_C13_A1_twingo.mp4",
-          "title": "Twingo qui roule",
-          "fileUrl": "/39/autre/TSTI_C13_A1_twingo.mp4"
-        },
-        {
-          "id": "1747661569985",
-          "name": "TSTI_C13_A1_twingo_1.mp4",
-          "title": "TEST",
-          "fileUrl": "/39/autre/TSTI_C13_A1_twingo_1.mp4"
-        }
-      ]
     },
     {
       "id": "40",
