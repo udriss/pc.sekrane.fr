@@ -240,6 +240,50 @@ export function ActivityList({
       if (themeChoice === 2) {
         setIsAccordionOpen(false);
       }
+    } else if (fileExtension && ['txt', 'rtf'].includes(fileExtension)) {
+      const apiUrl = `/api/files${fileUrl}`;
+      try {
+        // Utilisation directe de fetch au lieu de downloadFileWithProgress pour obtenir le contenu texte brut
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+        const rawText = await response.text();
+        
+        // Traiter différemment selon l'extension
+        let processedText = rawText;
+        if (fileExtension === 'rtf') {
+          // Pour les fichiers RTF, extraire uniquement le contenu textuel
+          // Méthode générale pour extraire le texte d'un RTF quelle que soit sa nature
+          
+          // 1. Supprime toutes les commandes RTF commençant par "\"
+          processedText = rawText.replace(/\\[a-z0-9]+\s?/g, '');
+          
+          // 2. Recherche le texte principal entre accolades, généralement après des groupes de contrôle
+          const mainContentMatch = processedText.match(/\{[^\{]*\\pard[^\}]*\s+([^\\]+)/);
+          if (mainContentMatch && mainContentMatch[1]) {
+            processedText = mainContentMatch[1].trim();
+          } else {
+            // 3. Méthode alternative: on nettoie tout ce qui est entre accolades et les accolades
+            processedText = processedText
+              .replace(/\{[^\}]*\}/g, ' ')  // Supprime les groupes entre accolades
+              .replace(/\{|\}/g, '')        // Supprime les accolades restantes
+              .replace(/\\[a-z0-9]+/g, ' ') // Supprime les commandes RTF restantes
+              .replace(/\s+/g, ' ')         // Normalise les espaces
+              .trim();
+          }
+        }
+        
+        // Passer le texte traité
+        onSelectActivity(processedText, 'txt', activity);
+        handleFileSelection(processedText, 'txt', activity);
+        
+        // Only close accordion after file is processed
+        if (themeChoice === 2) {
+          setIsAccordionOpen(false);
+        }
+      } catch (error) {
+        console.error("Error downloading text file:", error);
+        toast.error('Erreur lors du téléchargement du fichier texte');
+      }
     } else if (fileExtension && ['pdf'].includes(fileExtension)) {
       const apiUrl = `/api/files${fileUrl}`;
       try {
@@ -319,7 +363,7 @@ export function ActivityList({
   // Affichage horizontal (themeChoice = 0, par défaut)
   if (themeChoice === 0) {
     return (
-      <div className="flex flex-wrap flex-row gap-4">
+      <div className="flex flex-wrap flex-row gap-4 px-2">
         {activities.map((activity) => (
           <Tooltip 
             key={activity.id}

@@ -22,7 +22,8 @@
         "26",
         "27",
         "29",
-        "30"
+        "30",
+        "39"
       ],
       "toggleVisibilityClasse": true
     },
@@ -52,7 +53,8 @@
         "32",
         "33",
         "34",
-        "35"
+        "35",
+        "40"
       ],
       "toggleVisibilityClasse": true
     },
@@ -67,7 +69,8 @@
         "21",
         "24",
         "25",
-        "36"
+        "36",
+        "38"
       ],
       "toggleVisibilityClasse": true
     }
@@ -153,6 +156,12 @@
           "name": "2SNT_T4_4_fichiers.zip",
           "title": "Archive de 4 fichiers",
           "fileUrl": "/37/autre/2SNT_T4_4_fichiers.zip"
+        },
+        {
+          "id": "1747122880294",
+          "name": "2SNT_T4_prix_petrole_dollar.csv",
+          "title": "Prix pétrole en $",
+          "fileUrl": "/37/autre/2SNT_T4_prix_petrole_dollar.csv"
         }
       ],
       "themeChoice": 1
@@ -234,7 +243,7 @@
     },
     {
       "id": "16",
-      "title": "T4 Chapitre 1",
+      "title": "T3 Chapitre 1",
       "description": "Ondes mécaniques, leur propagation, leurs types (transversales et longitudinales), célérité, retard, fréquence et double périodicité.",
       "classe": "1 Spé",
       "theClasseId": "7",
@@ -621,7 +630,7 @@
           "fileUrl": "/10/autre/2MVT_chute_glycerol.avi"
         }
       ],
-      "toggleVisibilityCourse": false,
+      "toggleVisibilityCourse": true,
       "themeChoice": 1
     },
     {
@@ -632,7 +641,7 @@
       "theClasseId": "6",
       "activities": [],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "toggleVisibilityCourse": true
     },
     {
       "id": "23",
@@ -1092,21 +1101,74 @@
       "themeChoice": 1
     },
     {
-      "id": "36",
-      "title": "Antonin G",
-      "description": " ",
+      "id": "38",
+      "title": "T2 Chapitre 2",
+      "description": "Interactions fondamentales : étude des charges, forces électrostatiques et gravitationnelles, et champs associés dans l'espace.",
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [
         {
-          "id": "1743059310114",
-          "name": "1S_T1_C7_CE1.pdf",
-          "title": "CE 1",
-          "fileUrl": "/36/pdf/1S_T1_C7_CE1.pdf"
+          "id": "1747022885794",
+          "name": "Lien_Chronophys.txt",
+          "title": "Lien Chronophys",
+          "fileUrl": "/38/autre/Lien_Chronophys.txt"
+        }
+      ]
+    },
+    {
+      "id": "39",
+      "title": "Chapitre 13",
+      "description": "",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1747644331149",
+          "name": "chronophys_prise_en_main.pdf",
+          "title": "Prise en main Chronophys",
+          "fileUrl": "/39/pdf/chronophys_prise_en_main.pdf"
+        },
+        {
+          "id": "1747644380730",
+          "name": "Lien_Chronophys.txt",
+          "title": "Lien Chronophys",
+          "fileUrl": "/39/autre/Lien_Chronophys.txt"
+        },
+        {
+          "id": "1747648688656",
+          "name": "TSTI_C13_A5_rotation_disque.mp4",
+          "title": "Rotation disque",
+          "fileUrl": "/39/autre/TSTI_C13_A5_rotation_disque.mp4"
+        },
+        {
+          "id": "1747661103725",
+          "name": "TSTI_C13_A1_twingo.mp4",
+          "title": "Twingo qui roule",
+          "fileUrl": "/39/autre/TSTI_C13_A1_twingo.mp4"
+        },
+        {
+          "id": "1747661569985",
+          "name": "TSTI_C13_A1_twingo_1.mp4",
+          "title": "TEST",
+          "fileUrl": "/39/autre/TSTI_C13_A1_twingo_1.mp4"
+        }
+      ]
+    },
+    {
+      "id": "40",
+      "title": "T3 Chapitre 3",
+      "description": "Étude des signaux électriques, des circuits et des capteurs, en mettant l’accent sur la compréhension physique des grandeurs électriques et leur mesure dans divers contextes d’application.",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1747124597596",
+          "name": "2sigE_bilan_chap3.pdf",
+          "title": "Cours",
+          "fileUrl": "/40/pdf/2sigE_bilan_chap3.pdf"
         }
       ],
-      "themeChoice": 1,
-      "toggleVisibilityCourse": false
+      "themeChoice": 1
     }
   ]
 }

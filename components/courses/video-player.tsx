@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// ...existing code...
-
-
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
 
 interface VideoPlayerProps {
   fileUrl: string;
@@ -82,31 +86,78 @@ export function VideoActions({ fileUrl, fileName }: VideoPlayerProps) {
   };
 
   return (
-    <div className="flex space-x-4 p-4">
-      <button 
-        onClick={showDownloadPrompt}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+    <Box sx={{ mt:6}}>
+      <Grid container 
+        justifyContent="center"
+        alignItems="center"
       >
-        Télécharger la vidéo ?
-      </button>
-      
-      
+        <Grid size={{ xs:12, md:6, lg:6 }}
+          sx={{ 
+            justifyContent: 'center', 
+            display: 'flex', 
+            alignContent: 'center', 
+            justifyItems: 'center' 
+          }}
+        >
+          <Button 
+            onClick={() => setShowVideo(true)}
+            variant="contained"
+            color="success"
+          >
+            Regarder la vidéo
+          </Button>
+        </Grid>
+        <Grid size={{ xs:12, md:6, lg:6 }}
+          sx={{ 
+            justifyContent: 'center', 
+            display: 'flex', 
+            alignContent: 'center', 
+            justifyItems: 'center' 
+          }}
+        >
+          <Button 
+            onClick={showDownloadPrompt}
+            variant="contained"
+            color="primary"
+          >
+            Télécharger la vidéo ?
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid container justifyContent="center" sx={{ mt: 2 }}>
+        <Grid >
+          <Card sx={{ width: 320, boxShadow: 2, borderRadius: 2, mx: 'auto' }}>
+            <CardMedia
+              component="video"
+              src={`/api/files${fileUrl}`}
+              controls
+              sx={{ height: 180, backgroundColor: '#000', objectFit: 'cover' }}
+            />
+            <CardContent sx={{ p: 1 }}>
+              <Typography variant="subtitle2" noWrap title={fileName} align="center">
+                {fileName}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
       {showVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg w-full max-w-4xl">
-            <div className="flex justify-end mb-2">
-              <button 
-                onClick={() => setShowVideo(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Fermer
-              </button>
-            </div>
-            <VideoPlayer fileUrl={fileUrl} />
-          </div>
-        </div>
+        <Box position="fixed" top={0} left={0} width="100vw" height="100vh" zIndex={1300} display="flex" alignItems="center" justifyContent="center" bgcolor="rgba(0,0,0,0.5)">
+          <Card sx={{ maxWidth: 800, width: '90vw', p: 2 }}>
+            <Box display="flex" justifyContent="flex-end">
+              <Button onClick={() => setShowVideo(false)} color="secondary">Fermer</Button>
+            </Box>
+            <CardMedia
+              component="video"
+              src={`/api/files${fileUrl}`}
+              controls
+              autoPlay
+              sx={{ width: '100%', height: 400, backgroundColor: '#000' }}
+            />
+          </Card>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 

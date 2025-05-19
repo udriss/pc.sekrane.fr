@@ -151,6 +151,45 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
       console.error("Error downloading HTML:", error);
       toast.error('Erreur lors du téléchargement du fichier HTML');
     }
+  }  else if (['txt', 'rtf'].includes(extension)) {
+    type = 'txt';
+    const apiUrl = `/api/files${fileUrl}`;
+    try {
+      // Utilisation directe de fetch au lieu de downloadFileWithProgress pour obtenir le contenu brut
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+      const rawText = await response.text();
+      
+      // Traiter différemment selon l'extension
+      let processedText = rawText;
+      if (extension === 'rtf') {
+        // Pour les fichiers RTF, extraire uniquement le contenu textuel
+        // Méthode générale pour extraire le texte d'un RTF quelle que soit sa nature
+          
+        // 1. Supprime toutes les commandes RTF commençant par "\"
+        processedText = rawText.replace(/\\[a-z0-9]+\s?/g, '');
+        
+        // 2. Recherche le texte principal entre accolades, généralement après des groupes de contrôle
+        const mainContentMatch = processedText.match(/\{[^\{]*\\pard[^\}]*\s+([^\\]+)/);
+        if (mainContentMatch && mainContentMatch[1]) {
+          processedText = mainContentMatch[1].trim();
+        } else {
+          // 3. Méthode alternative: on nettoie tout ce qui est entre accolades et les accolades
+          processedText = processedText
+            .replace(/\{[^\}]*\}/g, ' ')  // Supprime les groupes entre accolades
+            .replace(/\{|\}/g, '')        // Supprime les accolades restantes
+            .replace(/\\[a-z0-9]+/g, ' ') // Supprime les commandes RTF restantes
+            .replace(/\s+/g, ' ')         // Normalise les espaces
+            .trim();
+        }
+      }
+      
+      // Passer le texte traité
+      handleFileSelection(processedText, type, activity);
+    } catch (error) {
+      console.error("Error downloading text file:", error);
+      toast.error('Erreur lors du téléchargement du fichier texte');
+    }
   } else if (['tsx', 'jsx', 'ts', 'js', 'css'].includes(extension)) {
     type = 'typescript';
     handleSelectActivity(fileUrl, type, activity);
@@ -417,25 +456,64 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   );
 
   
-  const DownloadButton = ({ fileUrl, title }: { fileUrl: string, title: string }) => {
+  const DownloadButton = ({ fileUrl, title, fileType, activity }: { fileUrl: string, title: string, fileType?: string, activity?: Activity }) => {
     const handleDownload = async () => {
       try {
-        // Obtenir le nom du fichier à partir de l'URL pour le téléchargement
+        // Pour les fichiers texte, le contenu est déjà chargé dans fileUrl
+        if (fileType === 'txt' && typeof fileUrl === 'string' && !fileUrl.startsWith('http')) {
+          // Créer un Blob à partir du texte
+          const blob = new Blob([fileUrl], { type: 'text/plain;charset=utf-8' });
+          
+          // Déterminer le nom du fichier
+          const extension = activity && activity.fileUrl.split('.').pop()?.toLowerCase();
+          const fileName = title + (extension ? `.${extension}` : '.txt');
+          
+          // Créer un lien de téléchargement et le déclencher
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(blob);
+          downloadLink.download = fileName;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          // Message de succès
+          toast.success(`Téléchargement de "${title}" démarré`);
+          return;
+        }
+
+        // Pour les vidéos, utiliser un lien direct via l'API interne
+        if (fileType === 'video' && activity && activity.fileUrl) {
+          const apiUrl = `/api/files${activity.fileUrl}`;
+          const fileName = title || activity.fileUrl.split('/').pop() || 'video';
+          // Créer un lien de téléchargement direct
+          const downloadLink = document.createElement('a');
+          downloadLink.href = apiUrl;
+          downloadLink.download = fileName;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          toast.success(`Téléchargement de "${title}" démarré`);
+          return;
+        }
+        
+        // Pour les autres fichiers, utiliser l'API pour éviter les erreurs CORS
+        let apiUrl = fileUrl;
+        // S'il s'agit d'une URL externe et qu'elle ne commence pas déjà par /api/files
+        if (fileUrl.startsWith('http') && !fileUrl.includes('/api/files')) {
+          if (activity && activity.fileUrl) {
+            apiUrl = `/api/files${activity.fileUrl}`;
+          }
+        }
         const fileName = fileUrl.split('/').pop() || 'downloaded-file';
-        
-        // Télécharger le fichier
-        const response = await fetch(fileUrl);
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const blob = await response.blob();
-        
-        // Créer un lien de téléchargement et le déclencher
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.download = title || fileName;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-        
-        // Utiliser le titre pour le message de succès
         toast.success(`Téléchargement de "${title}" démarré`);
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
@@ -800,10 +878,12 @@ console.log('leftFileType', leftFileType);
           >
             <div className="w-full h-full md:h-auto relative">
               {/* Bouton de téléchargement */}
-              {selectedFileLeft && selectedActivity &&
+              {selectedFileLeft && selectedActivity && leftFileType !== 'video' && 
                   <DownloadButton 
                   fileUrl={selectedFileLeft} 
                   title={selectedActivity?.title || ''}
+                  fileType={leftFileType || ''}
+                  activity={selectedActivity}
                 />
               }
               
@@ -834,6 +914,13 @@ console.log('leftFileType', leftFileType);
                   sandbox="allow-scripts allow-same-origin"
                   title="HTML Preview"
                 />
+              )}
+              {leftFileType === 'txt' && selectedFileLeft && (
+                <div className="w-full h-full overflow-auto py-6 px-2 bg-white mt-8">
+                  <pre className="whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm overflow-x-auto break-words max-w-full">
+                    {selectedFileLeft}
+                  </pre>
+                </div>
               )}
               {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
                 <FileMetadata activity={selectedActivity} url={selectedFileLeft} />
@@ -866,10 +953,12 @@ console.log('leftFileType', leftFileType);
           <>
             <div style={{ width: lastClickedType !== 'ipynb' && selectedFileLeft ? '100%' : '0%', height: '100%', display: selectedFileLeft && lastClickedType !== 'ipynb' ? 'block' : 'none' }} className="relative">
               {/* Bouton de téléchargement */}
-              {selectedFileLeft && selectedActivity &&
+              {selectedFileLeft && selectedActivity && leftFileType !== 'video' &&
                   <DownloadButton 
                   fileUrl={selectedFileLeft} 
                   title={selectedActivity.title} 
+                  fileType={leftFileType || ''}
+                  activity={selectedActivity}
                 />
               }
               
@@ -906,6 +995,13 @@ console.log('leftFileType', leftFileType);
                   sandbox="allow-scripts allow-same-origin"
                   title="HTML Preview"
                 />
+              )}
+              {leftFileType === 'txt' && selectedFileLeft && (
+                <div className="w-full h-full overflow-auto py-6 px-2 bg-white mt-8">
+                  <pre className="whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm overflow-x-auto break-words max-w-full">
+                    {selectedFileLeft}
+                  </pre>
+                </div>
               )}
               {leftFileType === 'other' && selectedFileLeft && selectedActivity && (
                 <FileMetadata activity={selectedActivity} url={selectedFileLeft} />

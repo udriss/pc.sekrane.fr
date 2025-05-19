@@ -27,6 +27,9 @@ export const getFileIcon = (fileName: string) => {
     case 'aac':
     case 'flac':
       return <GiSoundWaves className="mr-2 h-6 w-6" style={{ color: 'rgba(61, 148, 90, 0.82)' }} />;
+    case 'txt':
+    case 'rtf':
+      return <FaFileCode className="mr-2 h-6 w-6" style={{ color: 'rgba(45, 125, 210, 0.8)' }} />;
     default:
       return <FaFileLines className="mr-2 h-6 w-6" style={{ color: 'gray' }} />;
   }
@@ -39,5 +42,6 @@ export const getFileType = (fileName: string): string => {
   if (['ipynb'].includes(extension || '')) return 'Notebooks Python';
   if (['mp4', 'avi', 'mov'].includes(extension || '')) return 'Vidéos';
   if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(extension || '')) return 'Audio';
+  if (['txt', 'rtf'].includes(extension || '')) return 'Fichiers texte';
   return 'Autres fichiers';
 };
