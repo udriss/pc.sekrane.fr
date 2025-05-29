@@ -1,15 +1,25 @@
 import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 
-import { CircularProgress, Button, Grid } from "@mui/material";
+import { 
+  CircularProgress, 
+  Button, 
+  Grid, 
+  Box, 
+  Paper, 
+  Typography 
+} from "@mui/material";
 import { RegressionModelSelector } from './RegressionModelSelector';
-import TeX from '@matejmazur/react-katex';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 import dynamic from 'next/dynamic';
 
 const Plot = dynamic(() => import('react-plotly.js'), {
   ssr: false,
-  loading: () => <div>Chargement du graphique ...</div>
+  loading: () => <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+    <Typography>Chargement du graphique ...</Typography>
+  </Box>
 });
 
 interface ChartLabels {
@@ -18,13 +28,7 @@ interface ChartLabels {
   yLabel: string;
 }
 
-const configMathJax = {
-  loader: { load: ["[tex]/html"] },
-  tex: {
-    packages: { "[+]": ["html"] },
-    inlineMath: [["$", "$"]]
-  }
-};
+
 
 interface ChartDimensions {
   width: number;
@@ -39,7 +43,7 @@ interface ChartData {
 interface GraphDisplayProps {
   chartLabels: ChartLabels;
   chartDimensions: ChartDimensions;
-  generateChartData: (model: string) => ChartData;
+  generateChartData: (model: string, leftExt?: number, rightExt?: number) => ChartData;
   stats: {
     results: Array<{
       type: string;
@@ -71,9 +75,24 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
   const [isExportingPlotly, setIsExportingPlotly] = useState(false);
   const [selectedModel, setSelectedModel] = useState("linear");
   const [showExportDetails, setShowExportDetails] = useState(false);
+  const [leftExtension, setLeftExtension] = useState(0.2);
+  const [rightExtension, setRightExtension] = useState(0.2);
 
   const handleModelChange = (event: any) => {
     setSelectedModel(event.target.value);
+  };
+
+  const handleExtendLeft = () => {
+    setLeftExtension(prev => prev + 0.2);
+  };
+
+  const handleExtendRight = () => {
+    setRightExtension(prev => prev + 0.2);
+  };
+
+  const handleResetExtensions = () => {
+    setLeftExtension(0.2);
+    setRightExtension(0.2);
   };
 
 
@@ -160,7 +179,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
   };
 
   const chartData = React.useMemo(() => {
-    const rawData = generateChartData(selectedModel);
+    const rawData = generateChartData(selectedModel, leftExtension, rightExtension);
     
     // Only filter out null points, keep (0,0) if it's a valid data point
     const validPoints = rawData.points.filter(point => 
@@ -175,16 +194,30 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
       points: validPoints,
       regressionLine
     };
-  }, [selectedModel, generateChartData]);
+  }, [selectedModel, leftExtension, rightExtension, generateChartData]);
 
   return (
-    <div ref={containerRef} className="w-full border rounded p-4 bg-white shadow-sm">
+    <Paper 
+      ref={containerRef} 
+      elevation={1}
+      sx={{ 
+        width: '100%', 
+        borderRadius: 2, 
+        p: 3, 
+        bgcolor: 'background.paper' 
+      }}
+    >
       {loading ? (
-        <div className="flex justify-center items-center h-[400px]">
-          <CircularProgress className="h-8 w-8 animate-spin text-gray-500" />
-        </div>
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          alignItems="center" 
+          height={400}
+        >
+          <CircularProgress size={32} color="primary" />
+        </Box>
       ) : (
-        <div ref={chartRef} className="export-container">
+        <Box ref={chartRef} className="export-container">
           {isClient && chartDimensions.width > 0 && (
             <Plot
               data={[
@@ -268,16 +301,23 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
           )}
           {/* Affichage de l'équation et du tableau pour l'export PNG (visible uniquement pendant l'export) */}
           {showExportDetails && (
-            <div className="export-details mt-6" style={{width: chartDimensions.width, fontSize: '0.85rem'}}>
+            <Box 
+              className="export-details" 
+              sx={{ 
+                mt: 3, 
+                width: chartDimensions.width, 
+                fontSize: '0.85rem' 
+              }}
+            >
               <RegressionModelSelector
                 selectedModel={selectedModel}
                 onModelChange={handleModelChange}
                 stats={stats}
                 formatNumber={formatNumber}
               />
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
       {/* Affichage du tableau/équation principal uniquement hors export */}
       {!showExportDetails && (
@@ -288,6 +328,7 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
           formatNumber={formatNumber}
         />
       )}
+
       <Grid container
       sx={{
         mt: 4,
@@ -330,6 +371,84 @@ export const GraphDisplay: React.FC<GraphDisplayProps> = ({
           </Button>
         </Grid>
       </Grid>
-    </div>
+            {/* Contrôles d'extension de la droite de régression */}
+      {selectedModel === "linear" && (
+        <Paper 
+          elevation={0}
+          sx={{ 
+            mt: 2, 
+            p: 2, 
+            border: 1, 
+            borderColor: 'grey.300', 
+            borderRadius: 1, 
+            bgcolor: 'grey.50' 
+          }}
+        >
+          <Typography 
+            variant="subtitle2" 
+            component="h3" 
+            align="center" 
+            gutterBottom
+            sx={{ fontWeight: 'medium' }}
+          >
+            Prolongement de la droite de régression
+          </Typography>
+          <Grid container spacing={2} justifyContent="center">
+            <Grid size={{ xs:6, sm:6, md:6 }} key="extend-left">
+              <Button
+                onClick={handleExtendLeft}
+                variant="outlined"
+                color="primary"
+                size="small"
+                startIcon={
+                 <ArrowBackIcon />
+                }
+                fullWidth
+              >
+                Étendre à gauche
+              </Button>
+            </Grid>
+            <Grid size={{ xs:6, sm:6, md:6 }} key="extend-right">
+              <Button
+                onClick={handleExtendRight}
+                variant="outlined"
+                color="primary"
+                size="small"
+                endIcon={
+                  <ArrowForwardIcon />
+                }
+                fullWidth
+              >
+                Étendre à droite
+              </Button>
+            </Grid>
+            <Grid size={{ xs:12, sm:12, md:12 }} key="reset-extensions">
+              <Button
+                onClick={handleResetExtensions}
+                variant="outlined"
+                color="secondary"
+                size="small"
+                startIcon={
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                }
+                fullWidth
+              >
+                Réinitialiser
+              </Button>
+            </Grid>
+          </Grid>
+          <Typography 
+            variant="caption" 
+            align="center" 
+            display="block" 
+            sx={{ mt: 1, color: 'text.secondary' }}
+          >
+            Extension: {Math.round(leftExtension * 100)}% à gauche, {Math.round(rightExtension * 100)}% à droite
+          </Typography>
+        </Paper>
+      )}
+    </Paper>
   );
 };

@@ -282,7 +282,7 @@ const submitData = async () => {
     regressionLine: Point[];
   }
   
-  function generateChartData(stats: Stats | null, model: string): ChartData {
+  function generateChartData(stats: Stats | null, model: string, leftExt: number = 0.2, rightExt: number = 0.2): ChartData {
     // Create points only from non-empty expressions
     const points = xExpressions
       .map((expr, i) => {
@@ -319,8 +319,9 @@ const submitData = async () => {
     // Calculate x range from valid points only
     const xMin = Math.min(...points.map(p => p.x));
     const xMax = Math.max(...points.map(p => p.x));
-    const xDepart = xMin - (xMax - xMin) * 0.2;
-    const xArrive = xMax + (xMax - xMin) * 0.2;
+    const xRange = xMax - xMin;
+    const xDepart = xMin - xRange * leftExt;
+    const xArrive = xMax + xRange * rightExt;
     // Generate regression line
     const regressionLine: Point[] = [];
     const numPoints = 250;
@@ -386,6 +387,37 @@ const clearData = () => {
   });
 };
 
+// Swap X and Y columns
+const swapColumns = () => {
+  // Swap expressions
+  const tempExpressions = [...xExpressions];
+  setXExpressions([...yExpressions]);
+  setYExpressions(tempExpressions);
+  
+  // Swap values
+  const tempValues = [...xValues];
+  setXValues([...yValues]);
+  setYValues(tempValues);
+  
+  // Swap chart labels
+  setChartLabels(prev => ({
+    ...prev,
+    xLabel: prev.yLabel,
+    yLabel: prev.xLabel
+  }));
+  
+  // Save to cookies
+  saveToCookies(yExpressions, xExpressions, yValues, xValues);
+  
+  // Clear stats as they are no longer valid
+  setStats(null);
+  
+  setAlert({
+    show: true,
+    message: 'Colonnes X et Y permutées avec succès',
+    severity: 'success'
+  });
+};
   // Update precision calculation function
   const calculatePrecision = (num: number): number => {
     // Handle special cases
@@ -499,6 +531,16 @@ const clearData = () => {
               Supprimer ligne
             </Button>
             <Button 
+              onClick={swapColumns}
+              className="w-full md:w-40 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600 flex items-center gap-2"
+              variant="outline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+              </svg>
+              Permuter X ↔ Y
+            </Button>
+            <Button 
               onClick={clearData}
               variant="destructive"
               className="flex items-center gap-2"
@@ -559,19 +601,20 @@ const clearData = () => {
 
 {stats && (
 <div className="mt-8">
-<div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <GraphDisplay
-    chartLabels={chartLabels}
-    chartDimensions={chartDimensions}
-    generateChartData={(model: string) => generateChartData(stats, model)}
-    stats={stats}
-    isMobile={isMobile}
-    isClient={isClient}
-    containerRef={containerRef}
-    chartRef={chartRef}
-    formatNumber={formatNumber}
-    loading={loading}
-  />
+<div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8">      <GraphDisplay
+        chartLabels={chartLabels}
+        chartDimensions={chartDimensions}
+        generateChartData={(model: string, leftExt?: number, rightExt?: number) => 
+          generateChartData(stats, model, leftExt, rightExt)
+        }
+        stats={stats}
+        isMobile={isMobile}
+        isClient={isClient}
+        containerRef={containerRef}
+        chartRef={chartRef}
+        formatNumber={formatNumber}
+        loading={loading}
+      />
   <StatsTable stats={stats} formatNumber={formatNumber} />
     </div>
     <div className="w-full grid grid-cols-1 lg:grid-cols-1 gap-8">

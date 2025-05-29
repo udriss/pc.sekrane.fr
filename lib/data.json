@@ -162,6 +162,18 @@
           "name": "2SNT_T4_prix_petrole_dollar.csv",
           "title": "Prix pétrole en $",
           "fileUrl": "/37/autre/2SNT_T4_prix_petrole_dollar.csv"
+        },
+        {
+          "id": "1747725779842",
+          "name": "2SNT_T4_adherents_association.csv",
+          "title": "Adhérents association",
+          "fileUrl": "/37/autre/2SNT_T4_adherents_association.csv"
+        },
+        {
+          "id": "1747725900709",
+          "name": "2SNT_T4_adherents_association_2.csv",
+          "title": "Adhérents association 2",
+          "fileUrl": "/37/autre/2SNT_T4_adherents_association_2.csv"
         }
       ],
       "themeChoice": 1
@@ -646,7 +658,7 @@
     {
       "id": "23",
       "title": "T3 Chapitre 1",
-      "description": "",
+      "description": "Le son : vibration, propagation, célérité, périodicité, fréquence, timbre, intensité, audition humaine, seuils, dangers, perception non linéaire.",
       "classe": "Seconde",
       "theClasseId": "6",
       "activities": [
@@ -967,7 +979,7 @@
     {
       "id": "35",
       "title": "T3 Chapitre 2",
-      "description": " ",
+      "description": "La lumière, onde électromagnétique : production, propagation, spectre, réflexion, réfraction, dispersion, œil humain modélisé par lentille convergente. ",
       "classe": "Seconde",
       "theClasseId": "6",
       "activities": [
@@ -1163,6 +1175,18 @@
           "name": "2sigE_bilan_chap3.pdf",
           "title": "Cours",
           "fileUrl": "/40/pdf/2sigE_bilan_chap3.pdf"
+        },
+        {
+          "id": "1747911616217",
+          "name": "2T3_C3_resistor.ipynb",
+          "title": "Résistor",
+          "fileUrl": "/40/notebook/2T3_C3_resistor.ipynb"
+        },
+        {
+          "id": "1747914413763",
+          "name": "2T3_C3_jeu_maison_futur.txt",
+          "title": "Programmer la maison du futur",
+          "fileUrl": "/40/autre/2T3_C3_jeu_maison_futur.txt"
         }
       ],
       "themeChoice": 1
