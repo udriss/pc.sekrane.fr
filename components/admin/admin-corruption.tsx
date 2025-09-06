@@ -102,10 +102,11 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   // States pour la gestion des progressions
   const [selectedClasseForProgression, setSelectedClasseForProgression] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [showAllProgressions, setShowAllProgressions] = useState<boolean>(true);
   const [progressionContent, setProgressionContent] = useState({
     title: '',
     content: '',
-    icon: 'calendar',
+    icon: 'edit',
     iconColor: '#3f51b5',
     contentType: 'text',
     resourceUrl: ''
@@ -1465,7 +1466,13 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  // Activer automatiquement le filtrage par date si une date est sélectionnée
+                  if (date) {
+                    setShowAllProgressions(false);
+                  }
+                }}
                 locale={fr}
                 className="rounded-md border"
               />
@@ -1580,7 +1587,9 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   <label className="text-sm font-medium">Icône</label>
                   <IconPicker
                     value={progressionContent.icon}
-                    onChange={(icon) => setProgressionContent(prev => ({ ...prev, icon }))}
+                    onChange={(icon) => {
+                      setProgressionContent(prev => ({ ...prev, icon }));
+                    }}
                   />
                 </div>
                 <div>
@@ -1601,18 +1610,62 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           {/* Liste des progressions existantes */}
           {progressions.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-semibold">Progressions existantes</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold">Progressions existantes</h4>
+                <div className="flex items-center space-x-2">
+                  {selectedDate && !showAllProgressions && (
+                    <span className="text-sm text-gray-600">
+                      Filtré par : {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant={showAllProgressions ? 'default' : 'outline'}
+                    onClick={() => setShowAllProgressions(!showAllProgressions)}
+                  >
+                    {showAllProgressions ? 'Filtrer par date' : 'Tout afficher'}
+                  </Button>
+                </div>
+              </div>
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEndProgression}
               >
                 <SortableContext
-                  items={progressions.map(p => p.id)}
+                  items={
+                    (showAllProgressions || !selectedDate
+                      ? progressions
+                      : progressions.filter(p => {
+                          const progressionDate = new Date(p.date);
+                          const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                          const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
+                          return selectedDateOnly.getTime() === progressionDateOnly.getTime();
+                        })
+                    ).map(p => p.id)
+                  }
                   strategy={verticalListSortingStrategy}
                 >
                   <ul className="space-y-2 max-h-96 overflow-y-auto">
-                    {progressions.map((progression) => (
+                    {(() => {
+                      const filteredProgressions = showAllProgressions || !selectedDate
+                        ? progressions
+                        : progressions.filter(p => {
+                            const progressionDate = new Date(p.date);
+                            const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                            const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
+                            return selectedDateOnly.getTime() === progressionDateOnly.getTime();
+                          });
+
+                      if (filteredProgressions.length === 0 && !showAllProgressions && selectedDate) {
+                        return (
+                          <li className="p-4 text-center text-gray-500 bg-gray-50 rounded-md">
+                            Aucune progression trouvée pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
+                          </li>
+                        );
+                      }
+
+                      return filteredProgressions.map((progression) => (
                       <SortableProgression
                         key={progression.id}
                         progression={progression}
@@ -1627,7 +1680,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                           }
                         }}
                       />
-                    ))}
+                      ));
+                    })()}
                   </ul>
                 </SortableContext>
               </DndContext>
@@ -1641,7 +1695,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
 
       {/* Dialog pour éditer une progression */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-50">
           <DialogHeader>
             <DialogTitle>Modifier la progression</DialogTitle>
           </DialogHeader>
@@ -1742,7 +1796,9 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 <label className="text-sm font-medium">Icône</label>
                 <IconPicker
                   value={progressionContent.icon}
-                  onChange={(icon) => setProgressionContent(prev => ({ ...prev, icon }))}
+                  onChange={(icon) => {
+                    setProgressionContent(prev => ({ ...prev, icon }));
+                  }}
                 />
               </div>
               <div>

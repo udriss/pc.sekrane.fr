@@ -9,7 +9,7 @@ import { fr } from 'date-fns/locale';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-
+ 
 interface SortableProgressionProps {
   progression: {
     id: string;

@@ -79,7 +79,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           <span>Choisir une icône</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64">
+      <PopoverContent className="w-64 z-[60]">
         <div className="grid grid-cols-5 gap-2">
           {icons.map((iconData) => {
             const IconComponent = iconData.icon;
