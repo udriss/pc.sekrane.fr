@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { updateActivity, getCourseById, getActivityById, getAllClasses } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -9,28 +10,51 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
     // Vérifier si le cours existe
-    const courseIndex = courses.findIndex(course => course.id === courseId);
-    if (courseIndex === -1) {
+    const course = await getCourseById(courseId);
+    if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
     // Vérifier si l'activité existe
-    const activityIndex = courses[courseIndex].activities.findIndex(activity => activity.id === activityId);
-    if (activityIndex === -1) {
+    const activity = await getActivityById(activityId);
+    if (!activity || activity.courseId !== courseId) {
       return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
-    // Mettre à jour l'activité
-    courses[courseIndex].activities[activityIndex] = {
-      ...courses[courseIndex].activities[activityIndex],
-      title: newTitle,
-    };
+    // Mettre à jour l'activité dans la base de données
+    await updateActivity(activityId, {
+      title: newTitle
+    });
 
-    // Write updated data to file
-    await updateData(classes, courses);
+    // Récupérer les données mises à jour
+    const updatedClassesData = await getAllClasses();
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = updatedClassesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false
+    }));
+
+    const courses: Course[] = updatedClassesData.flatMap(classe => 
+      classe.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        classe: course.classe,
+        theClasseId: course.theClasseId,
+        activities: course.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        themeChoice: course.themeChoice || 0
+      }))
+    );
 
     return NextResponse.json({ courses, classes }, { status: 200 });
   } catch (error) {

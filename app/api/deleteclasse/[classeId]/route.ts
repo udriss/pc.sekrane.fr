@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { deleteClasse, getAllClasses, getCoursesByClasseId, deleteCourse } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 import { rm } from 'fs/promises';
 import path from 'path';
 
@@ -11,36 +12,30 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
     // Vérifier si la classe existe
-    const classeIndex = classes.findIndex(classe => classe.id === classeId);
-    if (classeIndex === -1) {
+    const classeExists = await getAllClasses();
+    const classe = classeExists.find(c => c.id === classeId);
+    
+    if (!classe) {
       return NextResponse.json({ error: 'Classe not found' }, { status: 404 });
     }
 
-    // Supprimer la classe
-    classes.splice(classeIndex, 1);
-
-    // Supprimer les cours associés à la classe
-    const updatedCourses = courses.filter(course => course.theClasseId !== classeId);
-
     if (deleteFiles) {
-      // Get courses for this class
-      const classeCourses = courses.filter(course => course.theClasseId === classeId);
+      // Récupérer les cours associés à cette classe pour supprimer les fichiers
+      const classeCourses = await getCoursesByClasseId(classeId);
       
-      // Delete each course folder
+      // Supprimer chaque dossier de cours
       for (const course of classeCourses) {
         const courseFolder = path.join(process.cwd(), 'public', course.id);
         try {
           await rm(courseFolder, { recursive: true, force: true });
         } catch (error) {
           console.error(`Error deleting course folder ${course.id}:`, error);
-          // Continue to next folder even if deletion fails
+          // Continue même si la suppression échoue
         }
       }
     
-      // Delete class folder
+      // Supprimer le dossier de la classe
       const classFolder = path.join(process.cwd(), 'public', classeId);
       try {
         await rm(classFolder, { recursive: true, force: true });
@@ -49,10 +44,40 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    // Write updated data to data.json
-    await updateData(classes, updatedCourses);
+    // Supprimer la classe (cela supprimera automatiquement les cours associés grâce au cascade)
+    await deleteClasse(classeId);
 
-    return NextResponse.json({ classes, courses: updatedCourses }, { status: 200 });
+    // Récupérer les données mises à jour
+    const updatedClassesData = await getAllClasses();
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = updatedClassesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
+    }));
+
+    const courses: Course[] = updatedClassesData.flatMap(classe => 
+      classe.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        classe: course.classe,
+        theClasseId: course.theClasseId,
+        activities: course.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        themeChoice: course.themeChoice || 0
+      }))
+    );
+
+    return NextResponse.json({ classes, courses }, { status: 200 });
   } catch (error) {
     console.error('Error deleting classe:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

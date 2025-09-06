@@ -1,3 +1,5 @@
+// /components/admin/admin-corruption.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +9,21 @@ import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/messa
 import { Course, Classe, THEMES } from '@/lib/dataTemplate';
 import { SortableFile } from '@/components/admin/SortableFile';
 import { SortableCourse } from '@/components/admin/SortableCourse';
+import { SortableProgression } from '@/components/admin/SortableProgression';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import Switch from '@mui/material/Switch';
 import { toast } from 'react-toastify';
+import { Calendar } from '@/components/ui/calendar';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { IconPicker } from '@/components/ui/icon-picker';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { MaterialIcon } from '@/components/ui/material-icon';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Description, PictureAsPdf, VideoLibrary, PhotoCamera } from '@mui/icons-material';
 
 // Update ModificationsAdminProps interface
 interface ModificationsAdminProps {
@@ -87,16 +99,38 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     themeChoice: 0,
   });
 
+  // States pour la gestion des progressions
+  const [selectedClasseForProgression, setSelectedClasseForProgression] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [progressionContent, setProgressionContent] = useState({
+    title: '',
+    content: '',
+    icon: 'calendar',
+    iconColor: '#3f51b5',
+    contentType: 'text',
+    resourceUrl: ''
+  });
+  const [contentPreset, setContentPreset] = useState<string>('text');
+  const [progressions, setProgressions] = useState<any[]>([]);
+  const [successMessageProgression, setSuccessMessageProgression] = useState<string>('');
+  const [errorProgression, setErrorProgression] = useState<string>('');
+
+  // Nouveaux states pour l'édition
+  const [editingProgression, setEditingProgression] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const fetchRes = await fetch('/api/courses');
       const freshData = await fetchRes.json();
+      console.log('Initial data load - freshData:', freshData);
+      console.log('Initial data load - classes:', freshData.classes);
       setCourses(freshData.courses);
       setClasses(freshData.classes);
     };
 
     fetchData();
-  }, []);
+  }, [setClasses, setCourses]);
 
   const [selectedClasse, setSelectedClasse] = useState<string>('');
   const [associatedCourses, setAssociatedCourses] = useState<Course[]>([]);
@@ -752,6 +786,149 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     }
   };
 
+  // Fonctions pour la gestion des progressions
+  const loadProgressions = async (classeId: string) => {
+    try {
+      const response = await fetch(`/api/progressions?classeId=${classeId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProgressions(data.progressions);
+      }
+    } catch (error) {
+      console.error('Error loading progressions:', error);
+    }
+  };
+
+  const handleSaveProgression = async () => {
+    if (!selectedClasseForProgression || !selectedDate || !progressionContent.title) {
+      setErrorProgression('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/progressions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classeId: selectedClasseForProgression,
+          date: selectedDate.toISOString(),
+          ...progressionContent
+        }),
+      });
+
+      if (response.ok) {
+        setSuccessMessageProgression('Progression ajoutée avec succès');
+        setErrorProgression('');
+        // Recharger les progressions
+        loadProgressions(selectedClasseForProgression);
+        // Réinitialiser le formulaire
+        setProgressionContent({
+          title: '',
+          content: '',
+          icon: 'calendar',
+          iconColor: '#3f51b5',
+          contentType: 'text',
+          resourceUrl: ''
+        });
+      } else {
+        setErrorProgression('Erreur lors de l\'ajout de la progression');
+      }
+    } catch (error) {
+      setErrorProgression('Erreur serveur');
+    }
+  };
+
+  // Fonctions pour gérer le drag & drop des progressions
+  const handleDragEndProgression = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = progressions.findIndex(p => p.id === active.id);
+      const newIndex = progressions.findIndex(p => p.id === over?.id);
+
+      const newProgressions = [...progressions];
+      const [movedItem] = newProgressions.splice(oldIndex, 1);
+      newProgressions.splice(newIndex, 0, movedItem);
+      setProgressions(newProgressions);
+
+      // Mise à jour de l'ordre en base de données
+      try {
+        const response = await fetch('/api/progressions/reorder', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            progressions: newProgressions.map((p, index) => ({ 
+              id: p.id, 
+              order: index 
+            })) 
+          })
+        });
+
+        if (response.ok) {
+          toast.success('Ordre des progressions mis à jour');
+        }
+      } catch (error) {
+        console.error('Error reordering progressions:', error);
+        // Revenir à l'ordre précédent en cas d'erreur
+        loadProgressions(selectedClasseForProgression);
+      }
+    }
+  };
+
+  // Fonction pour éditer une progression
+  const handleEditProgression = (progression: any) => {
+    setEditingProgression(progression);
+    setProgressionContent({
+      title: progression.title,
+      content: progression.content,
+      icon: progression.icon || 'edit',
+      iconColor: progression.iconColor || '#3f51b5',
+      contentType: progression.contentType,
+      resourceUrl: progression.resourceUrl || ''
+    });
+    setContentPreset(progression.contentType);
+    setIsEditDialogOpen(true);
+  };
+
+  // Fonction pour sauvegarder les modifications
+  const handleUpdateProgression = async () => {
+    if (!editingProgression || !progressionContent.title) {
+      setErrorProgression('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/progressions/${editingProgression.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(progressionContent)
+      });
+
+      if (response.ok) {
+        setSuccessMessageProgression('Progression mise à jour avec succès');
+        setErrorProgression('');
+        loadProgressions(selectedClasseForProgression);
+        setIsEditDialogOpen(false);
+        setEditingProgression(null);
+        // Réinitialiser le formulaire
+        setProgressionContent({
+          title: '',
+          content: '',
+          icon: 'edit',
+          iconColor: '#3f51b5',
+          contentType: 'text',
+          resourceUrl: ''
+        });
+      } else {
+        setErrorProgression('Erreur lors de la mise à jour de la progression');
+      }
+    } catch (error) {
+      setErrorProgression('Erreur serveur');
+    }
+  };
+
   return (
     <>
 
@@ -1213,6 +1390,375 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
 
       
       </Card>
+
+      <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une progression">
+        <div className="space-y-6">
+          {/* Sélection de la classe */}
+          <Select 
+            value={selectedClasseForProgression} 
+            onValueChange={(value) => {
+              setSelectedClasseForProgression(value);
+              loadProgressions(value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner une classe" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes && Array.isArray(classes) ? (
+                classes.map((classe) => (
+                  <SelectItem key={classe.id} value={classe.id}>
+                    {classe.name}
+                  </SelectItem>
+                ))
+              ) : null}
+            </SelectContent>
+          </Select>
+
+          {/* Activer/Désactiver la progression pour cette classe */}
+          {selectedClasseForProgression && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={classes.find(c => c.id === selectedClasseForProgression)?.hasProgression || false}
+                onChange={async (e) => {
+                  console.log('Switch clicked, new value:', e.target.checked);
+                  console.log('Selected class:', selectedClasseForProgression);
+                  console.log('Current classes:', classes);
+                  console.log('Current class hasProgression:', classes.find(c => c.id === selectedClasseForProgression)?.hasProgression);
+                  
+                  try {
+                    const response = await fetch(`/api/classes/${selectedClasseForProgression}/progression`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ hasProgression: e.target.checked })
+                    });
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('API response data:', data);
+                      setClasses(data.classes);
+                      
+                      // Force refresh des données
+                      const fetchRes = await fetch('/api/courses');
+                      const freshData = await fetchRes.json();
+                      console.log('Fresh data from /api/courses:', freshData);
+                      setClasses(freshData.classes);
+                      
+                      toast.success('Statut de progression mis à jour');
+                    } else {
+                      console.error('API response error:', response.status, response.statusText);
+                      toast.error('Erreur lors de la mise à jour');
+                    }
+                  } catch (error) {
+                    console.error('Error:', error);
+                    toast.error('Erreur serveur');
+                  }
+                }}
+              />
+              <label>Activer la progression pour cette classe</label>
+            </div>
+          )}
+
+          {/* Calendrier */}
+          {selectedClasseForProgression && (
+            <div className="border rounded-lg p-4">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                locale={fr}
+                className="rounded-md border"
+              />
+            </div>
+          )}
+
+          {/* Formulaire de contenu si une date est sélectionnée */}
+          {selectedDate && (
+            <div className="space-y-4 border-t pt-4">
+              <h4 className="font-semibold">
+                Ajouter du contenu pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
+              </h4>
+
+              {/* Presets de type de contenu */}
+              <div className="flex gap-2 mb-4">
+                <Button
+                  type="button"
+                  variant={contentPreset === 'text' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setContentPreset('text');
+                    setProgressionContent(prev => ({
+                      ...prev,
+                      contentType: 'text',
+                      title: '� Note du jour'
+                    }));
+                  }}
+                >
+                  <Description className="mr-2 h-4 w-4" />
+                  Texte
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === 'video' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setContentPreset('video');
+                    setProgressionContent(prev => ({
+                      ...prev,
+                      contentType: 'video',
+                      title: 'Vidéo du jour'
+                    }));
+                  }}
+                >
+                  <VideoLibrary className="mr-2 h-4 w-4" />
+                  Vidéo
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === 'image' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setContentPreset('image');
+                    setProgressionContent(prev => ({
+                      ...prev,
+                      contentType: 'image',
+                      title: 'Image du jour'
+                    }));
+                  }}
+                >
+                  <PhotoCamera className="mr-2 h-4 w-4" />
+                  Image
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === 'pdf' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setContentPreset('pdf');
+                    setProgressionContent(prev => ({
+                      ...prev,
+                      contentType: 'pdf',
+                      title: 'Document PDF'
+                    }));
+                  }}
+                >
+                  <PictureAsPdf className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+              </div>
+
+              {/* Titre */}
+              <Input
+                type="text"
+                placeholder="Titre"
+                value={progressionContent.title}
+                onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+              />
+
+              {/* URL de ressource pour vidéo/image/PDF */}
+              {['video', 'image', 'pdf'].includes(contentPreset) && (
+                <Input
+                  type="url"
+                  placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+                  value={progressionContent.resourceUrl}
+                  onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+                />
+              )}
+
+              {/* Éditeur de texte enrichi */}
+              <div className="border rounded-lg p-2">
+                <RichTextEditor
+                  value={progressionContent.content}
+                  onChange={(value) => setProgressionContent(prev => ({ ...prev, content: value }))}
+                  placeholder="Contenu de la progression..."
+                />
+              </div>
+
+              {/* Sélection d'icône et couleur */}
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium">Icône</label>
+                  <IconPicker
+                    value={progressionContent.icon}
+                    onChange={(icon) => setProgressionContent(prev => ({ ...prev, icon }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Couleur de l&apos;icône</label>
+                  <ColorPicker
+                    value={progressionContent.iconColor}
+                    onChange={(color) => setProgressionContent(prev => ({ ...prev, iconColor: color }))}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleSaveProgression} className="w-full">
+                Ajouter la progression
+              </Button>
+            </div>
+          )}
+
+          {/* Liste des progressions existantes */}
+          {progressions.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-semibold">Progressions existantes</h4>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEndProgression}
+              >
+                <SortableContext
+                  items={progressions.map(p => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="space-y-2 max-h-96 overflow-y-auto">
+                    {progressions.map((progression) => (
+                      <SortableProgression
+                        key={progression.id}
+                        progression={progression}
+                        onEdit={handleEditProgression}
+                        onDelete={async (id) => {
+                          const response = await fetch(`/api/progressions/${id}`, {
+                            method: 'DELETE'
+                          });
+                          if (response.ok) {
+                            loadProgressions(selectedClasseForProgression);
+                            toast.success('Progression supprimée');
+                          }
+                        }}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+
+          {errorProgression && <ErrorMessage message={errorProgression} />}
+          {successMessageProgression && <SuccessMessage message={successMessageProgression} />}
+        </div>
+      </Card>
+
+      {/* Dialog pour éditer une progression */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier la progression</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {/* Presets de type de contenu */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                type="button"
+                variant={contentPreset === 'text' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setContentPreset('text');
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    contentType: 'text'
+                  }));
+                }}
+              >
+                <Description className="mr-2 h-4 w-4" />
+                Texte
+              </Button>
+              <Button
+                type="button"
+                variant={contentPreset === 'video' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setContentPreset('video');
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    contentType: 'video'
+                  }));
+                }}
+              >
+                📹 Vidéo
+              </Button>
+              <Button
+                type="button"
+                variant={contentPreset === 'image' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setContentPreset('image');
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    contentType: 'image'
+                  }));
+                }}
+              >
+                🖼️ Image
+              </Button>
+              <Button
+                type="button"
+                variant={contentPreset === 'pdf' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setContentPreset('pdf');
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    contentType: 'pdf'
+                  }));
+                }}
+              >
+                <PictureAsPdf className="mr-2 h-4 w-4" />
+                PDF
+              </Button>
+            </div>
+
+            {/* Titre */}
+            <Input
+              type="text"
+              placeholder="Titre"
+              value={progressionContent.title}
+              onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+            />
+
+            {/* URL de ressource pour vidéo/image/PDF */}
+            {['video', 'image', 'pdf'].includes(contentPreset) && (
+              <Input
+                type="url"
+                placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+                value={progressionContent.resourceUrl}
+                onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+              />
+            )}
+
+            {/* Éditeur de texte enrichi */}
+            <div className="border rounded-lg p-2">
+              <RichTextEditor
+                value={progressionContent.content}
+                onChange={(value) => setProgressionContent(prev => ({ ...prev, content: value }))}
+                placeholder="Contenu de la progression..."
+              />
+            </div>
+
+            {/* Sélection d'icône et couleur */}
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium">Icône</label>
+                <IconPicker
+                  value={progressionContent.icon}
+                  onChange={(icon) => setProgressionContent(prev => ({ ...prev, icon }))}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Couleur de l&apos;icône</label>
+                <ColorPicker
+                  value={progressionContent.iconColor}
+                  onChange={(color) => setProgressionContent(prev => ({ ...prev, iconColor: color }))}
+                />
+              </div>
+            </div>
+
+            <Button onClick={handleUpdateProgression} className="w-full">
+              Mettre à jour la progression
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </>
     

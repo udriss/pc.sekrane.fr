@@ -23,7 +23,8 @@
         "27",
         "29",
         "30",
-        "39"
+        "39",
+        "42"
       ],
       "toggleVisibilityClasse": true
     },
@@ -54,7 +55,8 @@
         "33",
         "34",
         "35",
-        "40"
+        "40",
+        "41"
       ],
       "toggleVisibilityClasse": true
     },
@@ -653,7 +655,7 @@
       "theClasseId": "6",
       "activities": [],
       "themeChoice": 0,
-      "toggleVisibilityCourse": true
+      "toggleVisibilityCourse": false
     },
     {
       "id": "23",
@@ -675,7 +677,7 @@
           "fileUrl": "/23/pdf/2nd_T3_C1_A4.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "toggleVisibilityCourse": false,
       "themeChoice": 0
     },
     {
@@ -996,7 +998,8 @@
           "fileUrl": "/35/notebook/2nd_T3_C2_soleil_vide.ipynb"
         }
       ],
-      "themeChoice": 1
+      "themeChoice": 1,
+      "toggleVisibilityCourse": false
     },
     {
       "id": "38",
@@ -1189,7 +1192,62 @@
           "fileUrl": "/40/autre/2T3_C3_jeu_maison_futur.txt"
         }
       ],
-      "themeChoice": 1
+      "themeChoice": 1,
+      "toggleVisibilityCourse": false
+    },
+    {
+      "id": "41",
+      "title": "Spéciale",
+      "description": "",
+      "classe": "Seconde",
+      "theClasseId": "6",
+      "activities": [
+        {
+          "id": "1748938310128",
+          "name": "1S_T3_C3_balle_tennis.mp4",
+          "title": "Chute 1",
+          "fileUrl": "/41/autre/1S_T3_C3_balle_tennis.mp4"
+        },
+        {
+          "id": "1748938322104",
+          "name": "1S_T3_C3_petanque.mp4",
+          "title": "Chute 2",
+          "fileUrl": "/41/autre/1S_T3_C3_petanque.mp4"
+        },
+        {
+          "id": "1748938471948",
+          "name": "lien_chronophys.txt",
+          "title": "Lien Chronophys",
+          "fileUrl": "/41/autre/lien_chronophys.txt"
+        },
+        {
+          "id": "1749019258540",
+          "name": "1S_T2_C3_mesure_pesanteur.pdf",
+          "title": "Mesure expérimentale de l’intensité de pesanteur",
+          "fileUrl": "/41/pdf/1S_T2_C3_mesure_pesanteur.pdf"
+        }
+      ]
+    },
+    {
+      "id": "42",
+      "title": "Chapitre 16",
+      "description": "",
+      "classe": "Tle STI2D",
+      "theClasseId": "4",
+      "activities": [
+        {
+          "id": "1749718763213",
+          "name": "TSTI_C15_vide.ipynb",
+          "title": "Notebook vide",
+          "fileUrl": "/42/notebook/TSTI_C15_vide.ipynb"
+        },
+        {
+          "id": "1749718831726",
+          "name": "14_radioactivite_tp-base.pdf",
+          "title": "Sujet",
+          "fileUrl": "/42/pdf/14_radioactivite_tp-base.pdf"
+        }
+      ]
     }
   ]
 }

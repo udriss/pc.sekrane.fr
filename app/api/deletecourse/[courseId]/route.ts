@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { deleteCourse, getAllClasses, getCourseById } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 import fs from 'fs/promises';
 import path from 'path';
-
 
 export async function DELETE(req: NextRequest) {
     try {
@@ -12,28 +12,52 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
     // Vérifier si le cours existe
-    const courseIndex = courses.findIndex(course => course.id === courseId);
-    if (courseIndex === -1) {
+    const existingCourse = await getCourseById(courseId);
+    if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
-
-    // Extract deleteFiles from request body
-    
 
     // Supprimer le dossier associé si deleteFiles est vrai
     if (deleteFiles) {
       const courseDir = path.join(process.cwd(), 'public', courseId);
-      await fs.rm(courseDir, { recursive: true, force: true }).catch(err => console.error(`Error deleting directory ${courseDir}:`, err));
+      await fs.rm(courseDir, { recursive: true, force: true }).catch(err => 
+        console.error(`Error deleting directory ${courseDir}:`, err)
+      );
     }
 
-    // Supprimer le cours
-    courses.splice(courseIndex, 1);
+    // Supprimer le cours de la base de données (cela supprimera aussi les activités grâce au cascade)
+    await deleteCourse(courseId);
 
-    // Write updated data to data.json
-    await updateData(classes, courses);
+    // Récupérer les données mises à jour
+    const updatedClassesData = await getAllClasses();
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = updatedClassesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
+    }));
+
+    const courses: Course[] = updatedClassesData.flatMap(classe => 
+      classe.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        classe: course.classe,
+        theClasseId: course.theClasseId,
+        activities: course.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        themeChoice: course.themeChoice || 0
+      }))
+    );
 
     return NextResponse.json({ courses, classes }, { status: 200 });
   } catch (error) {

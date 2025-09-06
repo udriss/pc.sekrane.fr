@@ -4,7 +4,7 @@ import { join } from 'path';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
-import { parseData, updateData } from '@/lib/data-utils';
+import { getCourseById } from '@/lib/data-prisma-utils';
 
 const filePath = path.join('public', 'jupyterServerWork', 'uniqueIds.json');
 
@@ -63,23 +63,20 @@ async function storeUniqueId(uniqueId: string, dirPath: string, orginalFileName:
 
 
 export async function POST(req: Request) {
-  const { classes, courses } = await parseData();
-
   try {
     const { courseId, userName, sendFileUrl } = await req.json();
     const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');
 
-    const course = courses.find(course => course.id === courseId);
+    // Récupérer le cours depuis la base de données
+    const course = await getCourseById(courseId);
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    const notebookFile = courses
-      .flatMap(course => course.activities)
-      .find(activity => activity.fileUrl === sendFileUrl);
-
-    if (!notebookFile) {
-      return NextResponse.json({ error: 'Notebook file not found' }, { status: 404 });
+    // Trouver l'activité correspondante
+    const activity = course.activities.find(activity => activity.fileUrl === sendFileUrl);
+    if (!activity) {
+      return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
     if (!existsSync(jupyterServerWork)) {
@@ -96,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     const uniqueId = await generateUniqueId();
-    const originalFileName = path.basename(notebookFile.fileUrl, '.ipynb');
+    const originalFileName = path.basename(activity.fileUrl, '.ipynb');
     
     // Create new directory path
     const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
@@ -108,7 +105,7 @@ export async function POST(req: Request) {
     await fs.mkdir(newDirPath, { recursive: true });
 
     // Read the reference notebook file
-    const referenceFilePath = path.join(process.cwd(), 'public', notebookFile.fileUrl);
+    const referenceFilePath = path.join(process.cwd(), 'public', activity.fileUrl);
     const fileContent = await fs.readFile(referenceFilePath, 'utf-8');
 
     // Save the new notebook file in the new directory

@@ -23,6 +23,9 @@ interface ActivityListProps {
   onUniqueIdReceived: (uniqueId: string) => void;
   selectedFileLeftOrigin?: string | null;
   selectedFileRight?: string | null;
+  selectedFileRightOrigin?: string | null;
+  showSideBySide?: boolean;
+  lastClickedType?: string | null;
 }
 
 export function ActivityList({
@@ -35,7 +38,10 @@ export function ActivityList({
   setUserName,
   onUniqueIdReceived,
   selectedFileLeftOrigin,
-  selectedFileRight
+  selectedFileRight,
+  selectedFileRightOrigin,
+  showSideBySide,
+  lastClickedType
 }: ActivityListProps) {
 
   const [toastId, setToastId] = useState<Id | null>(null);
@@ -57,6 +63,23 @@ export function ActivityList({
       }
     }
   }, [userName, setUserName]);
+
+  // Function to determine if an activity button should be disabled
+  const shouldDisableActivity = (activity: Activity) => {
+    if (showSideBySide) {
+      // Double view mode: disable if either left or right document is this activity
+      return (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRightOrigin);
+    } else {
+      // Single view mode: disable only the currently active document based on lastClickedType
+      if (lastClickedType === 'ipynb') {
+        // If the last clicked was an ipynb file, only check the right side
+        return activity.fileUrl === selectedFileRightOrigin && selectedFileRightOrigin !== null;
+      } else {
+        // If the last clicked was not an ipynb file, only check the left side
+        return activity.fileUrl === selectedFileLeftOrigin && selectedFileLeftOrigin !== null;
+      }
+    }
+  };
 
   // Clear interval on unmount
   useEffect(() => {
@@ -369,7 +392,7 @@ export function ActivityList({
     return (
       <div className="flex flex-wrap flex-row gap-4 px-2">
         {activities.map((activity) => {
-          const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+          const isAlreadyDisplayed = shouldDisableActivity(activity);
           return (
             <Tooltip 
               key={activity.id}
@@ -421,7 +444,7 @@ export function ActivityList({
               <div key={groupName} className="mb-4">
                 <div className="space-y-2">
                   {groupActivities.map(activity => {
-                    const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+                    const isAlreadyDisplayed = shouldDisableActivity(activity);
                     return (
                       <Tooltip 
                         key={activity.id}
@@ -463,7 +486,7 @@ export function ActivityList({
           <h3 className="text-md font-medium text-gray-700 mb-2">{groupName}</h3>
           <div className="space-y-2">
             {groupActivities.map(activity => {
-              const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+              const isAlreadyDisplayed = shouldDisableActivity(activity);
               return (
                 <Tooltip 
                   key={activity.id}

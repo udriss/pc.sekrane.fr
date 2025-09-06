@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { parseData } from '@/lib/data-utils';
+import { getCourseById } from '@/lib/data-prisma-utils';
+import { Course } from '@/lib/dataTemplate';
 
 export const dynamic = "force-dynamic";
 
@@ -8,11 +9,31 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const courseId = url.pathname.split('/').pop();
 
-    const { courses } = await parseData();
+    if (!courseId) {
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
+    }
 
-    const course = courses.find((c) => c.id === courseId);
+    // Récupération directe depuis la base de données
+    const courseData = await getCourseById(courseId);
 
-    if (course) {
+    if (courseData) {
+      // Transformation vers le format attendu
+      const course: Course = {
+        id: courseData.id,
+        title: courseData.title,
+        description: courseData.description,
+        classe: courseData.classe,
+        theClasseId: courseData.theClasseId,
+        activities: courseData.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: courseData.toggleVisibilityCourse || false,
+        themeChoice: courseData.themeChoice || 0
+      };
+
       return NextResponse.json({ course });
     } else {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });

@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Classe {
+  id                     String   @id
+  name                   String
+  toggleVisibilityClasse Boolean? @default(false)
+  hasProgression         Boolean  @default(false)  // Nouveau champ
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  
+  // Relations
+  courses Course[]
+  progressions Progression[]  // Nouvelle relation
+  
+  @@map("classes")
+}
+
+model Course {
+  id                    String     @id
+  title                 String
+  description           String     @db.Text
+  classe                String
+  theClasseId           String
+  toggleVisibilityCourse Boolean?   @default(false)
+  themeChoice           Int?       @default(0)
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  
+  // Relations
+  classeRelation        Classe     @relation(fields: [theClasseId], references: [id], onDelete: Cascade)
+  activities            Activity[]
+  
+  @@map("courses")
+}
+
+model Activity {
+  id        String   @id
+  name      String
+  title     String
+  fileUrl   String
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@map("activities")
+}
+
+model Progression {
+  id            String   @id @default(uuid())
+  classeId      String
+  date          DateTime
+  title         String
+  content       String   @db.Text
+  icon          String?
+  iconColor     String?
+  contentType   String
+  resourceUrl   String?
+  order         Int      @default(0)  // Nouveau champ
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  classe        Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  
+  @@index([classeId, date])
+  @@map("progressions")
+}

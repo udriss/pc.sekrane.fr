@@ -261,3 +261,198 @@ input:checked + .checkboxSliderAdmin:before  {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
   }
+
+/* Styles pour react-day-picker */
+.rdp {
+  --rdp-cell-size: 40px;
+  margin: 0;
+}
+
+.rdp-day_selected:not([aria-disabled="true"]) {
+  background-color: rgb(139 92 246);
+  color: white;
+}
+
+.rdp-day_selected:hover:not([aria-disabled="true"]) {
+  background-color: rgb(124 58 237);
+}
+
+.rdp-day:hover:not([aria-disabled="true"]):not(.rdp-day_selected) {
+  background-color: rgb(243 232 255);
+}
+
+/* Styles pour TipTap Editor */
+.ProseMirror {
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+.ProseMirror p {
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror blockquote {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 1rem;
+  margin-left: 0;
+  font-style: italic;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Styles pour le placeholder TipTap */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Styles pour la prose dans les progressions */
+.prose {
+  color: var(--foreground);
+  max-width: none;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: var(--foreground);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1 {
+  font-size: 2em;
+}
+
+.prose h2 {
+  font-size: 1.5em;
+}
+
+.prose h3 {
+  font-size: 1.25em;
+}
+
+.prose p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  line-height: 1.6;
+}
+
+.prose ul,
+.prose ol {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.prose a {
+  color: rgb(59 130 246);
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: rgb(37 99 235);
+}
+
+.prose strong,
+.prose b {
+  font-weight: 600;
+}
+
+.prose em,
+.prose i {
+  font-style: italic;
+}
+
+.prose blockquote {
+  border-left: 4px solid rgb(156 163 175);
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: rgb(107 114 128);
+}
+
+.prose code {
+  background-color: rgb(243 244 246);
+  padding: 0.125em 0.25em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.prose pre {
+  background-color: rgb(17 24 39);
+  color: rgb(243 244 246);
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5em;
+  margin: 1em 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid rgb(229 231 235);
+  padding: 0.5em;
+  text-align: left;
+}
+
+.prose th {
+  background-color: rgb(249 250 251);
+  font-weight: 600;
+}

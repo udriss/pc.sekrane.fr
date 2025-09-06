@@ -43,6 +43,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [selectedFileLeft, setSelectedFileLeft] = useState<string | null>(null);
   const [selectedFileLeftOrigin, setSelectedFileLeftOrigin] = useState<string | null>(null); // Ajout pour la comparaison fiable
   const [selectedFileRight, setSelectedFileRight] = useState<string | null>(null);
+  const [selectedFileRightOrigin, setSelectedFileRightOrigin] = useState<string | null>(null); // Ajout pour la comparaison fiable des fichiers ipynb
   const [showSideBySide, setShowSideBySide] = useState<boolean>(false);
   const [lastClickedType, setLastClickedType] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
@@ -113,7 +114,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   else if (["tsx", "jsx", "ts", "js", "css"].includes(extension)) type = 'typescript';
 
   // Vérifier si le fichier est déjà affiché (empêche toute action inutile)
-  if ((type === 'ipynb' && selectedFileRight === fileUrl) || (type !== 'ipynb' && selectedFileLeftOrigin === fileUrl)) {
+  if ((type === 'ipynb' && selectedFileRightOrigin === fileUrl) || (type !== 'ipynb' && selectedFileLeftOrigin === fileUrl)) {
     return;
   }
 
@@ -279,6 +280,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   const handleSelectActivity = (fileUrl: string, type: string, activity: Activity) => {
     if (type === 'ipynb') {
       setSelectedFileRight(fileUrl);
+      setSelectedFileRightOrigin(activity.fileUrl); // Mise à jour de l'origine pour les fichiers ipynb
     } else {
       setSelectedFileLeft(fileUrl);
       setLeftFileType(type);
@@ -303,7 +305,9 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     setUserName('');
     setCurrentUniqueId('');
     setSelectedFileLeft(null);
+    setSelectedFileLeftOrigin(null);
     setSelectedFileRight(null);
+    setSelectedFileRightOrigin(null);
     if (iframeRef.current) {
       iframeRef.current.src = '';
     }
@@ -727,6 +731,9 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
             onUniqueIdReceived={handleUniqueIdReceived}
             selectedFileLeftOrigin={selectedFileLeftOrigin}
             selectedFileRight={selectedFileRight}
+            selectedFileRightOrigin={selectedFileRightOrigin}
+            showSideBySide={showSideBySide}
+            lastClickedType={lastClickedType}
           />
         )}
 
@@ -767,6 +774,23 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         // Pour traquer le dernier type affiché entre les colonnes
         let lastGroupNameDisplayed = '';
         
+        // Function to determine if an activity button should be disabled
+        const shouldDisableActivity = (activity: Activity) => {
+          if (showSideBySide) {
+            // Double view mode: disable if either left or right document is this activity
+            return (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRightOrigin);
+          } else {
+            // Single view mode: disable only the currently active document based on lastClickedType
+            if (lastClickedType === 'ipynb') {
+              // If the last clicked was an ipynb file, only check the right side
+              return activity.fileUrl === selectedFileRightOrigin && selectedFileRightOrigin !== null;
+            } else {
+              // If the last clicked was not an ipynb file, only check the left side
+              return activity.fileUrl === selectedFileLeftOrigin && selectedFileLeftOrigin !== null;
+            }
+          }
+        };
+        
         // Rendre les colonnes
         return columns.map((column, colIndex) => {
           // Regrouper les activités par type dans cette colonne
@@ -806,8 +830,8 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                         )}
                         <div className="space-y-2 flex flex-col">
                           {activities.map((activity: Activity) => {
-                            // Désactiver le bouton si le fichier est déjà affiché (peu importe le type)
-                            const isAlreadyDisplayed = (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRight);
+                            // Désactiver le bouton selon la logique single vs double vue
+                            const isAlreadyDisplayed = shouldDisableActivity(activity);
                             return (
                               <Button
                                 key={activity.id}

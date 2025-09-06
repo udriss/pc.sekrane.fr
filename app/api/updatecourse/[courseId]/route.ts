@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { updateCourse, getAllClasses, getCourseById, getClasseById } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -10,48 +11,80 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
     // Vérifier si le cours existe
-    const courseIndex = courses.findIndex(course => course.id === courseId);
-    if (courseIndex === -1) {
+    const existingCourse = await getCourseById(courseId);
+    if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
+    // Préparer les données de mise à jour
+    const updateData: {
+      title?: string;
+      description?: string;
+      classe?: string;
+      theClasseId?: string;
+      toggleVisibilityCourse?: boolean;
+      themeChoice?: number;
+    } = {};
+
     // Si c'est une mise à jour du thème
     if ('themeChoice' in body) {
-      courses[courseIndex] = {
-        ...courses[courseIndex],
-        themeChoice: body.themeChoice
-      };
+      updateData.themeChoice = body.themeChoice;
     }
     // Si c'est une mise à jour de visibilité
     else if ('toggleVisibilityCourse' in body) {
-      courses[courseIndex] = {
-        ...courses[courseIndex],
-        toggleVisibilityCourse: body.toggleVisibilityCourse
-      };
+      updateData.toggleVisibilityCourse = body.toggleVisibilityCourse;
     }
     // Si c'est une mise à jour complète du cours
     else if (body.title || body.description || body.newClasseId) {
-      // Update only the fields that are provided in the request
-      const updatedCourse = {
-        ...courses[courseIndex],
-        ...(body.title && { title: body.title }),
-        ...(body.description && { description: body.description }),
-        ...(body.newClasseId && { 
-          theClasseId: body.newClasseId,
-          classe: classes.find(classe => classe.id === body.newClasseId)?.name || courses[courseIndex].classe
-        })
-      };
-          
-      courses[courseIndex] = updatedCourse;
+      if (body.title) updateData.title = body.title;
+      if (body.description) updateData.description = body.description;
+      
+      if (body.newClasseId) {
+        // Vérifier que la nouvelle classe existe
+        const newClasse = await getClasseById(body.newClasseId);
+        if (!newClasse) {
+          return NextResponse.json({ error: 'New classe not found' }, { status: 404 });
+        }
+        updateData.theClasseId = body.newClasseId;
+        updateData.classe = newClasse.name;
+      }
     } else {
       return NextResponse.json({ error: 'Invalid update parameters' }, { status: 400 });
     }
 
-    // Write updated data to file
-    await updateData(classes, courses);
+    // Mettre à jour le cours dans la base de données
+    await updateCourse(courseId, updateData);
+
+    // Récupérer les données mises à jour
+    const updatedClassesData = await getAllClasses();
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = updatedClassesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
+    }));
+
+    const courses: Course[] = updatedClassesData.flatMap(classe => 
+      classe.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        classe: course.classe,
+        theClasseId: course.theClasseId,
+        activities: course.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        themeChoice: course.themeChoice || 0
+      }))
+    );
 
     return NextResponse.json({ courses, classes }, { status: 200 });
   } catch (error) {

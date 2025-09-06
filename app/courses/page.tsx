@@ -1,7 +1,10 @@
+// app/courses/page.tsx
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { CourseCard } from "@/components/courses/course-card";
+import { ProgressionCard } from "@/components/courses/progression-card";
 import { Course, Classe } from "@/lib/dataTemplate";
 import { 
   Select, 
@@ -71,6 +74,11 @@ export default function CoursesPage() {
     }
     return a.title.localeCompare(b.title);
   });
+
+  // Get classes with progression enabled
+  const classesWithProgression = classes.filter(classe => 
+    classe.hasProgression && selectedClasses.includes(classe.name)
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -279,6 +287,33 @@ export default function CoursesPage() {
         </Paper>
       </Box>
 
+      {/* Progression Cards Section */}
+      {classesWithProgression.length > 0 && (
+        <>
+          <Typography 
+            variant="h4" 
+            component="h2" 
+            sx={{ 
+              mb: 3, 
+              mt: 6,
+              textAlign: 'center', 
+              fontWeight: 'bold',
+              color: '#6b21a8'
+            }}
+          >
+            Progressions
+          </Typography>
+          <Grid container spacing={3} sx={{ mb: 6 }}>
+            {classesWithProgression.map((classe) => (
+              <Grid size={{ xs: 12, sm: 12, md: 6, lg: 4 }} key={`prog-${classe.id}`}>
+                <ProgressionCard classeId={classe.id} classeName={classe.name} />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
+      {/* Courses Section */}
       {filteredCourses.length > 0 ? (
         <Grid container spacing={3}>
           {filteredCourses.map((course) => (

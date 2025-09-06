@@ -21,6 +21,7 @@ export interface Classe {
   name: string;
   associated_courses: string[];
   toggleVisibilityClasse?: boolean;
+  hasProgression?: boolean;
 }
 
 export interface ThemeDescription {

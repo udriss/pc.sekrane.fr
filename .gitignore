@@ -44,3 +44,4 @@ next-env.d.ts
 # Next.js deployment and development
 deploy.sh
 dev.sh
+/lib/generated/prisma

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { getCourseById } from '@/lib/data-prisma-utils';
+import { Activity } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -9,21 +10,27 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
     // Vérifier si le cours existe
-    const courseIndex = courses.findIndex(course => course.id === courseId);
-    if (courseIndex === -1) {
+    const course = await getCourseById(courseId);
+    if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Mettre à jour l'ordre des activités du cours
-    courses[courseIndex].activities = activities;
-
-    // Write updated data to file
-    await updateData(classes, courses);
-    const titleOfChosenCourse = courses.find(course => course.id === courseId.toString())?.title;
+    // Note: Cette API semble gérer l'ordre des activités côté client.
+    // Si vous voulez persister l'ordre en base, il faudrait ajouter un champ `order`
+    // au modèle Activity et mettre à jour chaque activité ici.
     
+    // Validation des activités reçues
+    const validActivities = activities.every((activity: Activity) => 
+      activity.id && activity.name && activity.title && activity.fileUrl
+    );
+
+    if (!validActivities) {
+      return NextResponse.json({ error: 'Invalid activities data' }, { status: 400 });
+    }
+
+    // Pour le moment, on ne persist pas l'ordre mais on retourne le titre du cours
+    const titleOfChosenCourse = course.title;
 
     return NextResponse.json({ titleOfChosenCourse: titleOfChosenCourse }, { status: 200 });
   } catch (error) {

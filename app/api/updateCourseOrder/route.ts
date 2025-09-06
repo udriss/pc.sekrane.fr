@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { getAllClasses, getCourseById } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -9,23 +10,25 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
+    // Récupérer les données depuis la base de données
+    const classesData = await getAllClasses();
+    const allCourses = classesData.flatMap(c => c.courses);
 
-    // Réorganiser les cours selon l'ordre fourni
-    const reorderedCourses = updatedCourseOrder.map((courseId: string) => {
-      const course = courses.find(course => course.id === courseId);
+    // Vérifier que tous les cours existent
+    for (const courseId of updatedCourseOrder) {
+      const course = allCourses.find(c => c.id === courseId);
       if (!course) {
         throw new Error(`Course with id ${courseId} not found`);
       }
-      return course;
-    });
+    }
 
-    // Write updated data to file
-    await updateData(classes, reorderedCourses);
-    
-    // Replace the direct ID return with this:
-    const titleOfChosenClass = courses.find(course => course.id === activeCourseId)?.classe;
+    // Note: Dans cette API, l'ordre n'est pas persisté en base de données
+    // car il semble être géré côté client. Si vous voulez persister l'ordre,
+    // il faudrait ajouter un champ `order` ou `position` au modèle Course.
 
+    // Récupérer le titre de la classe du cours actif
+    const activeCourse = await getCourseById(activeCourseId);
+    const titleOfChosenClass = activeCourse?.classe;
 
     return NextResponse.json({ titleOfChosenClass: titleOfChosenClass }, { status: 200 });
   } catch (error) {

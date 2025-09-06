@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseData, updateData } from '@/lib/data-utils';
+import { getAllClasses, updateClasse, getCoursesByClasseId, updateCourse } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -9,39 +10,58 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { classes, courses } = await parseData();
-
-    // Get and validate target class
-    const targetClass = classes.find((classe) => classe.id === classeId);
+    // Vérifier si la classe existe
+    const allClasses = await getAllClasses();
+    const targetClass = allClasses.find((classe) => classe.id === classeId);
+    
     if (!targetClass) {
       return NextResponse.json({ error: 'Classe introuvable (API)' }, { status: 404 });
     }
 
-    // Find and update the class directly in classes array
-    const classIndex = classes.findIndex((c) => c.id === classeId);
-    if (classIndex !== -1) {
-      // Update name if provided
-      if (newName) {
-        classes[classIndex].name = newName;
-        // Update associated courses if they exist
-        if (Array.isArray(classes[classIndex].associated_courses)) {
-          classes[classIndex].associated_courses.forEach(courseId => {
-            const course = courses?.find(c => c.id === courseId);
-            if (course) {
-              course.classe = newName;
-            }
-          });
-        }
-      }
+    // Mettre à jour la classe
+    const updateData: { name?: string; toggleVisibilityClasse?: boolean } = {};
+    if (newName) updateData.name = newName;
+    if (toggleVisibilityClasse !== undefined) updateData.toggleVisibilityClasse = toggleVisibilityClasse;
 
-      // Update visibility if provided
-      if (toggleVisibilityClasse !== undefined) {
-        classes[classIndex].toggleVisibilityClasse = toggleVisibilityClasse;
+    await updateClasse(classeId, updateData);
+
+    // Si le nom a changé, mettre à jour tous les cours associés
+    if (newName) {
+      const associatedCourses = await getCoursesByClasseId(classeId);
+      for (const course of associatedCourses) {
+        await updateCourse(course.id, { classe: newName });
       }
     }
 
-    // Write updated data to file
-    await updateData(classes, courses);
+    // Récupérer les données mises à jour
+    const updatedClassesData = await getAllClasses();
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = updatedClassesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
+    }));
+
+    const courses: Course[] = updatedClassesData.flatMap(classe => 
+      classe.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        classe: course.classe,
+        theClasseId: course.theClasseId,
+        activities: course.activities.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          title: activity.title,
+          fileUrl: activity.fileUrl
+        })),
+        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        themeChoice: course.themeChoice || 0
+      }))
+    );
 
     return NextResponse.json({ courses, classes });
   } catch (error: any) {

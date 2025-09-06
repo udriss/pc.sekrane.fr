@@ -1,11 +1,42 @@
 import { NextResponse } from 'next/server';
-import { parseData } from '@/lib/data-utils';
+import { getAllClasses, getAllCourses } from '@/lib/data-prisma-utils';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const { classes, courses } = await parseData();
+    // Récupération directe depuis la base de données
+    const [classesData, coursesData] = await Promise.all([
+      getAllClasses(),
+      getAllCourses()
+    ]);
+
+    // Transformation vers le format attendu
+    const classes: Classe[] = classesData.map(classe => ({
+      id: classe.id,
+      name: classe.name,
+      associated_courses: classe.courses.map(course => course.id),
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
+    }));
+
+    const courses: Course[] = coursesData.map(course => ({
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      classe: course.classe,
+      theClasseId: course.theClasseId,
+      activities: course.activities.map(activity => ({
+        id: activity.id,
+        name: activity.name,
+        title: activity.title,
+        fileUrl: activity.fileUrl
+      })),
+      toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+      themeChoice: course.themeChoice || 0
+    }));
+
     return NextResponse.json({ courses, classes });
   } catch (error) {
     console.error('Error fetching courses and classes:', error);
