@@ -11,7 +11,8 @@
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
     "db:reset": "npx prisma migrate reset",
-    "migrate-data": "npx tsx lib/migrate-data.ts"
+    "migrate-data": "npx tsx lib/migrate-data.ts",
+    "migrate-icons": "npx tsx scripts/migrate-emojis-to-icons.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

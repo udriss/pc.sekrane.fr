@@ -1689,7 +1689,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   }));
                 }}
               >
-                🖼️ Image
+                <PhotoCamera className="mr-2 h-4 w-4" />
+                Image
               </Button>
               <Button
                 type="button"
