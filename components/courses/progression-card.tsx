@@ -29,7 +29,7 @@ interface ProgressionCardProps {
 export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) {
   const [progressions, setProgressions] = useState<Progression[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedProgression, setSelectedProgression] = useState<Progression | null>(null);
+  const [selectedProgressions, setSelectedProgressions] = useState<Progression[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -56,8 +56,8 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
     return progressions.map(p => new Date(p.date));
   };
 
-  const getProgressionForDate = (date: Date) => {
-    return progressions.find(p => {
+  const getProgressionsForDate = (date: Date) => {
+    return progressions.filter(p => {
       const progressionDate = new Date(p.date);
       return progressionDate.toDateString() === date.toDateString();
     });
@@ -66,9 +66,9 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
-      const progression = getProgressionForDate(date);
-      if (progression) {
-        setSelectedProgression(progression);
+      const dateProgressions = getProgressionsForDate(date);
+      if (dateProgressions.length > 0) {
+        setSelectedProgressions(dateProgressions);
         setIsDialogOpen(true);
       }
     }
@@ -189,31 +189,45 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
             />
           )}
           <p className="text-sm text-gray-600 mt-4 text-center">
-            Cliquez sur une date en surbrillance pour voir la progression
+            Cliquez sur une date en surbrillance pour voir les progressions
           </p>
         </CardContent>
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] w-full">
-          {selectedProgression && (
+          {selectedProgressions.length > 0 && (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <MaterialIcon 
-                    name={selectedProgression.icon || 'edit'} 
-                    className="h-6 w-6"
-                    style={{ color: selectedProgression.iconColor || '#000' }}
-                  />
-                  {selectedProgression.title}
+                  <CalendarMonth className="h-6 w-6 text-purple-600" />
+                  Progressions du {format(new Date(selectedProgressions[0].date), 'EEEE dd MMMM yyyy', { locale: fr })}
                 </DialogTitle>
                 <p className="text-sm text-gray-600">
-                  {format(new Date(selectedProgression.date), 'EEEE dd MMMM yyyy', { locale: fr })}
+                  {selectedProgressions.length} progression{selectedProgressions.length > 1 ? 's' : ''} disponible{selectedProgressions.length > 1 ? 's' : ''}
                 </p>
               </DialogHeader>
               <ScrollArea className="mt-4 max-h-[60vh]">
-                <div className="pr-4">
-                  {renderContent(selectedProgression)}
+                <div className="pr-4 space-y-6">
+                  {selectedProgressions.map((progression, index) => (
+                    <div key={progression.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MaterialIcon 
+                          name={progression.icon || 'edit'} 
+                          className="h-5 w-5"
+                          style={{ color: progression.iconColor || '#000' }}
+                        />
+                        <h3 className="text-lg font-semibold">{progression.title}</h3>
+                        <Badge 
+                          variant="outline" 
+                          className="ml-auto"
+                        >
+                          {progression.contentType}
+                        </Badge>
+                      </div>
+                      {renderContent(progression)}
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             </>
