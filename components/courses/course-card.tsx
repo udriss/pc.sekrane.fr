@@ -1,4 +1,4 @@
-import Link from "next/link";
+import NextLink from "next/link";
 import { 
   Card, 
   CardContent, 
@@ -7,7 +7,8 @@ import {
   Button, 
   Box,
   Chip,
-  IconButton
+  IconButton,
+  Link
 } from "@mui/material";
 import { 
   School as GraduationCap, 
@@ -93,7 +94,7 @@ export function CourseCard({ course }: CourseCardProps) {
       </CardContent>
 
       <CardActions sx={{ p: 2, pt: 1 }}>
-        <Link href={`/courses/${course.id}`} style={{ width: '100%', textDecoration: 'none' }}>
+        <Link component={NextLink} href={`/courses/${course.id}`} style={{ width: '100%', textDecoration: 'none' }}>
             <Button 
             variant="contained" 
             color="primary"

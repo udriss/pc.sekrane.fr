@@ -20,11 +20,11 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn('p-3', className)}
       classNames={{
-        months: 'w-full',
-        month: 'w-full',
-        caption: 'flex justify-center pt-1 relative items-center',
+        months: 'w-full m-2',
+        month: 'w-full m-2',
+        caption: 'flex justify-center pt-1 relative items-center mb-2',
         caption_label: 'text-sm font-medium',
-        nav: 'space-x-1 flex items-center',
+        nav: 'space-x-1 flex items-center m-2',
         nav_button: cn(
           buttonVariants({ variant: 'outline' }),
           'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100'
@@ -39,11 +39,10 @@ function Calendar({
         cell: 'text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
         day: cn(
           buttonVariants({ variant: 'ghost' }),
-          'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center'
+          'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors'
         ),
         day_range_end: 'day-range-end',
-        day_selected:
-          'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
+        day_selected: 'border-2 border-[#1e40af] rounded',
         day_today: 'bg-accent text-accent-foreground',
         day_outside:
           'day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30',

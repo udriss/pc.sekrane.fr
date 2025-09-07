@@ -58,8 +58,8 @@ export default function Home() {
             component={NextLink}
             href="/courses"
             size="large"
-            variant="contained"
-            sx={{ mt: 2 }}
+            variant="outlined"
+            sx={{ mt: 2, fontWeight: 'bold' }}
           >
             Voir les cours
           </Button>

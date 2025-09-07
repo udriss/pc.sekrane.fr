@@ -16,15 +16,18 @@ interface Progression {
   contentType: string;
   resourceUrl?: string;
 }
-
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
 interface ProgressionCardProps {
   classeId: string;
   classeName: string;
+  initialDate?: Date;
+  onDateChange?: (date: Date | undefined) => void;
 }
 
-export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) {
+export function ProgressionCard({ classeId, classeName, initialDate, onDateChange }: ProgressionCardProps) {
   const [progressions, setProgressions] = useState<Progression[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate ?? new Date());
   const [selectedProgressions, setSelectedProgressions] = useState<Progression[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +50,13 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
     loadProgressions();
   }, [loadProgressions]);
 
+  // Sync selected date when initialDate prop changes
+  useEffect(() => {
+    if (initialDate) {
+      setSelectedDate(initialDate);
+    }
+  }, [initialDate]);
+
   const daysWithProgressionCount = useMemo(() => {
     const uniqueDays = new Set(
       progressions.map(p => new Date(p.date).toDateString())
@@ -67,6 +77,7 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
+    if (onDateChange) onDateChange(date);
   };
 
   // Keep right pane in sync with current date selection
@@ -222,15 +233,18 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
                   locale={fr}
                   className="rounded-md border-gray-200 w-full"
                   classNames={{
-                    months: 'w-full',
-                    month: 'w-full',
+                    months: 'w-full m-2',
+                    month: 'w-full m-2',
                     table: 'w-full',
                     head_row: 'grid grid-cols-7 w-full',
                     head_cell: 'text-muted-foreground rounded-md font-normal text-[0.8rem] text-center',
                     row: 'grid grid-cols-7 w-full mt-2',
                     cell: 'p-0 relative min-h-[44px] sm:min-h-[52px] md:min-h-[60px]',
-                    day: 'absolute inset-0 flex items-center justify-center !p-0 rounded-md m-1',
-                    day_selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground border-2 border-blue-800 rounded-md',
+                    day: cn(
+          buttonVariants({ variant: 'ghost' }),
+          'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors'
+        ),
+                    day_selected: 'border-2 border-[#1e40af] rounded',
                   }}
                   modifiers={{
                     hasProgression: getDatesWithProgression(),
