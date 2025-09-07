@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -46,6 +46,13 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
   useEffect(() => {
     loadProgressions();
   }, [loadProgressions]);
+
+  const daysWithProgressionCount = useMemo(() => {
+    const uniqueDays = new Set(
+      progressions.map(p => new Date(p.date).toDateString())
+    );
+    return uniqueDays.size;
+  }, [progressions]);
 
   const getDatesWithProgression = () => {
     return progressions.map(p => new Date(p.date));
@@ -193,15 +200,15 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
             <CalendarMonth className="mr-2 h-5 w-5" />
-            Progression - {classeName}
+            Progression — {classeName}
           </Typography>
-          <Chip label={`${progressions.length} entrées`} variant="outlined" />
+          <Chip label={`${daysWithProgressionCount} progression${daysWithProgressionCount > 1 ? 's' : ''}`} variant="outlined" />
         </Box>
       </Box>
       <Box sx={{ px: 2, pb: 2 }}>
         <Grid container spacing={3}>
           {/* Calendar Column */}
-          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+          <Grid size={{ xs: 12, md: 12, lg: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, width: '100%' }}>
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 256, width: '100%', color: 'grey.600' }}>
@@ -246,16 +253,16 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
           </Grid>
 
           {/* Content Column */}
-          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
+          <Grid size={{ xs: 12, md: 12, lg: 8 }}>
             {selectedDate && selectedProgressions.length > 0 ? (
               <>
                 <Box sx={{ mb: 1.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CalendarMonth className="h-6 w-6 text-purple-600" />
                     <Typography variant="h6" component="h2">
-                      {`Progressions du ${format(new Date(selectedProgressions[0].date), 'EEEE dd MMMM yyyy', { locale: fr })}`}
+                      {`${format(new Date(selectedProgressions[0].date), 'EEEE dd MMMM yyyy', { locale: fr })}`}
                     </Typography>
-                    <Chip label={`${selectedProgressions.length} progression${selectedProgressions.length > 1 ? 's' : ''}`} variant="outlined" sx={{ ml: 'auto' }} />
+                    {/* <Chip label={`${selectedProgressions.length} entrée${selectedProgressions.length > 1 ? 's' : ''}`} variant="outlined" sx={{ ml: 'auto' }} /> */}
                   </Box>
                 </Box>
                 <Box sx={{ maxHeight: '60vh', overflowY: 'auto', pr: 2 }}>
@@ -271,7 +278,6 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
                             />
                           )}
                           <Typography variant="subtitle1" fontWeight={600}>{progression.title}</Typography>
-                          <Chip label={progression.contentType} variant="outlined" sx={{ ml: 'auto' }} />
                         </Box>
                         {renderContent(progression)}
                       </Box>
