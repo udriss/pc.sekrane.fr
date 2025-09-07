@@ -85,3 +85,17 @@ model Progression {
   @@index([classeId, date])
   @@map("progressions")
 }
+
+model ConnectionLog {
+  id        String   @id @default(uuid())
+  ip        String
+  timestamp DateTime @default(now())
+  endpoint  String
+  method    String
+  userAgent String?
+  language  String?
+  screen    String?
+  timezone  String?
+  
+  @@map("connection_logs")
+}

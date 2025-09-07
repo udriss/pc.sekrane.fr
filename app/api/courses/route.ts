@@ -4,7 +4,7 @@ import { Classe, Course } from '@/lib/dataTemplate';
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Récupération directe depuis la base de données
     const [classesData, coursesData] = await Promise.all([
