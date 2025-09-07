@@ -16,7 +16,8 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import Switch from '@mui/material/Switch';
-import { toast } from 'react-toastify';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { Calendar } from '@/components/ui/calendar';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { IconPicker } from '@/components/ui/icon-picker';
@@ -197,6 +198,22 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Snackbar state and helper
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<React.ReactNode>('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
+
+  const showSnackbar = (message: React.ReactNode, severity: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleCloseSnackbar = (_?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
   
   useEffect(() => {
     // Mettre à jour les cours associés à la classe sélectionnée
@@ -299,27 +316,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         const data = await response.json();
   
         if (response.ok) {
-          toast.dismiss();
-          toast.clearWaitingQueue();
-          toast.success(
-            <div className="text-center">
-              Ordre mis à jour pour le cours{" "}
-              <span className="font-bold">
-                {data.titleOfChosenCourse}
-              </span>
-            </div>,
-            {
-              position: "top-center",
-              autoClose: 500,
-              hideProgressBar: false,
-              theme: "dark",
-              style: {
-                width: '500px',
-                textAlign: 'center',
-                justifyContent: 'center',
-              },
-            }
-          );
+          showSnackbar(`Ordre mis à jour pour le cours ${data.titleOfChosenCourse}`, 'success');
         }
   
         // Update courses state with new order
@@ -364,26 +361,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
         });
         const data = await response.json();
         if (response.ok) {
-          toast.dismiss();
-          toast.clearWaitingQueue();
-          toast.success(
-            <div className="text-center">
-            Ordre mis à jour pour la classe{" "}
-            <span className="font-bold">
-              {data.titleOfChosenClass}
-            </span>
-          </div>,
-            {
-            position: "top-center",
-            autoClose: 500,
-            hideProgressBar: false,
-            theme: "dark",
-            style: {
-              width: '500px',
-              textAlign: 'center',
-              justifyContent: 'center',
-            },
-          });
+          showSnackbar(`Ordre mis à jour pour la classe ${data.titleOfChosenClass}`, 'success');
         } else {
           setErrorDeleteCourse(data.error);
         }
@@ -798,25 +776,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
         const data = await res.json();
         setCourses(data.courses);
         
-        toast.dismiss();
-        toast.clearWaitingQueue();
-      toast.success(
-        <div className="text-center">
-          Thème mis à jour pour le cours{" "}
-          <span className="font-bold">{courseTitle}</span>
-        </div>,
-        {
-          position: "top-center",
-          autoClose: 500,
-          hideProgressBar: false,
-          theme: "dark",
-          style: {
-            width: '500px',
-            textAlign: 'center',
-            justifyContent: 'center',
-          },
-        }
-      );
+  showSnackbar(`Thème mis à jour pour le cours ${courseTitle}`, 'success');
       } else {
         setErrorUpdateCourse('Erreur lors de la mise à jour du thème.');
       }
@@ -910,7 +870,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
         });
 
         if (response.ok) {
-          toast.success('Ordre des progressions mis à jour');
+          showSnackbar('Ordre des progressions mis à jour', 'success');
         }
       } catch (error) {
         console.error('Error reordering progressions:', error);
@@ -1672,14 +1632,14 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       console.log('Fresh data from /api/courses:', freshData);
                       setClasses(freshData.classes);
                       
-                      toast.success('Statut de progression mis à jour');
+                      showSnackbar('Statut de progression mis à jour', 'success');
                     } else {
                       console.error('API response error:', response.status, response.statusText);
-                      toast.error('Erreur lors de la mise à jour');
+                      showSnackbar('Erreur lors de la mise à jour', 'error');
                     }
                   } catch (error) {
                     console.error('Error:', error);
-                    toast.error('Erreur serveur');
+                    showSnackbar('Erreur serveur', 'error');
                   }
                 }}
               />
@@ -2011,7 +1971,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                           });
                           if (response.ok) {
                             loadProgressions(selectedClasseForProgression);
-                            toast.success('Progression supprimée');
+                            showSnackbar('Progression supprimée', 'success');
                           }
                         }}
                       />
@@ -2280,6 +2240,22 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           </div>
         </DialogContent>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
     </>
     

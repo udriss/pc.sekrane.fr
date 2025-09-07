@@ -1,11 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import React, { useState, useEffect, useRef } from 'react';
-import { School as GraduationCap } from "@mui/icons-material";
-import Link from "next/link";
+import React, { useEffect, useRef } from 'react';
+import NextLink from "next/link";
 import './globals.css'; // Importer le fichier CSS pour les styles globaux
 import { generateFingerprint } from '@/lib/fingerprint';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 export default function Home() {
   const initialized = useRef(false);
@@ -27,23 +29,42 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] app-container">
-      <div className="text-center space-y-6 max-w-2xl">
-        <GraduationCap className="w-16 h-16 mx-auto text-primary" />
-        <h1 className="text-4xl font-bold tracking-tight">Plan de travail et activités</h1>
-        <p className="text-xl text-muted-foreground">
-          Accédez à vos cours et activités en SPC et SNT
-        </p>
+    <Box
+      className="app-container"
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="flex-start"
+      sx={{ minHeight: 'calc(100vh - 4rem)' }}
+    >
+      <Box textAlign="center" sx={{ maxWidth: 672, width: '100%' }}>
+        <Stack spacing={3}>
+          <Typography variant="h3" component="h1" fontWeight={700}>
+            Plan de travail et activités
+          </Typography>
+          <Typography variant="h6" color="text.secondary">
+            Accédez à vos cours et activités en SPC et SNT
+          </Typography>
 
-        <p className="text-xl text-muted-foreground mt-6">
-          Site web de M. <span className="small-caps">Sekrane</span> <br />
-        </p>
-        <Link href="/courses">
-          <Button size="lg" className="mt-6">
+          <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+            Site web de M.{' '}
+            <Box component="span" sx={{ fontVariant: 'small-caps' }}>
+              Sekrane
+            </Box>{' '}
+            <Box component="br" />
+          </Typography>
+
+          <Button
+            component={NextLink}
+            href="/courses"
+            size="large"
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
             Voir les cours
           </Button>
-        </Link>
-      </div>
-    </div>
+        </Stack>
+      </Box>
+    </Box>
   );
 }

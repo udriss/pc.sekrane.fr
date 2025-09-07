@@ -37,7 +37,8 @@ export function CourseCard({ course }: CourseCardProps) {
           left: 0,
           width: '100%',
           height: '4px',
-          background: 'linear-gradient(90deg, #3f51b5, #7986cb)',
+          // background: 'linear-gradient(90deg, #3f51b5, #7986cb)',
+          background: 'black',
         }
       }}
     >
@@ -59,13 +60,6 @@ export function CourseCard({ course }: CourseCardProps) {
             top: 12,
             right: 12,
             zIndex: 10
-          }} 
-        />
-        <GraduationCap 
-          fontSize='medium' 
-          style={{ 
-            color: '#3f51b5',
-            marginRight: '12px'
           }} 
         />
         <Typography 
