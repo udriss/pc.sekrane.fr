@@ -25,7 +25,7 @@ export function SmartFileUploader({
   onFileSelect,
   onFileRemove,
   onFileReject,
-  maxFileSize = 10 * 1024 * 1024, // 10MB
+  maxFileSize = 10 * 1024 * 1024, // 10 MB
   selectedFile,
   preview,
   className,
@@ -207,6 +207,7 @@ export function SmartFileUploader({
                 {getAcceptText()} - Max {Math.round(maxFileSize / 1024 / 1024)}MB
               </p>
             </div>
+            <p className="mt-2 text-xs text-red-600">Fichier précédent invalide: {rejectedFile.name}</p>
           </div>
         </div>
       </div>

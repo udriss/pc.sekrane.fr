@@ -75,7 +75,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
       <PopoverPrimitive.Trigger asChild>
-        <Button variant="outline" className="w-full justify-start">
+        <Button type="button" variant="outline" className="w-full justify-start">
           <CurrentIcon className="mr-2 h-5 w-5" />
           <span>Choisir une icône</span>
         </Button>
@@ -84,12 +84,14 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
         <PopoverPrimitive.Content 
           className="w-64 z-[9999] bg-white border border-gray-200 rounded-md shadow-lg p-2"
           sideOffset={5}
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="grid grid-cols-5 gap-2">
             {icons.map((iconData) => {
               const IconComponent = iconData.icon;
               return (
                 <Button
+                  type="button"
                   key={iconData.name}
                   variant={value === iconData.name ? 'default' : 'outline'}
                   className="h-10 w-10 p-0"

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -130,6 +131,23 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [rejectedFile, setRejectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  // Etats séparés pour le dialog d'édition afin d'éviter les mélanges
+  const [editContentPreset, setEditContentPreset] = useState<'text'|'video'|'image'|'pdf'>('text');
+  const [editProgressionContent, setEditProgressionContent] = useState({
+    title: '',
+    content: '',
+    icon: 'edit',
+    iconColor: '#3f51b5',
+    contentType: 'text',
+    resourceUrl: ''
+  });
+  const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
+  const [editFilePreview, setEditFilePreview] = useState<string | null>(null);
+  const [editRejectedFile, setEditRejectedFile] = useState<File | null>(null);
+  const [editUploadingFile, setEditUploadingFile] = useState<boolean>(false);
+  const [editUploadProgress, setEditUploadProgress] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1676,17 +1694,21 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                         showSizeControl={false}
                       />
                       <p className="text-xs text-gray-500">Ou ajoutez une nouvelle image :</p>
-                      <FileUploader
+                      <SmartFileUploader
                         onFileSelect={handleFileSelect}
+                        onFileReject={handleFileReject}
                         fileType="image"
                         className="border-blue-200 bg-blue-50"
+                        existingFileUrl={progressionContent.resourceUrl}
                       />
                     </div>
                   ) : (
-                    <FileUploader
+                    <SmartFileUploader
                       onFileSelect={handleFileSelect}
+                      onFileReject={handleFileReject}
                       fileType="image"
                       className="border-blue-200 bg-blue-50"
+                      existingFileUrl={progressionContent.resourceUrl}
                     />
                   )}
                   {selectedFile && (
@@ -1716,17 +1738,21 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                         isEmbedded={true}
                       />
                       <p className="text-xs text-gray-500">Ou ajoutez un nouveau PDF :</p>
-                      <FileUploader
+                      <SmartFileUploader
                         onFileSelect={handleFileSelect}
+                        onFileReject={handleFileReject}
                         fileType="pdf"
                         className="border-red-200 bg-red-50"
+                        existingFileUrl={progressionContent.resourceUrl}
                       />
                     </div>
                   ) : (
-                    <FileUploader
+                    <SmartFileUploader
                       onFileSelect={handleFileSelect}
+                      onFileReject={handleFileReject}
                       fileType="pdf"
                       className="border-red-200 bg-red-50"
+                      existingFileUrl={progressionContent.resourceUrl}
                     />
                   )}
                   {selectedFile && (
@@ -1983,14 +2009,20 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
                   />
                 ) : (
-                  <FileUploader
+                  <SmartFileUploader
                     onFileSelect={handleFileSelect}
+                    onFileReject={handleFileReject}
                     fileType="image"
                     className="border-blue-200 bg-blue-50"
+                    existingFileUrl={progressionContent.resourceUrl}
                   />
                 )}
                 {selectedFile && !progressionContent.resourceUrl && (
-                  <Button onClick={handleFileUpload} disabled={uploadingFile}>
+                  <Button 
+                    onClick={handleFileUpload} 
+                    disabled={uploadingFile || !!progressionContent.resourceUrl}
+                    className={progressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
+                  >
                     {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
                   </Button>
                 )}
@@ -2015,14 +2047,20 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     isEmbedded={true}
                   />
                 ) : (
-                  <FileUploader
+                  <SmartFileUploader
                     onFileSelect={handleFileSelect}
+                    onFileReject={handleFileReject}
                     fileType="pdf"
                     className="border-red-200 bg-red-50"
+                    existingFileUrl={progressionContent.resourceUrl}
                   />
                 )}
                 {selectedFile && !progressionContent.resourceUrl && (
-                  <Button onClick={handleFileUpload} disabled={uploadingFile}>
+                  <Button 
+                    onClick={handleFileUpload} 
+                    disabled={uploadingFile || !!progressionContent.resourceUrl}
+                    className={progressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
+                  >
                     {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
                   </Button>
                 )}
