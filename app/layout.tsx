@@ -6,6 +6,7 @@ import { ToastContainer } from 'react-toastify';
 import { Toaster } from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
 import Head from 'next/head';
+import ClientRequestHeaders from '@/components/ClientRequestHeaders';
 
 const inter = Inter({ subsets: ['latin'] });
 const deploymentDomain = process.env.NEXT_PUBLIC_DEPLOYMENT_DOMAIN || 'http://localhost:8001';
@@ -60,6 +61,7 @@ export default function RootLayout({
             </div>
           <main className="container mt-32 min-h-screen flex flex-col w-full md:max-w-[750px] 
           lg:max-w-[960px] xl:max-w-[1300px] mx-auto px-4 md:px-0">
+            <ClientRequestHeaders />
             {children}
             <Toaster 
               position="top-center" 

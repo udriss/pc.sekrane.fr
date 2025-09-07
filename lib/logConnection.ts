@@ -9,14 +9,18 @@ export async function logConnection(request: Request, endpoint?: string) {
 
     const userAgent = request.headers.get('user-agent') || '';
     const language = request.headers.get('accept-language')?.split(',')[0] || '';
-    const screen = request.headers.get('x-screen') || '';
-    const timezone = request.headers.get('x-timezone') || '';
+  const screen = request.headers.get('x-screen') || '';
+  const timezone = request.headers.get('x-timezone') || '';
+  // Prefer the page that initiated the request, not the API endpoint
+  const pageHeader = request.headers.get('x-page');
+  const referer = request.headers.get('referer');
+  const pagePath = pageHeader || (referer ? new URL(referer).pathname : '') || '';
   const path = endpoint || new URL(request.url).pathname;
 
     await prisma.connectionLog.create({
       data: {
         ip,
-    endpoint: path,
+  endpoint: pagePath || path,
         method: request.method,
         userAgent,
         language,

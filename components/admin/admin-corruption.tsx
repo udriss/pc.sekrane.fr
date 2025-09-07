@@ -1513,7 +1513,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
   </Box>
 
   <form onSubmit={handleDeleteCourse} style={{ marginTop: '2rem' }}>
-    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', '& > * + *': { mt: 3 } }}>
+    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', my: 2 }}>
       <FormLabel component="legend" className="checkboxSwitch">
         <Input
           className="col-span-1"
