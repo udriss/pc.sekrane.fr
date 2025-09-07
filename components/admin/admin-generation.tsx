@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Course, Classe } from '@/lib/data';
 import {SuccessMessage, ErrorMessage, WarningMessage} from '@/components/message-display';
+import { FileUploader } from '@/components/ui/file-uploader';
 
 interface GenerationsAdminProps {
   courses: Course[];
@@ -32,8 +33,6 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [warningAddFile, setWarningAddFile] = useState<string>('');
   const [warningAddCourse, setWarningAddCourse] = useState<string>('');
   const [selectedClassFilter, setSelectedClassFilter] = useState('');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   useEffect(() => {
@@ -90,9 +89,6 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
     setSelectedCourse('');
     setActivityTitle('');
     setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   const handleAddCourse = async (e: React.FormEvent) => {
@@ -224,10 +220,12 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           />
         </div>
         <div className="space-y-2">
-          <Input
-            type="file"
-            ref={fileInputRef}
-            onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+          <FileUploader
+            fileType="all"
+            onFileSelect={(selectedFile) => setFile(selectedFile)}
+            onFileRemove={() => setFile(null)}
+            selectedFile={file}
+            maxFileSize={50 * 1024 * 1024} // 50MB
           />
         </div>
         {warningAddFile && <WarningMessage message={warningAddFile} />}

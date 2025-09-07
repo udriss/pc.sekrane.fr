@@ -11,7 +11,7 @@ import { Course, Classe, THEMES } from '@/lib/dataTemplate';
 import { SortableFile } from '@/components/admin/SortableFile';
 import { SortableCourse } from '@/components/admin/SortableCourse';
 import { SortableProgression } from '@/components/admin/SortableProgression';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -31,7 +31,6 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import { SmartFileUploader } from '@/components/ui/smart-file-uploader';
 import { ImagePreview } from '@/components/ui/image-preview';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
-import { DialogDescription } from '@/components/ui/dialog';
 
 // Update ModificationsAdminProps interface
 interface ModificationsAdminProps {
@@ -130,6 +129,11 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [progressions, setProgressions] = useState<any[]>([]);
   const [successMessageProgression, setSuccessMessageProgression] = useState<string>('');
   const [errorProgression, setErrorProgression] = useState<string>('');
+
+  // States pour le modal de suppression en masse
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState<boolean>(false);
+  const [progressionsToDelete, setProgressionsToDelete] = useState<any[]>([]);
+  const [isDeletingAll, setIsDeletingAll] = useState<boolean>(false);
 
   // Nouveaux states pour l'édition
   const [editingProgression, setEditingProgression] = useState<any>(null);
@@ -2070,14 +2074,33 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           {/* Liste des progressions existantes */}
           {progressions.length > 0 && (
             <Box sx={{ '& > * + *': { mt: 1 } }}>
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">Progressions existantes</h4>
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center flex-col justify-center">
+                <div className="flex items-center justify-between space-x-2">
                   {selectedDate && !showAllProgressions && (
                     <span className="text-sm text-gray-600">
                       Filtré par : {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
                     </span>
                   )}
+                  {selectedDate && !showAllProgressions && (() => {
+                    const filteredProgressions = progressions.filter(p => {
+                      const progressionDate = new Date(p.date);
+                      const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                      const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
+                      return selectedDateOnly.getTime() === progressionDateOnly.getTime();
+                    });
+                    return filteredProgressions.length > 0 ? (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          setProgressionsToDelete(filteredProgressions);
+                          setIsDeleteAllModalOpen(true);
+                        }}
+                      >
+                        Supprimer tout ({filteredProgressions.length})
+                      </Button>
+                    ) : null;
+                  })()}
                   <Button
                     size="sm"
                     variant={showAllProgressions ? 'default' : 'outline'}
@@ -2086,6 +2109,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     {showAllProgressions ? 'Filtrer par date' : 'Tout afficher'}
                   </Button>
                 </div>
+                <h4 className="font-semibold">Progressions existantes</h4>
               </div>
               <DndContext
                 sensors={sensors}
@@ -2510,6 +2534,132 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               <Button 
                 variant="outline" 
                 onClick={() => setIsEditDialogOpen(false)}
+              >
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de suppression en masse des progressions */}
+      <Dialog modal={false} open={isDeleteAllModalOpen} onOpenChange={setIsDeleteAllModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression en masse</DialogTitle>
+            <DialogDescription>
+              Vous êtes sur le point de supprimer {progressionsToDelete.length} progression(s) pour le {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: fr })}.
+              Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {/* Liste des progressions à supprimer */}
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Progressions à supprimer :</h4>
+              <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
+                {progressionsToDelete.map((progression) => (
+                  <div key={progression.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">{progression.title}</span>
+                      <span className="text-xs text-gray-500">
+                        ({format(new Date(progression.date), 'dd/MM/yyyy', { locale: fr })})
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500 capitalize">{progression.contentType}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Liste des fichiers à supprimer */}
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Fichiers qui seront supprimés :</h4>
+              <div className="max-h-40 overflow-y-auto border rounded-md p-2">
+                {(() => {
+                  const filesToDelete = progressionsToDelete
+                    .filter(p => p.resourceUrl && (p.contentType === 'image' || p.contentType === 'pdf'))
+                    .map(p => ({
+                      url: p.resourceUrl,
+                      type: p.contentType,
+                      title: p.title
+                    }));
+
+                  if (filesToDelete.length === 0) {
+                    return <p className="text-sm text-gray-500 italic">Aucun fichier à supprimer</p>;
+                  }
+
+                  return (
+                    <div className="space-y-1">
+                      {filesToDelete.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm">{file.title}</span>
+                            <span className="text-xs text-gray-500 uppercase">({file.type})</span>
+                          </div>
+                          <span className="text-xs text-red-600">sera supprimé</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Avertissement */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <p className="text-sm text-yellow-800">
+                ⚠️ <strong>Attention :</strong> Cette action supprimera définitivement toutes les progressions sélectionnées
+                et leurs fichiers associés. Cette action ne peut pas être annulée.
+              </p>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  setIsDeletingAll(true);
+                  try {
+                    // Supprimer chaque progression
+                    const deletePromises = progressionsToDelete.map(async (progression) => {
+                      const response = await fetch(`/api/progressions/${progression.id}`, {
+                        method: 'DELETE'
+                      });
+                      if (!response.ok) {
+                        throw new Error(`Erreur lors de la suppression de ${progression.title}`);
+                      }
+                      return progression;
+                    });
+
+                    await Promise.all(deletePromises);
+
+                    // Recharger les progressions
+                    loadProgressions(selectedClasseForProgression);
+
+                    // Fermer le modal et afficher le succès
+                    setIsDeleteAllModalOpen(false);
+                    setProgressionsToDelete([]);
+                    showSnackbar(`${progressionsToDelete.length} progression(s) supprimée(s) avec succès`, 'success');
+                  } catch (error) {
+                    console.error('Error deleting progressions:', error);
+                    showSnackbar('Erreur lors de la suppression des progressions', 'error');
+                  } finally {
+                    setIsDeletingAll(false);
+                  }
+                }}
+                disabled={isDeletingAll}
+                className="flex-1"
+              >
+                {isDeletingAll ? 'Suppression en cours...' : `Supprimer ${progressionsToDelete.length} progression(s)`}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteAllModalOpen(false);
+                  setProgressionsToDelete([]);
+                }}
+                disabled={isDeletingAll}
               >
                 Annuler
               </Button>

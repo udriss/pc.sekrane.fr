@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
-
+ 
 function Calendar({
   className,
   classNames,
@@ -18,10 +18,10 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn('p-3', className)}
+      className={cn('rdp p-3 rounded-md border border-gray-200 w-full', className)}
       classNames={{
-        months: 'w-full m-2',
-        month: 'w-full m-2',
+        months: 'w-full',
+        month: 'w-full',
         caption: 'flex justify-center pt-1 relative items-center mb-2',
         caption_label: 'text-sm font-medium',
         nav: 'space-x-1 flex items-center m-2',
@@ -36,7 +36,7 @@ function Calendar({
         head_cell:
           'text-muted-foreground rounded-md font-normal text-[0.8rem] text-center',
         row: 'grid grid-cols-7 w-full mt-2',
-        cell: 'text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
+        cell: 'p-1 relative min-h-[25px] sm:min-h-[35px] md:min-h-[45px] h-full',
         day: cn(
           buttonVariants({ variant: 'ghost' }),
           'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors'

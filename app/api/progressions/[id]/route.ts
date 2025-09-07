@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logConnection } from '@/lib/logConnection';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export async function DELETE(
   request: NextRequest,
@@ -10,6 +12,29 @@ export async function DELETE(
     await logConnection(request, '/api/progressions/[id]');
     const { id: progressionId } = await params;
 
+    // Fetch the progression to get the resourceUrl
+    const progression = await prisma.progression.findUnique({
+      where: { id: progressionId },
+      select: { resourceUrl: true }
+    });
+
+    if (!progression) {
+      return NextResponse.json({ error: 'Progression not found' }, { status: 404 });
+    }
+
+    // If there's a resourceUrl, delete the file from the server
+    if (progression.resourceUrl) {
+      const filePath = path.join(process.cwd(), 'public', progression.resourceUrl);
+      try {
+        await fs.unlink(filePath);
+        console.log(`Deleted file: ${filePath}`);
+      } catch (fileError) {
+        console.error('Error deleting file:', fileError);
+        // Continue with progression deletion even if file deletion fails
+      }
+    }
+
+    // Delete the progression from the database
     await prisma.progression.delete({
       where: { id: progressionId }
     });

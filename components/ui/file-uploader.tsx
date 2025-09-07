@@ -16,7 +16,7 @@ interface FileUploaderProps {
   selectedFile?: File | null;
   preview?: string | null;
   className?: string;
-  fileType: 'image' | 'pdf';
+  fileType?: 'image' | 'pdf' | 'all';
   rejectedFile?: File | null;
   onRejectedFileRemove?: () => void;
 }
@@ -70,7 +70,23 @@ export function FileUploader({
     onDragLeave,
     accept: fileType === 'image' 
       ? { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] }
-      : { 'application/pdf': ['.pdf'] },
+      : fileType === 'pdf'
+      ? { 'application/pdf': ['.pdf'] }
+      : {
+          'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+          'application/pdf': ['.pdf'],
+          'text/csv': ['.csv'],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+          'application/vnd.ms-excel': ['.xls'],
+          'video/*': ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'],
+          'audio/*': ['.mp3', '.wav', '.ogg', '.aac', '.flac'],
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+          'application/vnd.oasis.opendocument.text': ['.odt'],
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+          'application/vnd.ms-powerpoint': ['.ppt'],
+          'application/vnd.oasis.opendocument.spreadsheet': ['.ods'],
+          'text/plain': ['.txt']
+        },
     maxSize: maxFileSize,
     multiple: false
   });
@@ -79,14 +95,20 @@ export function FileUploader({
     if (fileType === 'image') {
       return <PhotoCamera className="h-8 w-8 text-gray-400" />;
     }
-    return <PictureAsPdf className="h-8 w-8 text-gray-400" />;
+    if (fileType === 'pdf') {
+      return <PictureAsPdf className="h-8 w-8 text-gray-400" />;
+    }
+    return <CloudUpload className="h-8 w-8 text-gray-400" />;
   };
 
   const getAcceptText = () => {
     if (fileType === 'image') {
       return 'Images (JPG, PNG, GIF, WebP)';
     }
-    return 'Documents PDF';
+    if (fileType === 'pdf') {
+      return 'Documents PDF';
+    }
+    return 'Fichiers (Images, PDF, CSV, XLSX, Vidéo, Audio, DOCX, ODT, PPTX, ODS, TXT)';
   };
 
   if (selectedFile && preview && fileType === 'image') {
@@ -121,11 +143,12 @@ export function FileUploader({
     );
   }
 
-  if (selectedFile && fileType === 'pdf') {
+  if (selectedFile && (fileType === 'pdf' || fileType === 'all')) {
+    const isPdf = selectedFile.type === 'application/pdf';
     return (
       <div className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-700">PDF sélectionné :</span>
+          <span className="text-sm font-medium text-gray-700">Fichier sélectionné :</span>
           {onFileRemove && (
             <Button
               type="button"
@@ -138,8 +161,8 @@ export function FileUploader({
             </Button>
           )}
         </div>
-        <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-          <PictureAsPdf className="h-8 w-8 text-red-600" />
+        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          {isPdf ? <PictureAsPdf className="h-8 w-8 text-red-600" /> : <File className="h-8 w-8 text-gray-600" />}
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
             <p className="text-xs text-gray-500">

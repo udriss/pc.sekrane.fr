@@ -412,10 +412,8 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                   selected={selectedDate}
                   onSelect={handleDateSelect}
                   locale={fr}
-                  className="rounded-md border-gray-200 w-full"
                   classNames={{
-                    months: 'w-full m-2',
-                    month: 'w-full m-2',
+
                     table: 'w-full',
                     head_row: 'grid grid-cols-7 w-full',
                     head_cell: 'text-muted-foreground rounded-md font-normal text-[0.8rem] text-center',
