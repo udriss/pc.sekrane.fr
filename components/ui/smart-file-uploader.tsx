@@ -8,52 +8,45 @@ import { CloudUpload, PictureAsPdf, PhotoCamera } from '@mui/icons-material';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
-interface FileUploaderProps {
+interface SmartFileUploaderProps {
   onFileSelect: (file: File) => void;
   onFileRemove?: () => void;
-  acceptedFileTypes?: { [key: string]: string[] };
+  onFileReject?: (file: File) => void;
   maxFileSize?: number;
   selectedFile?: File | null;
   preview?: string | null;
   className?: string;
   fileType: 'image' | 'pdf';
-  rejectedFile?: File | null;
-  onRejectedFileRemove?: () => void;
+  existingFileUrl?: string;
+  uploadButtonDisabled?: boolean;
 }
 
-export function FileUploader({
+export function SmartFileUploader({
   onFileSelect,
   onFileRemove,
-  acceptedFileTypes = {
-    'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
-    'application/pdf': ['.pdf']
-  },
+  onFileReject,
   maxFileSize = 10 * 1024 * 1024, // 10MB
   selectedFile,
   preview,
   className,
   fileType,
-  rejectedFile,
-  onRejectedFileRemove
-}: FileUploaderProps) {
+  existingFileUrl,
+  uploadButtonDisabled = false
+}: SmartFileUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [rejectedFile, setRejectedFile] = useState<File | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (acceptedFiles.length > 0) {
+      setRejectedFile(null);
       onFileSelect(acceptedFiles[0]);
     } else if (rejectedFiles.length > 0) {
-      // Si pas de fichier accepté mais des fichiers rejetés
-      const rejectedFile = rejectedFiles[0].file;
-      // Vous pouvez appeler une fonction callback pour gérer les rejets
-      console.log('Fichier rejeté:', rejectedFile.name, rejectedFiles[0].errors);
+      const rejected = rejectedFiles[0].file;
+      setRejectedFile(rejected);
+      onFileReject?.(rejected);
     }
     setIsDragOver(false);
-  }, [onFileSelect]);
-
-  const onDropRejected = useCallback((rejectedFiles: any[]) => {
-    // Gérer les fichiers rejetés si nécessaire
-    setIsDragOver(false);
-  }, []);
+  }, [onFileSelect, onFileReject]);
 
   const onDragEnter = useCallback(() => {
     setIsDragOver(true);
@@ -65,7 +58,6 @@ export function FileUploader({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    onDropRejected,
     onDragEnter,
     onDragLeave,
     accept: fileType === 'image' 
@@ -89,22 +81,30 @@ export function FileUploader({
     return 'Documents PDF';
   };
 
+  const handleRemoveRejected = () => {
+    setRejectedFile(null);
+  };
+
+  const handleFileRemove = () => {
+    setRejectedFile(null);
+    onFileRemove?.();
+  };
+
+  // Affichage de l'image sélectionnée
   if (selectedFile && preview && fileType === 'image') {
     return (
       <div className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-gray-700">Image sélectionnée :</span>
-          {onFileRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onFileRemove}
-              className="h-6 w-6 p-0 hover:bg-red-100"
-            >
-              <X className="h-4 w-4 text-red-500" />
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleFileRemove}
+            className="h-6 w-6 p-0 hover:bg-red-100"
+          >
+            <X className="h-4 w-4 text-red-500" />
+          </Button>
         </div>
         <div className="flex flex-col items-center">
           <Image
@@ -121,22 +121,21 @@ export function FileUploader({
     );
   }
 
+  // Affichage du PDF sélectionné
   if (selectedFile && fileType === 'pdf') {
     return (
       <div className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-gray-700">PDF sélectionné :</span>
-          {onFileRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onFileRemove}
-              className="h-6 w-6 p-0 hover:bg-red-100"
-            >
-              <X className="h-4 w-4 text-red-500" />
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleFileRemove}
+            className="h-6 w-6 p-0 hover:bg-red-100"
+          >
+            <X className="h-4 w-4 text-red-500" />
+          </Button>
         </div>
         <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
           <PictureAsPdf className="h-8 w-8 text-red-600" />
@@ -154,30 +153,60 @@ export function FileUploader({
   // Affichage de l'erreur si fichier rejeté
   if (rejectedFile) {
     return (
-      <div className={cn("relative border-2 border-dashed border-red-300 rounded-lg p-4 bg-red-50", className)}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-red-700">Fichier rejeté :</span>
-          {onRejectedFileRemove && (
+      <div className="space-y-2">
+        <div className={cn("relative border-2 border-dashed border-red-300 rounded-lg p-4 bg-red-50", className)}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-red-700">Fichier rejeté :</span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={onRejectedFileRemove}
+              onClick={handleRemoveRejected}
               className="h-6 w-6 p-0 hover:bg-red-200"
             >
               <X className="h-4 w-4 text-red-600" />
             </Button>
-          )}
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-red-100 rounded-lg">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 line-through opacity-70">
+                {rejectedFile.name}
+              </p>
+              <p className="text-xs text-red-600 font-medium">
+                Format invalide - {getAcceptText()} uniquement
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-3 p-3 bg-red-100 rounded-lg">
-          <AlertTriangle className="h-8 w-8 text-red-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-red-900 line-through opacity-70">
-              {rejectedFile.name}
-            </p>
-            <p className="text-xs text-red-600 font-medium">
-              Format invalide - {getAcceptText()} uniquement
-            </p>
+        
+        {/* Zone de drop normale en dessous pour réessayer */}
+        <div
+          {...getRootProps()}
+          className={cn(
+            "relative border-2 border-dashed border-gray-300 rounded-lg p-6 transition-all duration-200 cursor-pointer hover:border-gray-400",
+            isDragActive || isDragOver ? "border-blue-400 bg-blue-50" : "bg-gray-50"
+          )}
+        >
+          <input {...getInputProps()} />
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              {isDragActive || isDragOver ? (
+                <CloudUpload className="h-8 w-8 text-blue-500" />
+              ) : (
+                getIcon()
+              )}
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">
+                {isDragActive || isDragOver
+                  ? `Relâchez pour ajouter le ${fileType === 'image' ? 'image' : 'PDF'}`
+                  : `Réessayez avec ${fileType === 'image' ? 'une image' : 'un PDF'} valide`}
+              </p>
+              <p className="text-xs text-gray-500">
+                {getAcceptText()} - Max {Math.round(maxFileSize / 1024 / 1024)}MB
+              </p>
+            </div>
           </div>
         </div>
       </div>

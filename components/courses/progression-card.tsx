@@ -102,13 +102,16 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
         return (
           <div className="space-y-4">
             {progression.resourceUrl && (
-              <Image
-                src={progression.resourceUrl}
-                alt={progression.title}
-                width={800}
-                height={600}
-                className="w-full rounded-lg shadow-md"
-              />
+              <div className="flex justify-center">
+                <Image
+                  src={progression.resourceUrl}
+                  alt={progression.title}
+                  width={800}
+                  height={600}
+                  className="max-w-full rounded-lg shadow-md object-contain"
+                  style={{ maxHeight: '400px' }}
+                />
+              </div>
             )}
             {progression.content && (
               <div 
@@ -128,15 +131,40 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
               />
             )}
             {progression.resourceUrl && (
-              <a 
-                href={progression.resourceUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <PictureAsPdf className="mr-2 h-4 w-4" />
-                Télécharger le PDF
-              </a>
+              <div className="border border-red-200 rounded-lg overflow-hidden bg-red-50">
+                <div className="flex items-center justify-between p-4 bg-red-100 border-b border-red-200">
+                  <div className="flex items-center space-x-2">
+                    <PictureAsPdf className="h-5 w-5 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">Document PDF</span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <a
+                      href={progression.resourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    >
+                      Ouvrir
+                    </a>
+                    <a
+                      href={progression.resourceUrl}
+                      download
+                      className="inline-flex items-center px-3 py-1 text-xs border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition-colors"
+                    >
+                      Télécharger
+                    </a>
+                  </div>
+                </div>
+                <div className="bg-white">
+                  <iframe
+                    src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                    width="100%"
+                    height="300px"
+                    className="border-0"
+                    title="PDF Document"
+                  />
+                </div>
+              </div>
             )}
           </div>
         );

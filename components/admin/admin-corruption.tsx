@@ -24,6 +24,11 @@ import { MaterialIcon } from '@/components/ui/material-icon';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Description, PictureAsPdf, VideoLibrary, PhotoCamera } from '@mui/icons-material';
+import { FileUploader } from '@/components/ui/file-uploader';
+import { SmartFileUploader } from '@/components/ui/smart-file-uploader';
+import { ImagePreview } from '@/components/ui/image-preview';
+import { PDFViewer } from '@/components/ui/pdf-viewer';
+import { DialogDescription } from '@/components/ui/dialog';
 
 // Update ModificationsAdminProps interface
 interface ModificationsAdminProps {
@@ -119,6 +124,12 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   // Nouveaux states pour l'édition
   const [editingProgression, setEditingProgression] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // States pour la gestion des fichiers
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [rejectedFile, setRejectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -833,6 +844,9 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           contentType: 'text',
           resourceUrl: ''
         });
+        setSelectedFile(null);
+        setFilePreview(null);
+        setContentPreset('text');
       } else {
         setErrorProgression('Erreur lors de l\'ajout de la progression');
       }
@@ -928,6 +942,84 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     } catch (error) {
       setErrorProgression('Erreur serveur');
     }
+  };
+
+  // Fonctions de gestion des fichiers
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setRejectedFile(null); // Réinitialiser le fichier rejeté
+    
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const handleFileReject = (file: File) => {
+    setRejectedFile(file);
+    setSelectedFile(null);
+    setFilePreview(null);
+  };
+
+  const handleRejectedFileRemove = () => {
+    setRejectedFile(null);
+  };
+
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    setRejectedFile(null);
+    setProgressionContent(prev => ({ ...prev, resourceUrl: '' }));
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || !selectedClasseForProgression) return;
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('classeId', selectedClasseForProgression);
+      formData.append('fileType', contentPreset);
+
+      const response = await fetch('/api/progressions/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProgressionContent(prev => ({ ...prev, resourceUrl: data.fileUrl }));
+        setSuccessMessageProgression('Fichier uploadé avec succès');
+      } else {
+        setErrorProgression('Erreur lors de l\'upload du fichier');
+      }
+    } catch (error) {
+      setErrorProgression('Erreur serveur lors de l\'upload');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  // Fonction pour réinitialiser le dialog
+  const resetDialog = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    setRejectedFile(null);
+    setContentPreset('text');
+    setProgressionContent({
+      title: '',
+      content: '',
+      icon: 'edit',
+      iconColor: '#3f51b5',
+      contentType: 'text',
+      resourceUrl: ''
+    });
   };
 
   return (
@@ -1497,8 +1589,9 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     setProgressionContent(prev => ({
                       ...prev,
                       contentType: 'text',
-                      title: '� Note du jour'
+                      title: '📝 Note du jour'
                     }));
+                    handleFileRemove();
                   }}
                 >
                   <Description className="mr-2 h-4 w-4" />
@@ -1515,6 +1608,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       contentType: 'video',
                       title: 'Vidéo du jour'
                     }));
+                    handleFileRemove();
                   }}
                 >
                   <VideoLibrary className="mr-2 h-4 w-4" />
@@ -1562,14 +1656,104 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
               />
 
-              {/* URL de ressource pour vidéo/image/PDF */}
-              {['video', 'image', 'pdf'].includes(contentPreset) && (
-                <Input
-                  type="url"
-                  placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
-                  value={progressionContent.resourceUrl}
-                  onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
-                />
+              {/* Gestion des fichiers pour image et PDF */}
+              {contentPreset === 'image' && (
+                <div className="space-y-4">
+                  <label className="text-sm font-medium">Image</label>
+                  {selectedFile && filePreview ? (
+                    <ImagePreview
+                      src={filePreview}
+                      alt="Preview"
+                      filename={selectedFile.name}
+                      onRemove={handleFileRemove}
+                    />
+                  ) : progressionContent.resourceUrl ? (
+                    <div className="space-y-2">
+                      <ImagePreview
+                        src={progressionContent.resourceUrl}
+                        alt="Current image"
+                        onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                        showSizeControl={false}
+                      />
+                      <p className="text-xs text-gray-500">Ou ajoutez une nouvelle image :</p>
+                      <FileUploader
+                        onFileSelect={handleFileSelect}
+                        fileType="image"
+                        className="border-blue-200 bg-blue-50"
+                      />
+                    </div>
+                  ) : (
+                    <FileUploader
+                      onFileSelect={handleFileSelect}
+                      fileType="image"
+                      className="border-blue-200 bg-blue-50"
+                    />
+                  )}
+                  {selectedFile && (
+                    <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
+                      {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {contentPreset === 'pdf' && (
+                <div className="space-y-4">
+                  <label className="text-sm font-medium">Document PDF</label>
+                  {selectedFile ? (
+                    <PDFViewer
+                      src={URL.createObjectURL(selectedFile)}
+                      filename={selectedFile.name}
+                      onRemove={handleFileRemove}
+                      showControls={false}
+                    />
+                  ) : progressionContent.resourceUrl ? (
+                    <div className="space-y-2">
+                      <PDFViewer
+                        src={progressionContent.resourceUrl}
+                        filename="Document actuel"
+                        onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                        isEmbedded={true}
+                      />
+                      <p className="text-xs text-gray-500">Ou ajoutez un nouveau PDF :</p>
+                      <FileUploader
+                        onFileSelect={handleFileSelect}
+                        fileType="pdf"
+                        className="border-red-200 bg-red-50"
+                      />
+                    </div>
+                  ) : (
+                    <FileUploader
+                      onFileSelect={handleFileSelect}
+                      fileType="pdf"
+                      className="border-red-200 bg-red-50"
+                    />
+                  )}
+                  {selectedFile && (
+                    <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
+                      {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* URL de ressource pour vidéo ou comme alternative pour image/PDF */}
+              {(contentPreset === 'video' || 
+                ((contentPreset === 'image' || contentPreset === 'pdf') && !selectedFile)
+              ) && (
+                <div className="space-y-2">
+                  {contentPreset !== 'video' && (
+                    <label className="text-xs text-gray-600">
+                      Ou utilisez une URL externe :
+                    </label>
+                  )}
+                  <Input
+                    type="url"
+                    placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+                    value={progressionContent.resourceUrl}
+                    onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+                  />
+                </div>
               )}
 
               {/* Éditeur de texte enrichi */}
@@ -1694,12 +1878,20 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       </Card>
 
       {/* Dialog pour éditer une progression */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-50">
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+          resetDialog();
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier la progression</DialogTitle>
+            <DialogDescription>
+              Modifiez les détails de votre progression de cours
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-6 mt-4">
             {/* Presets de type de contenu */}
             <div className="flex gap-2 mb-4">
               <Button
@@ -1712,6 +1904,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     ...prev,
                     contentType: 'text'
                   }));
+                  handleFileRemove();
                 }}
               >
                 <Description className="mr-2 h-4 w-4" />
@@ -1727,6 +1920,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     ...prev,
                     contentType: 'video'
                   }));
+                  handleFileRemove();
                 }}
               >
                 📹 Vidéo
@@ -1771,8 +1965,74 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
             />
 
-            {/* URL de ressource pour vidéo/image/PDF */}
-            {['video', 'image', 'pdf'].includes(contentPreset) && (
+            {/* Gestion des fichiers pour image et PDF */}
+            {contentPreset === 'image' && (
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Image</label>
+                {selectedFile && filePreview ? (
+                  <ImagePreview
+                    src={filePreview}
+                    alt="Preview"
+                    filename={selectedFile.name}
+                    onRemove={handleFileRemove}
+                  />
+                ) : progressionContent.resourceUrl ? (
+                  <ImagePreview
+                    src={progressionContent.resourceUrl}
+                    alt="Current image"
+                    onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                  />
+                ) : (
+                  <FileUploader
+                    onFileSelect={handleFileSelect}
+                    fileType="image"
+                    className="border-blue-200 bg-blue-50"
+                  />
+                )}
+                {selectedFile && !progressionContent.resourceUrl && (
+                  <Button onClick={handleFileUpload} disabled={uploadingFile}>
+                    {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {contentPreset === 'pdf' && (
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Document PDF</label>
+                {selectedFile ? (
+                  <PDFViewer
+                    src={URL.createObjectURL(selectedFile)}
+                    filename={selectedFile.name}
+                    onRemove={handleFileRemove}
+                    showControls={false}
+                  />
+                ) : progressionContent.resourceUrl ? (
+                  <PDFViewer
+                    src={progressionContent.resourceUrl}
+                    filename="Document actuel"
+                    onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                    isEmbedded={true}
+                  />
+                ) : (
+                  <FileUploader
+                    onFileSelect={handleFileSelect}
+                    fileType="pdf"
+                    className="border-red-200 bg-red-50"
+                  />
+                )}
+                {selectedFile && !progressionContent.resourceUrl && (
+                  <Button onClick={handleFileUpload} disabled={uploadingFile}>
+                    {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* URL de ressource pour vidéo ou si pas de fichier uploadé */}
+            {(contentPreset === 'video' || 
+              ((contentPreset === 'image' || contentPreset === 'pdf') && !selectedFile && !progressionContent.resourceUrl)
+            ) && (
               <Input
                 type="url"
                 placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
@@ -1810,9 +2070,17 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               </div>
             </div>
 
-            <Button onClick={handleUpdateProgression} className="w-full">
-              Mettre à jour la progression
-            </Button>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleUpdateProgression} className="flex-1">
+                Mettre à jour la progression
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Annuler
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
