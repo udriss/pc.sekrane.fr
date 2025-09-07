@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logConnection } from '@/lib/logConnection';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await logConnection(request, '/api/progressions/[id]');
     const { id: progressionId } = await params;
 
     await prisma.progression.delete({
@@ -24,6 +26,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await logConnection(request, '/api/progressions/[id]');
     const body = await request.json();
     const { id: progressionId } = await params;
     // Ne transmettre que les champs attendus par Prisma

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logConnection } from '@/lib/logConnection';
 import { getCourseById } from '@/lib/data-prisma-utils';
 import { Course } from '@/lib/dataTemplate';
 
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    await logConnection(request, '/api/courses/[courseId]');
     const url = new URL(request.url);
     const courseId = url.pathname.split('/').pop();
 

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logConnection } from '@/lib/logConnection';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await logConnection(request, '/api/classes/[id]/progression');
     const body = await request.json();
     const { hasProgression } = body;
     const { id: classeId } = await params;

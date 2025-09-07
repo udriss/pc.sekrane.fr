@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logConnection } from '@/lib/logConnection';
 
 export async function GET(request: NextRequest) {
+  await logConnection(request, '/api/progressions');
   const searchParams = request.nextUrl.searchParams;
   const classeId = searchParams.get('classeId');
 
@@ -26,6 +28,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await logConnection(request, '/api/progressions');
     const body = await request.json();
   const { classeId, date, title, content, icon, iconColor, contentType, resourceUrl, imageSize, activityId } = body;
 
@@ -83,6 +86,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+  await logConnection(request, '/api/progressions');
     const body = await request.json();
     const { id, title, content, icon, iconColor, contentType, resourceUrl, imageSize, date, order } = body;
 

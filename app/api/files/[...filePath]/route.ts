@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
+import { logConnection } from '@/lib/logConnection';
 
 export async function GET(request: Request) {
     const { pathname } = new URL(request.url);
@@ -9,6 +10,7 @@ export async function GET(request: Request) {
     const fileLocation = path.join(process.cwd(), 'public', filePath);
 
     try {
+        await logConnection(request, '/api/files');
         const stat = await fs.stat(fileLocation);
         const fileStream = require('fs').createReadStream(fileLocation);
 

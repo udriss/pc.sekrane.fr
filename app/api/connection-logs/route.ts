@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logConnection } from '@/lib/logConnection';
 
 export async function GET(request: NextRequest) {
   try {
+  // Log this access
+    await logConnection(request, '/api/connection-logs');
     const logs = await prisma.connectionLog.findMany({
       orderBy: { timestamp: 'desc' },
       take: 1000, // Limit to last 1000 logs for performance

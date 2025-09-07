@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { logConnection } from '@/lib/logConnection';
 import { getAllClasses, getAllCourses } from '@/lib/data-prisma-utils';
 import { Classe, Course } from '@/lib/dataTemplate';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    await logConnection(request, '/api/getcourses');
     // Récupération directe depuis la base de données
     const [classesData, coursesData] = await Promise.all([
       getAllClasses(),

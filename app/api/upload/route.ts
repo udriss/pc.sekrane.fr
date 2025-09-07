@@ -3,9 +3,11 @@ import path from 'path';
 import { createActivity, getCourseById, getAllClasses } from '@/lib/data-prisma-utils';
 import { Classe, Course } from '@/lib/dataTemplate';
 import { NextResponse } from 'next/server';
+import { logConnection } from '@/lib/logConnection';
 
 export async function POST(req: Request) {
   try {
+    await logConnection(req, '/api/upload');
     const formData = await req.formData();
     const courseId = formData.get('courseId') as string;
     const file = formData.get('file') as File;

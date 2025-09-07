@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseConnection } from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
+import { logConnection } from '@/lib/logConnection';
 
 export async function POST(req: NextRequest) {
   let connection;
   try {
+    await logConnection(req, '/api/get-session');
     connection = await getDatabaseConnection();
     const { passSession } = await req.json();
 
