@@ -913,7 +913,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
   // Fonction pour éditer une progression
   const handleEditProgression = (progression: any) => {
     setEditingProgression(progression);
-    setProgressionContent({
+    // Isoler l'état du dialog
+    setEditProgressionContent({
       title: progression.title,
       content: progression.content,
       icon: progression.icon || 'edit',
@@ -921,13 +922,18 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       contentType: progression.contentType,
       resourceUrl: progression.resourceUrl || ''
     });
-    setContentPreset(progression.contentType);
+    setEditContentPreset(progression.contentType);
+    setEditSelectedFile(null);
+    setEditFilePreview(null);
+    setEditRejectedFile(null);
+    setEditUploadingFile(false);
+    setEditUploadProgress(0);
     setIsEditDialogOpen(true);
   };
 
   // Fonction pour sauvegarder les modifications
   const handleUpdateProgression = async () => {
-    if (!editingProgression || !progressionContent.title) {
+    if (!editingProgression || !editProgressionContent.title) {
       setErrorProgression('Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -936,7 +942,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       const response = await fetch(`/api/progressions/${editingProgression.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(progressionContent)
+        body: JSON.stringify(editProgressionContent)
       });
 
       if (response.ok) {
@@ -999,28 +1005,122 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     if (!selectedFile || !selectedClasseForProgression) return;
 
     setUploadingFile(true);
+    setUploadProgress(0);
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('classeId', selectedClasseForProgression);
       formData.append('fileType', contentPreset);
 
-      const response = await fetch('/api/progressions/upload', {
-        method: 'POST',
-        body: formData
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/progressions/upload');
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(percent);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              setProgressionContent(prev => ({ ...prev, resourceUrl: data.fileUrl }));
+              setSuccessMessageProgression('Fichier uploadé avec succès');
+              // Nettoyage
+              setSelectedFile(null);
+              setFilePreview(null);
+              setUploadProgress(0);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProgressionContent(prev => ({ ...prev, resourceUrl: data.fileUrl }));
-        setSuccessMessageProgression('Fichier uploadé avec succès');
-      } else {
-        setErrorProgression('Erreur lors de l\'upload du fichier');
-      }
     } catch (error) {
       setErrorProgression('Erreur serveur lors de l\'upload');
     } finally {
       setUploadingFile(false);
+    }
+  };
+
+  // Handlers séparés pour le dialog d'édition
+  const handleEditFileSelect = (file: File) => {
+    setEditSelectedFile(file);
+    setEditRejectedFile(null);
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setEditFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setEditFilePreview(null);
+    }
+  };
+
+  const handleEditFileReject = (file: File) => {
+    setEditRejectedFile(file);
+    setEditSelectedFile(null);
+    setEditFilePreview(null);
+  };
+
+  const handleEditFileRemove = () => {
+    setEditSelectedFile(null);
+    setEditFilePreview(null);
+    setEditRejectedFile(null);
+    setEditProgressionContent(prev => ({ ...prev, resourceUrl: '' }));
+  };
+
+  const handleEditFileUpload = async () => {
+    if (!editSelectedFile || !editingProgression) return;
+
+    setEditUploadingFile(true);
+    setEditUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append('file', editSelectedFile);
+      formData.append('classeId', editingProgression.classeId);
+      formData.append('fileType', editContentPreset);
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/progressions/upload');
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setEditUploadProgress(percent);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              setEditProgressionContent(prev => ({ ...prev, resourceUrl: data.fileUrl }));
+              setSuccessMessageProgression('Fichier uploadé avec succès');
+              setEditSelectedFile(null);
+              setEditFilePreview(null);
+              setEditUploadProgress(0);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
+      });
+    } catch (error) {
+      setErrorProgression('Erreur serveur lors de l\'upload');
+    } finally {
+      setEditUploadingFile(false);
     }
   };
 
@@ -1641,8 +1741,11 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     setProgressionContent(prev => ({
                       ...prev,
                       contentType: 'image',
-                      title: 'Image du jour'
+                      title: 'Image du jour',
+                      resourceUrl: ''
                     }));
+                    setSelectedFile(null);
+                    setFilePreview(null);
                   }}
                 >
                   <PhotoCamera className="mr-2 h-4 w-4" />
@@ -1657,8 +1760,11 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     setProgressionContent(prev => ({
                       ...prev,
                       contentType: 'pdf',
-                      title: 'Document PDF'
+                      title: 'Document PDF',
+                      resourceUrl: ''
                     }));
+                    setSelectedFile(null);
+                    setFilePreview(null);
                   }}
                 >
                   <PictureAsPdf className="mr-2 h-4 w-4" />
@@ -1711,6 +1817,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       existingFileUrl={progressionContent.resourceUrl}
                     />
                   )}
+                  {uploadingFile && <Progress value={uploadProgress} />}
                   {selectedFile && (
                     <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
                       {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
@@ -1755,6 +1862,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       existingFileUrl={progressionContent.resourceUrl}
                     />
                   )}
+                  {uploadingFile && <Progress value={uploadProgress} />}
                   {selectedFile && (
                     <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
                       {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
@@ -1904,7 +2012,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       </Card>
 
       {/* Dialog pour éditer une progression */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+  <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
         setIsEditDialogOpen(open);
         if (!open) {
           resetDialog();
@@ -1922,15 +2030,15 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             <div className="flex gap-2 mb-4">
               <Button
                 type="button"
-                variant={contentPreset === 'text' ? 'default' : 'outline'}
+                variant={editContentPreset === 'text' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setContentPreset('text');
-                  setProgressionContent(prev => ({
+                  setEditContentPreset('text');
+                  setEditProgressionContent(prev => ({
                     ...prev,
                     contentType: 'text'
                   }));
-                  handleFileRemove();
+                  handleEditFileRemove();
                 }}
               >
                 <Description className="mr-2 h-4 w-4" />
@@ -1938,29 +2046,32 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               </Button>
               <Button
                 type="button"
-                variant={contentPreset === 'video' ? 'default' : 'outline'}
+                variant={editContentPreset === 'video' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setContentPreset('video');
-                  setProgressionContent(prev => ({
+                  setEditContentPreset('video');
+                  setEditProgressionContent(prev => ({
                     ...prev,
                     contentType: 'video'
                   }));
-                  handleFileRemove();
+                  handleEditFileRemove();
                 }}
               >
                 📹 Vidéo
               </Button>
               <Button
                 type="button"
-                variant={contentPreset === 'image' ? 'default' : 'outline'}
+                variant={editContentPreset === 'image' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setContentPreset('image');
-                  setProgressionContent(prev => ({
+                  setEditContentPreset('image');
+                  setEditProgressionContent(prev => ({
                     ...prev,
-                    contentType: 'image'
+                    contentType: 'image',
+                    resourceUrl: ''
                   }));
+                  setEditSelectedFile(null);
+                  setEditFilePreview(null);
                 }}
               >
                 <PhotoCamera className="mr-2 h-4 w-4" />
@@ -1968,14 +2079,17 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               </Button>
               <Button
                 type="button"
-                variant={contentPreset === 'pdf' ? 'default' : 'outline'}
+                variant={editContentPreset === 'pdf' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setContentPreset('pdf');
-                  setProgressionContent(prev => ({
+                  setEditContentPreset('pdf');
+                  setEditProgressionContent(prev => ({
                     ...prev,
-                    contentType: 'pdf'
+                    contentType: 'pdf',
+                    resourceUrl: ''
                   }));
+                  setEditSelectedFile(null);
+                  setEditFilePreview(null);
                 }}
               >
                 <PictureAsPdf className="mr-2 h-4 w-4" />
@@ -1987,103 +2101,105 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             <Input
               type="text"
               placeholder="Titre"
-              value={progressionContent.title}
-              onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+              value={editProgressionContent.title}
+              onChange={(e) => setEditProgressionContent(prev => ({ ...prev, title: e.target.value }))}
             />
 
             {/* Gestion des fichiers pour image et PDF */}
-            {contentPreset === 'image' && (
+            {editContentPreset === 'image' && (
               <div className="space-y-4">
                 <label className="text-sm font-medium">Image</label>
-                {selectedFile && filePreview ? (
+                {editSelectedFile && editFilePreview ? (
                   <ImagePreview
-                    src={filePreview}
+                    src={editFilePreview}
                     alt="Preview"
-                    filename={selectedFile.name}
-                    onRemove={handleFileRemove}
+                    filename={editSelectedFile.name}
+                    onRemove={handleEditFileRemove}
                   />
-                ) : progressionContent.resourceUrl ? (
+                ) : editProgressionContent.resourceUrl ? (
                   <ImagePreview
-                    src={progressionContent.resourceUrl}
+                    src={editProgressionContent.resourceUrl}
                     alt="Current image"
-                    onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                    onRemove={() => setEditProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
                   />
                 ) : (
                   <SmartFileUploader
-                    onFileSelect={handleFileSelect}
-                    onFileReject={handleFileReject}
+                    onFileSelect={handleEditFileSelect}
+                    onFileReject={handleEditFileReject}
                     fileType="image"
                     className="border-blue-200 bg-blue-50"
-                    existingFileUrl={progressionContent.resourceUrl}
+                    existingFileUrl={editProgressionContent.resourceUrl}
                   />
                 )}
-                {selectedFile && !progressionContent.resourceUrl && (
+                {editUploadingFile && <Progress value={editUploadProgress} />}
+                {editSelectedFile && !editProgressionContent.resourceUrl && (
                   <Button 
-                    onClick={handleFileUpload} 
-                    disabled={uploadingFile || !!progressionContent.resourceUrl}
-                    className={progressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
+                    onClick={handleEditFileUpload} 
+                    disabled={editUploadingFile || !!editProgressionContent.resourceUrl}
+                    className={editProgressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
                   >
-                    {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
+                    {editUploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
                   </Button>
                 )}
               </div>
             )}
 
-            {contentPreset === 'pdf' && (
+            {editContentPreset === 'pdf' && (
               <div className="space-y-4">
                 <label className="text-sm font-medium">Document PDF</label>
-                {selectedFile ? (
+                {editSelectedFile ? (
                   <PDFViewer
-                    src={URL.createObjectURL(selectedFile)}
-                    filename={selectedFile.name}
-                    onRemove={handleFileRemove}
+                    src={URL.createObjectURL(editSelectedFile)}
+                    filename={editSelectedFile.name}
+                    onRemove={handleEditFileRemove}
                     showControls={false}
                   />
-                ) : progressionContent.resourceUrl ? (
+                ) : editProgressionContent.resourceUrl ? (
                   <PDFViewer
-                    src={progressionContent.resourceUrl}
+                    src={editProgressionContent.resourceUrl}
                     filename="Document actuel"
-                    onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                    onRemove={() => setEditProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
                     isEmbedded={true}
                   />
                 ) : (
                   <SmartFileUploader
-                    onFileSelect={handleFileSelect}
-                    onFileReject={handleFileReject}
+                    onFileSelect={handleEditFileSelect}
+                    onFileReject={handleEditFileReject}
                     fileType="pdf"
                     className="border-red-200 bg-red-50"
-                    existingFileUrl={progressionContent.resourceUrl}
+                    existingFileUrl={editProgressionContent.resourceUrl}
                   />
                 )}
-                {selectedFile && !progressionContent.resourceUrl && (
+                {editUploadingFile && <Progress value={editUploadProgress} />}
+                {editSelectedFile && !editProgressionContent.resourceUrl && (
                   <Button 
-                    onClick={handleFileUpload} 
-                    disabled={uploadingFile || !!progressionContent.resourceUrl}
-                    className={progressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
+                    onClick={handleEditFileUpload} 
+                    disabled={editUploadingFile || !!editProgressionContent.resourceUrl}
+                    className={editProgressionContent.resourceUrl ? 'opacity-50 cursor-not-allowed' : ''}
                   >
-                    {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
+                    {editUploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
                   </Button>
                 )}
               </div>
             )}
 
             {/* URL de ressource pour vidéo ou si pas de fichier uploadé */}
-            {(contentPreset === 'video' || 
-              ((contentPreset === 'image' || contentPreset === 'pdf') && !selectedFile && !progressionContent.resourceUrl)
+            {(editContentPreset === 'video' || 
+              ((editContentPreset === 'image' || editContentPreset === 'pdf') && !editSelectedFile && !editProgressionContent.resourceUrl)
             ) && (
               <Input
                 type="url"
-                placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
-                value={progressionContent.resourceUrl}
-                onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+                placeholder={`URL ${editContentPreset === 'video' ? 'de la vidéo' : editContentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+                value={editProgressionContent.resourceUrl}
+                onChange={(e) => setEditProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
               />
             )}
 
             {/* Éditeur de texte enrichi */}
             <div className="border rounded-lg p-2">
               <RichTextEditor
-                value={progressionContent.content}
-                onChange={(value) => setProgressionContent(prev => ({ ...prev, content: value }))}
+                value={editProgressionContent.content}
+                onChange={(value) => setEditProgressionContent(prev => ({ ...prev, content: value }))}
                 placeholder="Contenu de la progression..."
               />
             </div>
@@ -2093,17 +2209,17 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               <div className="flex-1">
                 <label className="text-sm font-medium">Icône</label>
                 <IconPicker
-                  value={progressionContent.icon}
+                  value={editProgressionContent.icon}
                   onChange={(icon) => {
-                    setProgressionContent(prev => ({ ...prev, icon }));
+                    setEditProgressionContent(prev => ({ ...prev, icon }));
                   }}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Couleur de l&apos;icône</label>
                 <ColorPicker
-                  value={progressionContent.iconColor}
-                  onChange={(color) => setProgressionContent(prev => ({ ...prev, iconColor: color }))}
+                  value={editProgressionContent.iconColor}
+                  onChange={(color) => setEditProgressionContent(prev => ({ ...prev, iconColor: color }))}
                 />
               </div>
             </div>

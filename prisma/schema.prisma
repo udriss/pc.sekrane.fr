@@ -70,7 +70,7 @@ model Progression {
   icon          String?
   iconColor     String?
   contentType   String
-  resourceUrl   String?
+  resourceUrl   String?  @db.VarChar(1024)
   order         Int      @default(0)  // Nouveau champ
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
