@@ -89,7 +89,7 @@ export default function Page() {
           {error}
         </Alert>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Impossible de charger les données de session. Veuillez retourner à la page d'accueil.
+          Impossible de charger les données de session. Veuillez retourner à la page d&apos;accueil.
         </Typography>
         <button 
           onClick={() => router.push('/escapenext')}
@@ -102,7 +102,7 @@ export default function Page() {
             cursor: 'pointer'
           }}
         >
-          Retour à l'accueil
+          Retour à l&apos;accueil
         </button>
       </Box>
     );

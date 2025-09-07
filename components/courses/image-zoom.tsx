@@ -1,4 +1,5 @@
 import React, { useState, MouseEvent } from 'react';
+import Image from 'next/image';
 
 interface ImageZoomProps {
   src: string;
@@ -27,16 +28,15 @@ const ImageZoom: React.FC<ImageZoomProps> = ({ src, alt }) => {
       }}
       onClick={handleZoom}
     >
-      <img
+            <Image
         src={src}
         alt={alt || 'Zoomable'}
+        fill
         style={{
+          objectFit: 'contain',
           transform: zoom ? 'scale(2)' : 'scale(1)',
           transformOrigin: `${origin.x}% ${origin.y}%`,
-          transition: 'transform 0.3s ease',
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain'
+          transition: 'transform 0.3s ease'
         }}
       />
     </div>

@@ -45,7 +45,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
     };
 
     fetchData();
-  }, []);
+  }, [setCourses, setClasses]);
 
   const handleAddFile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,7 +215,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           </Select>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Nom de l'activité</label>
+          <label className="text-sm font-medium">Nom de l&apos;activité</label>
           <Input
             type="text"
             value={ActivityTitle}

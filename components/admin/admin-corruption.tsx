@@ -1,6 +1,6 @@
 // /components/admin/admin-corruption.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
@@ -580,9 +580,20 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }));
   };
 
+    const handleClasseChange = useCallback((classeId: string) => {
+    setSelectedClasse(classeId);
+    const classe = classes && Array.isArray(classes)
+      ? classes.find(classe => classe.id === classeId)
+      : null;
+    if (classe) {
+      const associatedCourses = courses.filter(course => classe.associated_courses.includes(course.id));
+      setAssociatedCourses(associatedCourses);
+    }
+  }, [classes, courses]);
+
   useEffect(() => {
     handleClasseChange(selectedClasse);
-  }, [classes]);
+  }, [classes, handleClasseChange, selectedClasse]);
   
   const handleSaveCourseDetails = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -639,16 +650,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     }
   };
 
-  const handleClasseChange = (classeId: string) => {
-    setSelectedClasse(classeId);
-    const classe = classes && Array.isArray(classes)
-      ? classes.find(classe => classe.id === classeId)
-      : null;
-    if (classe) {
-      const associatedCourses = courses.filter(course => classe.associated_courses.includes(course.id));
-      setAssociatedCourses(associatedCourses);
-    }
-  };
+
   
   
   // RAPIDE ICI 
@@ -712,7 +714,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       updateCourseData();
       setupdateFormerActivity(false);
     }
-  }, [updateFormerActivity]);
+  }, [updateFormerActivity, setCourses, setClasses]);
 
 
   // Ajouter cette fonction avec les autres handlers
@@ -925,7 +927,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     setEditProgressionContent({
       title: progression.title,
       content: progression.content,
-      icon: progression.icon || 'edit',
+      icon: progression.icon, // Keep null if no icon
       iconColor: progression.iconColor || '#3f51b5',
       contentType: progression.contentType,
       resourceUrl: progression.resourceUrl || ''
@@ -2026,8 +2028,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
         </div>
       </Card>
 
-      {/* Dialog pour éditer une progression */}
-  <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+    {/* Dialog pour éditer une progression */}
+  <Dialog modal={false} open={isEditDialogOpen} onOpenChange={(open) => {
         setIsEditDialogOpen(open);
         if (!open) {
           resetDialog();
@@ -2088,7 +2090,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   handleEditFileRemove();
                 }}
               >
-                📹 Vidéo
+                <VideoLibrary className="mr-2 h-4 w-4" />
+                Vidéo
               </Button>
               <Button
                 type="button"

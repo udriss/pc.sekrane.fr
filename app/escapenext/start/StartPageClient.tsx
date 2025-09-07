@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import QuestionDisplay from '@/app/escapenext/start/QuestionDisplay';
 import IndiceDisplay from '@/app/escapenext/IndiceDisplay';
 import IndiceTimeline from '@/app/escapenext/IndiceTimeline';
@@ -191,11 +191,11 @@ const StartPageClient: React.FC<StartPageProps> = ({
   );
 
   // Calculate progress based on answered questions
-  const calculateProgress = () => {
+  const calculateProgress = useCallback(() => {
     const totalAnswered = answeredQuestions.S.length + answeredQuestions.C.length + answeredQuestions.R.length;
     const totalQuestions = questions.structure.length + questions.conquete.length + questions.rebus.length;
     return totalQuestions > 0 ? Math.round((totalAnswered / totalQuestions) * 100) : 0;
-  };
+  }, [answeredQuestions, questions]);
   
   const [progress, setProgress] = useState<number>(calculateProgress());
 
@@ -203,7 +203,7 @@ const StartPageClient: React.FC<StartPageProps> = ({
     // Update progress when answered questions change
     setProgress(calculateProgress());
     setTotalScore(scores.S + scores.C + scores.R + scores.E);
-  }, [answeredQuestions, scores]);
+  }, [answeredQuestions, scores, calculateProgress]);
 
   // Function to save game progress with updated data
   const saveGameProgressWithData = async (updatedAnsweredQuestions: AnsweredQuestions, updatedScores: { S: number; C: number; R: number; E: number }) => {

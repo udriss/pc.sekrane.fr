@@ -75,10 +75,13 @@ export default function CoursesPage() {
     return a.title.localeCompare(b.title);
   });
 
-  // Get classes with progression enabled
-  const classesWithProgression = classes.filter(classe => 
-    classe.hasProgression && selectedClasses.includes(classe.name)
-  );
+  // If exactly one class is selected and it has progression enabled, show its progression
+  const singleSelectedClasse =
+    selectedClasses.length === 1
+      ? classes.find(
+          (classe) => classe.name === selectedClasses[0] && classe.hasProgression
+        )
+      : undefined;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -287,28 +290,29 @@ export default function CoursesPage() {
         </Paper>
       </Box>
 
-      {/* Progression Cards Section */}
-      {classesWithProgression.length > 0 && (
+      {/* Progression Section: visible only when exactly one class is selected */}
+      {singleSelectedClasse && (
         <>
-          <Typography 
-            variant="h4" 
-            component="h2" 
-            sx={{ 
-              mb: 3, 
+          <Typography
+            variant="h4"
+            component="h2"
+            sx={{
+              mb: 3,
               mt: 6,
-              textAlign: 'center', 
+              textAlign: 'center',
               fontWeight: 'bold',
-              color: '#6b21a8'
+              color: '#6b21a8',
             }}
           >
-            Progressions
+            Progression
           </Typography>
           <Grid container spacing={3} sx={{ mb: 6 }}>
-            {classesWithProgression.map((classe) => (
-              <Grid size={{ xs: 12, sm: 12, md: 6, lg: 4 }} key={`prog-${classe.id}`}>
-                <ProgressionCard classeId={classe.id} classeName={classe.name} />
-              </Grid>
-            ))}
+            <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12 }} key={`prog-${singleSelectedClasse.id}`}>
+              <ProgressionCard
+                classeId={singleSelectedClasse.id}
+                classeName={singleSelectedClasse.name}
+              />
+            </Grid>
           </Grid>
         </>
       )}

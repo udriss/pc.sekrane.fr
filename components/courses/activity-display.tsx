@@ -259,7 +259,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   useEffect(() => {
     async function fetchCourse() {
       if (courseId) {
-        
+
         const res = await fetch(`/api/courses/${courseId}`);
         if (res.status === 404) {
           router.push('/not-found');
@@ -275,7 +275,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
       }
     }
     fetchCourse();
-  }, [courseId]);
+  }, [courseId, router]);
 
   const handleSelectActivity = (fileUrl: string, type: string, activity: Activity) => {
     if (type === 'ipynb') {

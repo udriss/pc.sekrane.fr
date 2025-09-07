@@ -43,11 +43,13 @@ export function SortableProgression({ progression, onEdit, onDelete }: SortableP
       </div>
 
       <div className="flex-1 flex items-center space-x-3">
-        <MaterialIcon 
-          name={progression.icon || 'edit'} 
-          className="w-5 h-5"
-          style={{ color: progression.iconColor || '#000' }}
-        />
+        {progression.icon && progression.icon !== 'none' && (
+          <MaterialIcon 
+            name={progression.icon} 
+            className="w-5 h-5"
+            style={{ color: progression.iconColor || '#000' }}
+          />
+        )}
         <div className="flex-1">
           <div className="font-medium">{progression.title}</div>
           <div className="text-sm text-gray-500">

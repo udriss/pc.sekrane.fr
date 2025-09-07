@@ -456,3 +456,8 @@ input:checked + .checkboxSliderAdmin:before  {
   background-color: rgb(249 250 251);
   font-weight: 600;
 }
+
+/* Fix pointer events for Radix Popover inside Dialog: ensure wrapper gets events */
+[data-radix-popper-content-wrapper] {
+  pointer-events: auto !important;
+}

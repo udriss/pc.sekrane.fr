@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './button';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
   Edit,
@@ -53,7 +52,8 @@ const icons = [
   { icon: Chat, name: 'chat' },
   { icon: PictureAsPdf, name: 'pdf' },
   { icon: VideoLibrary, name: 'video' },
-  { icon: Description, name: 'text' }
+  { icon: Description, name: 'text' },
+  { icon: null, name: 'none' }
 ];
 
 interface IconPickerProps {
@@ -63,38 +63,43 @@ interface IconPickerProps {
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
   const [open, setOpen] = useState(false);
-  // Ensure the popover content is portaled inside the Dialog content when used within a Dialog
   const [container, setContainer] = useState<HTMLElement | null>(null);
-  React.useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const el = document.querySelector('[data-radix-dialog-content]') as HTMLElement | null;
-      setContainer(el || document.body);
+  const triggerRef = useRef<HTMLSpanElement | null>(null);
+
+  // When opening, resolve the nearest dialog content as the portal container
+  useEffect(() => {
+    if (open) {
+      setContainer(document.body);
     }
-  }, []);
+  }, [open]);
 
   const getIconComponent = (iconName: string) => {
     const iconData = icons.find(i => i.name === iconName);
-    if (!iconData) {
-      return Edit; // Default icon
+    if (!iconData || !iconData.icon) {
+      return null; // No icon
     }
     return iconData.icon;
   };
 
-  const CurrentIcon = getIconComponent(value || 'edit');
+  const CurrentIcon = getIconComponent(value && value !== 'none' ? value : '');
 
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={setOpen} modal={false}>
       <PopoverPrimitive.Trigger asChild>
-        <Button type="button" variant="outline" className="w-full justify-start">
-          <CurrentIcon className="mr-2 h-5 w-5" />
-          <span>Choisir une icône</span>
-        </Button>
+        <span ref={triggerRef} className="inline-block w-full">
+          <Button type="button" variant="outline" className="w-full justify-start">
+            {CurrentIcon ? <CurrentIcon className="mr-2 h-5 w-5" /> : <div className="w-5 h-5 mr-2"></div>}
+            <span>Choisir une icône</span>
+          </Button>
+        </span>
       </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal container={container ?? undefined}>
-        <PopoverPrimitive.Content 
-          className="w-64 z-[9999] bg-white border border-gray-200 rounded-md shadow-lg p-2"
+      <PopoverPrimitive.Portal container={container ?? (typeof document !== 'undefined' ? document.body : undefined)}>
+        <PopoverPrimitive.Content
+          className="w-64 z-[99999] bg-white border border-gray-200 rounded-md shadow-lg p-2 pointer-events-auto"
           sideOffset={5}
+          avoidCollisions={true}
           onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="grid grid-cols-5 gap-2">
             {icons.map((iconData) => {
@@ -110,7 +115,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                     setOpen(false);
                   }}
                 >
-                  <IconComponent className="h-4 w-4" />
+                  {IconComponent ? <IconComponent className="h-4 w-4" /> : <div className="w-4 h-4"></div>}
                 </Button>
               );
             })}

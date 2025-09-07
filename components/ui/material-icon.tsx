@@ -58,8 +58,10 @@ interface MaterialIconProps {
 }
 
 export function MaterialIcon({ name = 'edit', className = '', style }: MaterialIconProps) {
+  if (!name || name === 'none') {
+    return null;
+  }
   const IconComponent = iconMap[name] || Edit;
-  
   return <IconComponent className={className} style={style} />;
 }
 

@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { MaterialIcon } from '@/components/ui/material-icon';
 import Image from 'next/image';
 import { CalendarMonth, VideoLibrary, PictureAsPdf } from '@mui/icons-material';
+import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress } from '@mui/material';
 interface Progression {
   id: string;
   date: Date;
@@ -30,7 +26,6 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
   const [progressions, setProgressions] = useState<Progression[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedProgressions, setSelectedProgressions] = useState<Progression[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProgressions = useCallback(async () => {
@@ -56,54 +51,59 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
     return progressions.map(p => new Date(p.date));
   };
 
-  const getProgressionsForDate = (date: Date) => {
+  const getProgressionsForDate = useCallback((date: Date) => {
     return progressions.filter(p => {
       const progressionDate = new Date(p.date);
       return progressionDate.toDateString() === date.toDateString();
     });
-  };
+  }, [progressions]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    if (date) {
-      const dateProgressions = getProgressionsForDate(date);
-      if (dateProgressions.length > 0) {
-        setSelectedProgressions(dateProgressions);
-        setIsDialogOpen(true);
-      }
-    }
   };
+
+  // Keep right pane in sync with current date selection
+  useEffect(() => {
+    if (selectedDate) {
+      setSelectedProgressions(getProgressionsForDate(selectedDate));
+    } else {
+      setSelectedProgressions([]);
+    }
+  }, [selectedDate, progressions, getProgressionsForDate]);
 
   const renderContent = (progression: Progression) => {
     switch (progression.contentType) {
       case 'video':
         return (
-          <div className="space-y-4">
+          <Box sx={{ '& > * + *': { mt: 2 } }}>
             {progression.content && (
-              <div 
+              <Box
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: progression.content }} 
+                dangerouslySetInnerHTML={{ __html: progression.content }}
               />
             )}
             {progression.resourceUrl && (
-              <a 
-                href={progression.resourceUrl} 
-                target="_blank" 
+              <Button
+                component="a"
+                href={progression.resourceUrl}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                variant="contained"
+                color="inherit"
+                sx={{ bgcolor: 'grey.900', color: 'common.white', '&:hover': { bgcolor: 'grey.800' } }}
+                startIcon={<VideoLibrary className="h-4 w-4" />}
               >
-                <VideoLibrary className="mr-2 h-4 w-4" />
                 Regarder la vidéo
-              </a>
+              </Button>
             )}
-          </div>
+          </Box>
         );
       case 'image':
         return (
-          <div className="space-y-4">
+          <Box sx={{ '& > * + *': { mt: 2 } }}>
             {progression.resourceUrl && (
-              <div className="flex justify-center">
-                <div className="relative w-full max-w-3xl" style={{ aspectRatio: '4 / 3' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ position: 'relative', width: '100%', maxWidth: 960, aspectRatio: '4 / 3' }}>
                   <Image
                     src={progression.resourceUrl}
                     alt={progression.title}
@@ -112,158 +112,181 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
                     sizes="(max-width: 768px) 100vw, 768px"
                     priority={false}
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
             {progression.content && (
-              <div 
+              <Box
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: progression.content }} 
+                dangerouslySetInnerHTML={{ __html: progression.content }}
               />
             )}
-          </div>
+          </Box>
         );
       case 'pdf':
         return (
-          <div className="space-y-4">
+          <Box sx={{ '& > * + *': { mt: 2 } }}>
             {progression.content && (
-              <div 
+              <Box
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: progression.content }} 
+                dangerouslySetInnerHTML={{ __html: progression.content }}
               />
             )}
             {progression.resourceUrl && (
-              <div className="border border-red-200 rounded-lg overflow-hidden bg-red-50">
-                <div className="flex items-center justify-between p-4 bg-red-100 border-b border-red-200">
-                  <div className="flex items-center space-x-2">
-                    <PictureAsPdf className="h-5 w-5 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">Document PDF</span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <a
+              <Box sx={{ border: '1px solid', borderColor: 'grey.300', borderRadius: 1, overflow: 'hidden', bgcolor: 'grey.50' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: 'grey.100', borderBottom: '1px solid', borderColor: 'grey.300' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PictureAsPdf className="h-5 w-5" color="error" />
+                    <Typography variant="body2" fontWeight={600} color="text.primary">Document PDF</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      component="a"
                       href={progression.resourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                      variant="contained"
+                      color="inherit"
+                      sx={{ bgcolor: 'grey.900', color: 'common.white', '&:hover': { bgcolor: 'grey.800' } }}
+                      size="small"
                     >
                       Ouvrir
-                    </a>
-                    <a
+                    </Button>
+                    <Button
+                      component="a"
                       href={progression.resourceUrl}
                       download
-                      className="inline-flex items-center px-3 py-1 text-xs border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition-colors"
+                      variant="outlined"
+                      color="inherit"
+                      sx={{ borderColor: 'grey.700', color: 'grey.900', '&:hover': { borderColor: 'grey.900', bgcolor: 'grey.100' } }}
+                      size="small"
                     >
                       Télécharger
-                    </a>
-                  </div>
-                </div>
-                <div className="bg-white">
-                  <iframe
+                    </Button>
+                  </Box>
+                </Box>
+                <Box sx={{ bgcolor: 'white' }}>
+                  <Box
+                    component="iframe"
                     src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                    width="100%"
-                    height="300px"
-                    className="border-0"
+                    sx={{ width: '100%', height: 300, border: 0 }}
                     title="PDF Document"
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-          </div>
+          </Box>
         );
       default:
         return (
-          <div 
+          <Box
             className="prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: progression.content }} 
+            dangerouslySetInnerHTML={{ __html: progression.content }}
           />
         );
     }
   };
 
   return (
-    <>
-      <Card className="h-full bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between">
-            <span className="text-purple-800 flex items-center">
-              <CalendarMonth className="mr-2 h-5 w-5" />
-              Progression - {classeName}
-            </span>
-            <Badge variant="secondary" className="bg-purple-200 text-purple-800">
-              {progressions.length} entrées
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            </div>
-          ) : (
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              locale={fr}
-              className="rounded-md border-purple-200"
-              modifiers={{
-                hasProgression: getDatesWithProgression()
-              }}
-              modifiersStyles={{
-                hasProgression: {
-                  backgroundColor: '#e9d5ff',
-                  color: '#6b21a8',
-                  fontWeight: 'bold'
-                }
-              }}
-            />
-          )}
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            Cliquez sur une date en surbrillance pour voir les progressions
-          </p>
-        </CardContent>
-      </Card>
+    <Paper elevation={2} sx={{ height: '100%', bgcolor: 'common.white', border: '1px solid', borderColor: 'grey.200' }}>
+      <Box sx={{ pb: 1.5, px: 2, pt: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
+            <CalendarMonth className="mr-2 h-5 w-5" />
+            Progression - {classeName}
+          </Typography>
+          <Chip label={`${progressions.length} entrées`} variant="outlined" />
+        </Box>
+      </Box>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <Grid container spacing={3}>
+          {/* Calendar Column */}
+          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, width: '100%' }}>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 256, width: '100%', color: 'grey.600' }}>
+                  <CircularProgress color="inherit" />
+                </Box>
+              ) : (
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  locale={fr}
+                  className="rounded-md border-gray-200 w-full"
+                  classNames={{
+                    months: 'w-full',
+                    month: 'w-full',
+                    table: 'w-full',
+                    head_row: 'grid grid-cols-7 w-full',
+                    head_cell: 'text-muted-foreground rounded-md font-normal text-[0.8rem] text-center',
+                    row: 'grid grid-cols-7 w-full mt-2',
+                    cell: 'p-0 relative min-h-[44px] sm:min-h-[52px] md:min-h-[60px]',
+                    day: 'absolute inset-0 flex items-center justify-center !p-0 rounded-md m-1',
+                    day_selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground border-2 border-blue-800 rounded-md',
+                  }}
+                  modifiers={{
+                    hasProgression: getDatesWithProgression(),
+                    selectedHasProgression: selectedDate ? getDatesWithProgression().filter(d => d.toDateString() === selectedDate.toDateString()) : [],
+                  }}
+                  modifiersStyles={{
+                    hasProgression: {
+                      backgroundColor: '#9fcbf8ff',
+                      color: '#111827',
+                      fontWeight: 'bold',
+                    },
+                    selectedHasProgression: {
+                      border: '2px solid #1e40af',
+                      borderRadius: '4px',
+                    },
+                  }}
+                />
+              )}
+            </Box>
+          </Grid>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] w-full">
-          {selectedProgressions.length > 0 && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <CalendarMonth className="h-6 w-6 text-purple-600" />
-                  Progressions du {format(new Date(selectedProgressions[0].date), 'EEEE dd MMMM yyyy', { locale: fr })}
-                </DialogTitle>
-                <p className="text-sm text-gray-600">
-                  {selectedProgressions.length} progression{selectedProgressions.length > 1 ? 's' : ''} disponible{selectedProgressions.length > 1 ? 's' : ''}
-                </p>
-              </DialogHeader>
-              <ScrollArea className="mt-4 max-h-[60vh]">
-                <div className="pr-4 space-y-6">
-                  {selectedProgressions.map((progression, index) => (
-                    <div key={progression.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                      <div className="flex items-center gap-2 mb-3">
-                        <MaterialIcon 
-                          name={progression.icon || 'edit'} 
-                          className="h-5 w-5"
-                          style={{ color: progression.iconColor || '#000' }}
-                        />
-                        <h3 className="text-lg font-semibold">{progression.title}</h3>
-                        <Badge 
-                          variant="outline" 
-                          className="ml-auto"
-                        >
-                          {progression.contentType}
-                        </Badge>
-                      </div>
-                      {renderContent(progression)}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+          {/* Content Column */}
+          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
+            {selectedDate && selectedProgressions.length > 0 ? (
+              <>
+                <Box sx={{ mb: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CalendarMonth className="h-6 w-6 text-purple-600" />
+                    <Typography variant="h6" component="h2">
+                      {`Progressions du ${format(new Date(selectedProgressions[0].date), 'EEEE dd MMMM yyyy', { locale: fr })}`}
+                    </Typography>
+                    <Chip label={`${selectedProgressions.length} progression${selectedProgressions.length > 1 ? 's' : ''}`} variant="outlined" sx={{ ml: 'auto' }} />
+                  </Box>
+                </Box>
+                <Box sx={{ maxHeight: '60vh', overflowY: 'auto', pr: 2 }}>
+                  <Box sx={{ '& > * + *': { mt: 3 } }}>
+                    {selectedProgressions.map((progression) => (
+                      <Box key={progression.id} sx={{ pb: 3, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none', pb: 0 } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                          {progression.icon && progression.icon !== 'none' && (
+                            <MaterialIcon
+                              name={progression.icon}
+                              className="h-5 w-5"
+                              style={{ color: progression.iconColor || '#000' }}
+                            />
+                          )}
+                          <Typography variant="subtitle1" fontWeight={600}>{progression.title}</Typography>
+                          <Chip label={progression.contentType} variant="outlined" sx={{ ml: 'auto' }} />
+                        </Box>
+                        {renderContent(progression)}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, textAlign: 'center', color: 'text.secondary' }}>
+                Cliquez sur une date en surbrillance pour voir les progressions
+              </Box>
+            )}
+          </Grid>
+        </Grid>
+      </Box>
+    </Paper>
   );
 }

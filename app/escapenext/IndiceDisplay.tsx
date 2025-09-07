@@ -76,7 +76,7 @@ const IndiceDisplay: React.FC<IndiceDisplayProps> = ({ scoreS, scoreC, scoreR })
       </Typography>
       
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Pour débloquer plus d'indices, améliorez vos scores dans chaque catégorie.
+        Pour débloquer plus d&apos;indices, améliorez vos scores dans chaque catégorie.
       </Typography>
       
       {unlockedCount > 0 ? (
@@ -120,7 +120,7 @@ const IndiceDisplay: React.FC<IndiceDisplayProps> = ({ scoreS, scoreC, scoreR })
           border: '1px dashed #ccc'
         }}>
           <Typography variant="overline" color="text.secondary">
-            Aucun indice débloqué pour l'instant.
+            Aucun indice débloqué pour l&apos;instant.
           </Typography>
         </Box>
       )}

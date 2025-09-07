@@ -173,7 +173,7 @@ const EnigmeDisplay: React.FC<EnigmeDisplayProps> = ({
       
       <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Progressez dans chaque catégorie pour débloquer des indices qui vous permettront d'accéder aux énigmes spéciales.
+          Progressez dans chaque catégorie pour débloquer des indices qui vous permettront d&apos;accéder aux énigmes spéciales.
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" sx={{ mr: 2, fontWeight: 'medium' }}>
@@ -288,11 +288,11 @@ const EnigmeDisplay: React.FC<EnigmeDisplayProps> = ({
                     <Box sx={{ textAlign: 'center' }}>
                       {enigme.id === 3 ? (
                         <Typography variant="body2" color="text.secondary">
-                          Verrouillé • Terminez l'Énigme 3 pour débloquer
+                          Verrouillé • Terminez l&apos;Énigme 3 pour débloquer
                         </Typography>
                       ) : enigme.id === 4 ? (
                         <Typography variant="body2" color="text.secondary">
-                          Verrouillé • Terminez l'Énigme 4 pour débloquer
+                          Verrouillé • Terminez l&apos;Énigme 4 pour débloquer
                         </Typography>
                       ) : (
                         <Typography variant="body2" color="text.secondary">
