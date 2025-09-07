@@ -149,6 +149,14 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [editUploadingFile, setEditUploadingFile] = useState<boolean>(false);
   const [editUploadProgress, setEditUploadProgress] = useState<number>(0);
 
+  // Cache per preset to restore original content when toggling presets in the edit dialog
+  const [editPresetCache, setEditPresetCache] = useState<Record<'text'|'video'|'image'|'pdf', { resourceUrl?: string; title?: string; content?: string }>>({
+    text: {},
+    video: {},
+    image: {},
+    pdf: {},
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       const fetchRes = await fetch('/api/courses');
@@ -929,6 +937,13 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     setEditUploadingFile(false);
     setEditUploadProgress(0);
     setIsEditDialogOpen(true);
+
+    // Initialize cache for current progression types
+    setEditPresetCache(prev => ({
+      ...prev,
+      [progression.contentType as 'text'|'video'|'image'|'pdf']:
+        { resourceUrl: progression.resourceUrl || '', title: progression.title, content: progression.content }
+    }));
   };
 
   // Fonction pour sauvegarder les modifications
@@ -2033,10 +2048,19 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 variant={editContentPreset === 'text' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
+                  // cache current preset values
+                  setEditPresetCache(prev => ({
+                    ...prev,
+                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                  }));
                   setEditContentPreset('text');
                   setEditProgressionContent(prev => ({
                     ...prev,
-                    contentType: 'text'
+                    contentType: 'text',
+                    // restore cached values if any
+                    resourceUrl: editPresetCache.text.resourceUrl || '',
+                    title: editPresetCache.text.title || prev.title,
+                    content: editPresetCache.text.content || prev.content
                   }));
                   handleEditFileRemove();
                 }}
@@ -2049,10 +2073,17 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 variant={editContentPreset === 'video' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
+                  setEditPresetCache(prev => ({
+                    ...prev,
+                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                  }));
                   setEditContentPreset('video');
                   setEditProgressionContent(prev => ({
                     ...prev,
-                    contentType: 'video'
+                    contentType: 'video',
+                    resourceUrl: editPresetCache.video.resourceUrl || '',
+                    title: editPresetCache.video.title || prev.title,
+                    content: editPresetCache.video.content || prev.content
                   }));
                   handleEditFileRemove();
                 }}
@@ -2064,11 +2095,15 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 variant={editContentPreset === 'image' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
+                  setEditPresetCache(prev => ({
+                    ...prev,
+                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                  }));
                   setEditContentPreset('image');
                   setEditProgressionContent(prev => ({
                     ...prev,
                     contentType: 'image',
-                    resourceUrl: ''
+                    resourceUrl: editPresetCache.image.resourceUrl || ''
                   }));
                   setEditSelectedFile(null);
                   setEditFilePreview(null);
@@ -2082,11 +2117,15 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 variant={editContentPreset === 'pdf' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
+                  setEditPresetCache(prev => ({
+                    ...prev,
+                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                  }));
                   setEditContentPreset('pdf');
                   setEditProgressionContent(prev => ({
                     ...prev,
                     contentType: 'pdf',
-                    resourceUrl: ''
+                    resourceUrl: editPresetCache.pdf.resourceUrl || ''
                   }));
                   setEditSelectedFile(null);
                   setEditFilePreview(null);

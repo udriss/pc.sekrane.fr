@@ -15,7 +15,8 @@ export async function GET() {
       id: classe.id,
       name: classe.name,
       associated_courses: classe.courses.map(course => course.id),
-      toggleVisibilityClasse: classe.toggleVisibilityClasse || false
+      toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
+      hasProgression: classe.hasProgression || false
     }));
 
     const courses: Course[] = coursesData.map(course => ({

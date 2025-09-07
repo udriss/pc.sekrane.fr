@@ -103,14 +103,16 @@ export function ProgressionCard({ classeId, classeName }: ProgressionCardProps) 
           <div className="space-y-4">
             {progression.resourceUrl && (
               <div className="flex justify-center">
-                <Image
-                  src={progression.resourceUrl}
-                  alt={progression.title}
-                  width={800}
-                  height={600}
-                  className="max-w-full rounded-lg shadow-md object-contain"
-                  style={{ maxHeight: '400px' }}
-                />
+                <div className="relative w-full max-w-3xl" style={{ aspectRatio: '4 / 3' }}>
+                  <Image
+                    src={progression.resourceUrl}
+                    alt={progression.title}
+                    fill
+                    className="rounded-lg shadow-md object-contain"
+                    sizes="(max-width: 768px) 100vw, 768px"
+                    priority={false}
+                  />
+                </div>
               </div>
             )}
             {progression.content && (

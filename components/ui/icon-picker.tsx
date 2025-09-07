@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -61,6 +63,14 @@ interface IconPickerProps {
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
   const [open, setOpen] = useState(false);
+  // Ensure the popover content is portaled inside the Dialog content when used within a Dialog
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const el = document.querySelector('[data-radix-dialog-content]') as HTMLElement | null;
+      setContainer(el || document.body);
+    }
+  }, []);
 
   const getIconComponent = (iconName: string) => {
     const iconData = icons.find(i => i.name === iconName);
@@ -73,14 +83,14 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
   const CurrentIcon = getIconComponent(value || 'edit');
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+    <PopoverPrimitive.Root open={open} onOpenChange={setOpen} modal={false}>
       <PopoverPrimitive.Trigger asChild>
         <Button type="button" variant="outline" className="w-full justify-start">
           <CurrentIcon className="mr-2 h-5 w-5" />
           <span>Choisir une icône</span>
         </Button>
       </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Portal container={container ?? undefined}>
         <PopoverPrimitive.Content 
           className="w-64 z-[9999] bg-white border border-gray-200 rounded-md shadow-lg p-2"
           sideOffset={5}
