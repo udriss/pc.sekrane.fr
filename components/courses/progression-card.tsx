@@ -469,47 +469,48 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                   </Box>
                 </Box>
                 <Box sx={{ maxHeight: '60vh', overflowY: 'auto', pr: 2 }}>
-                  <Box sx={{ '& > * + *': { mt: 3 } }}>
+                    <Box sx={{ '& > * + *': { mt: 3 } }}>
                     {selectedProgressions.map((progression) => {
-                      const linkedActivity = progression.linkedActivityId 
-                        ? courses.flatMap(c => c.activities).find(a => a?.id === progression.linkedActivityId)
-                        : null;
+                      const effectiveActivityId = progression.activityId || progression.linkedActivityId;
+                      const linkedActivity = effectiveActivityId 
+                      ? courses.flatMap(c => c.activities).find(a => a?.id === effectiveActivityId)
+                      : null;
                       const linkedCourse = progression.linkedCourseId
-                        ? courses.find(c => c.id === progression.linkedCourseId)
-                        : null;
-                      const activityExists = linkedActivity !== undefined;
+                      ? courses.find(c => c.id === progression.linkedCourseId)
+                      : null;
+                      const activityExists = linkedActivity !== undefined && linkedActivity !== null;
 
                       return (
-                        <Box key={progression.id} sx={{ pb: 3, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none', pb: 0 } }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                            {progression.icon && progression.icon !== 'none' && (
-                              <MaterialIcon
-                                name={progression.icon}
-                                className="h-5 w-5"
-                                style={{ color: progression.iconColor || '#000' }}
-                              />
-                            )}
-                            <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              {progression.title}
-                              {(progression.activityId || progression.contentType === 'activity') && (
-                                <Tooltip title="Réutilisation d’une activité existante">
-                                  <HistoryIcon fontSize="small" color="action" />
-                                </Tooltip>
-                              )}
-                            </Typography>
-                            
-              {(progression.linkedActivityId || progression.activityId) && (
-                              <Chip 
-                label={activityExists ? `Activité: ${linkedActivity?.title}` : 'Activité supprimée'} 
-                                variant="outlined" 
-                                size="small"
-                                color={activityExists ? 'primary' : 'error'}
-                                sx={{ ml: 'auto' }} 
-                              />
-                            )}
-                          </Box>
+                      <Box key={progression.id} sx={{ pb: 3, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none', pb: 0 } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                        {progression.icon && progression.icon !== 'none' && (
+                          <MaterialIcon
+                          name={progression.icon}
+                          className="h-5 w-5"
+                          style={{ color: progression.iconColor || '#000' }}
+                          />
+                        )}
+                        <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {progression.title}
+                          {(progression.activityId || progression.contentType === 'activity') && (
+                          <Tooltip title="Réutilisation d’une activité existante">
+                            <HistoryIcon fontSize="small" color="action" />
+                          </Tooltip>
+                          )}
+                        </Typography>
+                        
+                          {/* {(progression.linkedActivityId || progression.activityId) && (
+                          <Chip 
+                          label={activityExists ? `Activité: ${linkedActivity?.title}` : 'Activité supprimée'} 
+                          variant="outlined" 
+                          size="small"
+                          color={activityExists ? 'primary' : 'error'}
+                          sx={{ ml: 'auto' }} 
+                          />
+                        )} */}
+                        </Box>
                           
-                          {progression.linkedActivityId && !activityExists && (
+                          {(progression.linkedActivityId || progression.activityId) && !activityExists && (
                             <Box sx={{ mb: 2, p: 2, bgcolor: 'error.50', border: '1px solid', borderColor: 'error.200', borderRadius: 1 }}>
                               <Typography variant="body2" color="error.main">
                                 L&apos;activité associée à cette progression a été supprimée.
