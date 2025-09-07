@@ -9,6 +9,8 @@ import { fr } from 'date-fns/locale';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import HistoryIcon from '@mui/icons-material/History';
+import Tooltip from '@mui/material/Tooltip';
  
 interface SortableProgressionProps {
   progression: {
@@ -20,6 +22,7 @@ interface SortableProgressionProps {
     iconColor?: string;
     contentType: string;
     resourceUrl?: string;
+  activityId?: string;
   };
   onEdit: (progression: any) => void;
   onDelete: (progressionId: string) => void;
@@ -51,7 +54,14 @@ export function SortableProgression({ progression, onEdit, onDelete }: SortableP
           />
         )}
         <div className="flex-1">
-          <div className="font-medium">{progression.title}</div>
+          <div className="font-medium flex items-center gap-2">
+            <span>{progression.title}</span>
+            {(progression as any).activityId && (
+              <Tooltip title="Réutilisation d’une activité existante">
+                <HistoryIcon fontSize="small" color="action" />
+              </Tooltip>
+            )}
+          </div>
           <div className="text-sm text-gray-500">
             {format(new Date(progression.date), 'dd MMMM yyyy', { locale: fr })}
           </div>

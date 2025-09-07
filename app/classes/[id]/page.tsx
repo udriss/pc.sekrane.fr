@@ -9,6 +9,7 @@ import { Grid } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Course, Classe } from '@/lib/dataTemplate';
 import { CourseCard } from '@/components/courses/course-card';
 import { ProgressionCard } from '@/components/courses/progression-card';
@@ -52,7 +53,7 @@ export default function ClassePage() {
   }, []);
 
   const classe = classes.find(c => c.id === classeId);
-  const classeName = classe?.name ?? 'Classe';
+  const classeName = classe?.name ?? null;
 
   const classeCourses = useMemo(() =>
     courses.filter(c => c.theClasseId === classeId),
@@ -63,13 +64,23 @@ export default function ClassePage() {
     notFound();
   }
 
+  // While class name is not yet known, show a loading spinner
+  if (classeName === null) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 240 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
         {classeName}
       </Typography>
       <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Chip label={`ID: ${classeId}`} variant="outlined" />
         {initialDate && (
           <Chip label={`Date: ${initialDate.toLocaleDateString('fr-FR')}`} sx={{ ml: 1 }} />
         )}

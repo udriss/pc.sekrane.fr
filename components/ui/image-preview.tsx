@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Typography, 
+  IconButton, 
+  Slider as MuiSlider
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import Image from 'next/image';
 
 interface ImagePreviewProps {
@@ -14,6 +17,8 @@ interface ImagePreviewProps {
   onRemove?: () => void;
   className?: string;
   showSizeControl?: boolean;
+  initialImageSize?: number;
+  onImageSizeChange?: (size: number) => void;
 }
 
 export function ImagePreview({
@@ -22,55 +27,96 @@ export function ImagePreview({
   filename,
   onRemove,
   className,
-  showSizeControl = true
+  showSizeControl = true,
+  initialImageSize = 60,
+  onImageSizeChange
 }: ImagePreviewProps) {
-  const [imageSize, setImageSize] = useState([60]); // Taille en pourcentage
+  const [imageSize, setImageSize] = useState(initialImageSize);
 
-  const sizePercentage = imageSize[0];
+  // Sync with external value changes
+  useEffect(() => {
+    setImageSize(initialImageSize);
+  }, [initialImageSize]);
+
+  const handleSizeChange = (_event: Event, newValue: number | number[]) => {
+    const size = Array.isArray(newValue) ? newValue[0] : newValue;
+    setImageSize(size);
+    if (onImageSizeChange) {
+      onImageSizeChange(size);
+    }
+  };
+
   const maxWidth = Math.min(600, typeof window !== 'undefined' ? window.innerWidth * 0.8 : 600);
-  const currentWidth = (maxWidth * sizePercentage) / 100;
+  const currentWidth = (maxWidth * imageSize) / 100;
 
   return (
-    <div className={cn("border-2 border-dashed border-gray-200 rounded-lg p-4 bg-gray-50", className)}>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <span className="text-sm font-medium text-gray-700">Aperçu de l&apos;image</span>
-          {filename && <p className="text-xs text-gray-500">{filename}</p>}
-        </div>
+    <Box 
+      className={className}
+      sx={{ 
+        border: '2px dashed', 
+        borderColor: 'grey.300', 
+        borderRadius: 2, 
+        p: 2, 
+        bgcolor: 'grey.50' 
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box>
+          <Typography variant="body2" fontWeight={600} color="text.primary">
+            Aperçu de l&apos;image
+          </Typography>
+          {filename && (
+            <Typography variant="caption" color="text.secondary">
+              {filename}
+            </Typography>
+          )}
+        </Box>
         {onRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
+          <IconButton
             onClick={onRemove}
-            className="h-6 w-6 p-0 hover:bg-red-100"
+            size="small"
+            sx={{ 
+              bgcolor: 'background.paper',
+              '&:hover': { 
+                bgcolor: 'error.light',
+                '& .MuiSvgIcon-root': { color: 'error.contrastText' }
+              } 
+            }}
           >
-            <X className="h-4 w-4 text-red-500" />
-          </Button>
+            <CloseIcon sx={{ fontSize: 16, color: 'error.main' }} />
+          </IconButton>
         )}
-      </div>
+      </Box>
 
       {showSizeControl && (
-        <div className="mb-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-gray-600">Taille de l&apos;aperçu</label>
-            <span className="text-xs text-gray-500">{sizePercentage}%</span>
-          </div>
-          <Slider
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="caption" fontWeight={600} color="text.secondary">
+              Taille de l&apos;aperçu
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {imageSize}%
+            </Typography>
+          </Box>
+          <MuiSlider
             value={imageSize}
-            onValueChange={setImageSize}
-            max={100}
+            onChange={handleSizeChange}
             min={20}
+            max={100}
             step={5}
-            className="w-full"
+            size="small"
+            sx={{ mt: 1 }}
           />
-        </div>
+        </Box>
       )}
 
-      <div className="flex justify-center">
-        <div 
-          className="relative overflow-hidden rounded-lg shadow-md"
-          style={{ 
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Box 
+          sx={{ 
+            position: 'relative', 
+            overflow: 'hidden', 
+            borderRadius: 2, 
+            boxShadow: 2,
             width: `${currentWidth}px`,
             maxWidth: '100%'
           }}
@@ -80,14 +126,15 @@ export function ImagePreview({
             alt={alt}
             width={currentWidth}
             height={currentWidth * 0.75} // Ratio 4:3 par défaut
-            className="object-contain w-full h-auto"
             style={{ 
-              maxWidth: '100%',
-              height: 'auto'
+              objectFit: 'contain',
+              width: '100%',
+              height: 'auto',
+              maxWidth: '100%'
             }}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

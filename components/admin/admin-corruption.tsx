@@ -18,6 +18,7 @@ import { DragEndEvent } from '@dnd-kit/core';
 import Switch from '@mui/material/Switch';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { Box, Typography, FormLabel } from '@mui/material';
 import { Calendar } from '@/components/ui/calendar';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { IconPicker } from '@/components/ui/icon-picker';
@@ -116,8 +117,15 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
     icon: 'edit',
     iconColor: '#3f51b5',
     contentType: 'text',
-    resourceUrl: ''
+    resourceUrl: '',
+    imageSize: 60,
+    linkedActivityId: '',
+    linkedCourseId: ''
   });
+
+  // States pour l'association d'activités aux progressions
+  const [selectedCourseForProgression, setSelectedCourseForProgression] = useState<string>('all');
+  const [selectedActivityForProgression, setSelectedActivityForProgression] = useState<string>('none');
   const [contentPreset, setContentPreset] = useState<string>('text');
   const [progressions, setProgressions] = useState<any[]>([]);
   const [successMessageProgression, setSuccessMessageProgression] = useState<string>('');
@@ -135,27 +143,32 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   // Etats séparés pour le dialog d'édition afin d'éviter les mélanges
-  const [editContentPreset, setEditContentPreset] = useState<'text'|'video'|'image'|'pdf'>('text');
+  const [editContentPreset, setEditContentPreset] = useState<'text'|'video'|'image'|'pdf'|'existing-activity'>('text');
   const [editProgressionContent, setEditProgressionContent] = useState({
     title: '',
     content: '',
     icon: 'edit',
     iconColor: '#3f51b5',
     contentType: 'text',
-    resourceUrl: ''
+    resourceUrl: '',
+    imageSize: 60
   });
   const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
   const [editFilePreview, setEditFilePreview] = useState<string | null>(null);
   const [editRejectedFile, setEditRejectedFile] = useState<File | null>(null);
   const [editUploadingFile, setEditUploadingFile] = useState<boolean>(false);
   const [editUploadProgress, setEditUploadProgress] = useState<number>(0);
+  // Edit dialog specific selectors for attaching an existing activity
+  const [editSelectedCourseForProgression, setEditSelectedCourseForProgression] = useState<string>('all');
+  const [editSelectedActivityForProgression, setEditSelectedActivityForProgression] = useState<string>('none');
 
   // Cache per preset to restore original content when toggling presets in the edit dialog
-  const [editPresetCache, setEditPresetCache] = useState<Record<'text'|'video'|'image'|'pdf', { resourceUrl?: string; title?: string; content?: string }>>({
+  const [editPresetCache, setEditPresetCache] = useState<Record<'text'|'video'|'image'|'pdf'|'existing-activity', { resourceUrl?: string; title?: string; content?: string }>>({
     text: {},
     video: {},
     image: {},
     pdf: {},
+    'existing-activity': {}
   });
 
   useEffect(() => {
@@ -384,7 +397,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses, }
       const data = await res.json();
       setErrorDeleteFile('');
       setSuccessMessageDeleteFile(
-        <>Fichier <span style={{ color: "red" }}>{data.fileUrl}</span> supprimé avec succès.</>
+        <>Fichier <Typography component="span" color="error">{data.fileUrl}</Typography> supprimé avec succès.</>
       );
       setCourses(data.courses);
       setConfirmDelete(null);
@@ -814,7 +827,10 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
         body: JSON.stringify({
           classeId: selectedClasseForProgression,
           date: selectedDate.toISOString(),
-          ...progressionContent
+          ...progressionContent,
+          ...(contentPreset === 'existing-activity' && selectedActivityForProgression !== 'none'
+            ? { activityId: selectedActivityForProgression }
+            : {})
         }),
       });
 
@@ -830,11 +846,16 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           icon: 'calendar',
           iconColor: '#3f51b5',
           contentType: 'text',
-          resourceUrl: ''
+          resourceUrl: '',
+          imageSize: 60,
+          linkedActivityId: '',
+          linkedCourseId: ''
         });
         setSelectedFile(null);
         setFilePreview(null);
         setContentPreset('text');
+  setSelectedCourseForProgression('all');
+        setSelectedActivityForProgression('none');
       } else {
         setErrorProgression('Erreur lors de l\'ajout de la progression');
       }
@@ -890,9 +911,21 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       icon: progression.icon, // Keep null if no icon
       iconColor: progression.iconColor || '#3f51b5',
       contentType: progression.contentType,
-      resourceUrl: progression.resourceUrl || ''
+      resourceUrl: progression.resourceUrl || '',
+      imageSize: progression.imageSize || 60
     });
-    setEditContentPreset(progression.contentType);
+    // If this progression is linked to an activity, switch edit preset accordingly
+    if (progression.activityId) {
+      setEditContentPreset('existing-activity');
+      setEditSelectedActivityForProgression(progression.activityId);
+      // Try to preselect the course containing this activity
+      const foundCourse = courses.find((c) => (c.activities || []).some((a) => a && a.id === progression.activityId));
+      setEditSelectedCourseForProgression(foundCourse?.id || 'all');
+    } else {
+      setEditContentPreset(progression.contentType);
+      setEditSelectedActivityForProgression('none');
+      setEditSelectedCourseForProgression('all');
+    }
     setEditSelectedFile(null);
     setEditFilePreview(null);
     setEditRejectedFile(null);
@@ -916,10 +949,17 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
     }
 
     try {
+      const payload: any = { ...editProgressionContent };
+      if (editContentPreset === 'existing-activity') {
+        // include activityId to attach or null to detach
+        payload.activityId = editSelectedActivityForProgression && editSelectedActivityForProgression !== 'none'
+          ? editSelectedActivityForProgression
+          : null;
+      }
       const response = await fetch(`/api/progressions/${editingProgression.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editProgressionContent)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
@@ -935,7 +975,10 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           icon: 'edit',
           iconColor: '#3f51b5',
           contentType: 'text',
-          resourceUrl: ''
+          resourceUrl: '',
+          imageSize: 60,
+          linkedActivityId: '',
+          linkedCourseId: ''
         });
       } else {
         setErrorProgression('Erreur lors de la mise à jour de la progression');
@@ -1113,7 +1156,10 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       icon: 'edit',
       iconColor: '#3f51b5',
       contentType: 'text',
-      resourceUrl: ''
+      resourceUrl: '',
+      imageSize: 60,
+      linkedActivityId: '',
+      linkedCourseId: ''
     });
   };
 
@@ -1180,7 +1226,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       (c) => c.id === selectedCourseForActivity
                     );
                     return chosenCourse?.activities
-                      ?.filter(activity => activity && activity?.id)
+                      ?.filter(activity => activity && activity?.id && activity.id.trim() !== '')
                       ?.sort((a, b) => (a?.title || '').localeCompare(b?.title || ''))
                       .map((activity) => (
                         activity ? <SelectItem key={activity.id} value={activity.id}>
@@ -1190,7 +1236,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   } else {
                     return filteredCourses
                       .flatMap((course) => course?.activities || [])
-                      .filter(activity => activity && activity?.id)
+                      .filter(activity => activity && activity?.id && activity.id.trim() !== '')
                       .sort((a, b) => (a?.title || '').localeCompare(b?.title || ''))
                       .map((activity) => (
                         activity ? <SelectItem key={activity.id} value={activity.id}>
@@ -1327,19 +1373,19 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             Mettre à jour
           </Button>
         </div>
-        <div className='mt-2'>
+        <Box sx={{ mt: 1 }}>
         {errorUpdateActivity && <ErrorMessage message={errorUpdateActivity} />}
         {warningUpdateActivity && <WarningMessage message={warningUpdateActivity} />}
         {successMessageUpdateActivity && <> 
-          <SuccessMessage message={successMessageUpdateActivity} /> <span className="text-orange-500">{successMessageUploadFileName}</span>          
+          <SuccessMessage message={successMessageUpdateActivity} /> <Typography component="span" color="warning.main">{successMessageUploadFileName}</Typography>          
           </> }
-        </div>
+        </Box>
       </Card>
 
 
       <Card className="p-4 mt-4" defaultExpanded={true} title="Modifier un cours" >
-  <div className="space-y-6">
-    <div className="space-y-2">
+  <Box sx={{ '& > * + *': { mt: 3 } }}>
+    <Box>
       <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
         <SelectTrigger>
           <SelectValue placeholder="Sélectionner une classe" />
@@ -1354,8 +1400,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           ) : null}
         </SelectContent>
       </Select>
-    </div>
-    <div className="space-y-2">
+    </Box>
+    <Box>
       <Select value={selectedCourse} onValueChange={(value) => {
         handleCourseChange(value);
         setCourseToDelete(value);
@@ -1373,30 +1419,31 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </Box>
     {selectedCourse && (
-    <form onSubmit={handleSaveCourseDetails} className="space-y-6 mt-8">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Titre du cours</label>
-        <Input
-          type="text"
-          name="title"
-          value={courseDetails.title}
+    <form onSubmit={handleSaveCourseDetails} style={{ marginTop: '2rem' }}>
+      <Box sx={{ '& > * + *': { mt: 3 } }}>
+        <Box>
+          <FormLabel component="legend">Titre du cours</FormLabel>
+          <Input
+            type="text"
+            name="title"
+            value={courseDetails.title}
           onChange={handleCourseDetailsChange}
           required
         />
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Description du cours</label>
+      </Box>
+      <Box>
+        <FormLabel component="legend">Description du cours</FormLabel>
         <Input
           type="text"
           name="description"
           value={courseDetails.description}
           onChange={handleCourseDetailsChange}
         />
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Classe</label>
+      </Box>
+      <Box>
+        <FormLabel component="legend">Classe</FormLabel>
         <Select name="classe" value={newClasseId} onValueChange={(value) => setNewClasseId(value)}>
           <SelectTrigger>
             <SelectValue placeholder={courseDetails.classe || "Sélectionner une classe"} />
@@ -1409,9 +1456,9 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Thème</label>
+      </Box>
+      <Box>
+        <FormLabel component="legend">Thème</FormLabel>
         <Select name="theme" value={courseDetails.themeChoice?.toString() || '0'} onValueChange={handleThemeChange}>
           <SelectTrigger>
             <SelectValue placeholder="Sélectionner un thème" />
@@ -1424,18 +1471,19 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </Box>
       {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
       {warningUpdateCourse && <WarningMessage message={warningUpdateCourse} />}
       {successMessageUpdateCourse && <SuccessMessage message={successMessageUpdateCourse} />}
       <Button type="submit" className="w-full">
         Enregistrer les modifications
       </Button>
+      </Box>
     </form>
   )}
     {files.length > 0 && (
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Fichiers associés</h3>
+      <Box sx={{ '& > * + *': { mt: 1 } }}>
+        <Typography variant="body2" fontWeight={600}>Fichiers associés</Typography>
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -1458,25 +1506,25 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
             </ul>
           </SortableContext>
         </DndContext>
-      </div>
+      </Box>
     )}
     {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
     {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
-  </div>
+  </Box>
 
-  <form onSubmit={handleDeleteCourse} className="space-y-6 mt-8">
-    <div className="flex flex-row col-span-1 justify-center items-center">
-      <label className="checkboxSwitch">
+  <form onSubmit={handleDeleteCourse} style={{ marginTop: '2rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', '& > * + *': { mt: 3 } }}>
+      <FormLabel component="legend" className="checkboxSwitch">
         <Input
           className="col-span-1"
           type="checkbox"
           checked={deleteFiles}
           onChange={(e) => setDeleteFiles(e.target.checked)}
         />
-        <span className="checkboxSlider checkboxSliderAdmin"></span>
-      </label>
-      <p className='ml-4'>Supprimer les fichiers associés</p>
-    </div>
+        <Typography component="span" className="checkboxSlider checkboxSliderAdmin"></Typography>
+      </FormLabel>
+      <Typography sx={{ ml: 2 }}>Supprimer les fichiers associés</Typography>
+    </Box>
     <Button variant='destructive' type="submit" disabled={!courseToDelete} className="w-full">
       Supprimer le cours
     </Button>
@@ -1580,7 +1628,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
       </Card>
 
       <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une progression">
-        <div className="space-y-6">
+        <Box sx={{ '& > * + *': { mt: 3 } }}>
           {/* Sélection de la classe */}
           <Select 
             value={selectedClasseForProgression} 
@@ -1668,13 +1716,13 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
 
           {/* Formulaire de contenu si une date est sélectionnée */}
           {selectedDate && (
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="font-semibold">
+            <Box sx={{ '& > * + *': { mt: 2 }, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+              <Typography variant="h6" fontWeight={600}>
                 Ajouter du contenu pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
-              </h4>
+              </Typography>
 
               {/* Presets de type de contenu */}
-              <div className="flex gap-2 mb-4">
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                 <Button
                   type="button"
                   variant={contentPreset === 'text' ? 'default' : 'outline'}
@@ -1747,7 +1795,27 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   <PictureAsPdf className="mr-2 h-4 w-4" />
                   PDF
                 </Button>
-              </div>
+                <Button
+                  type="button"
+                  variant={contentPreset === 'existing-activity' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setContentPreset('existing-activity' as any);
+                    setSelectedActivityForProgression('none');
+                    setSelectedCourseForProgression('all');
+                    // Clear file/url fields when switching to existing activity
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                    setProgressionContent(prev => ({
+                      ...prev,
+                      contentType: 'activity',
+                      resourceUrl: ''
+                    }));
+                  }}
+                >
+                  Activité existante
+                </Button>
+              </Box>
 
               {/* Titre */}
               <Input
@@ -1759,7 +1827,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
 
               {/* Gestion des fichiers pour image et PDF */}
               {contentPreset === 'image' && (
-                <div className="space-y-4">
+                <Box sx={{ '& > * + *': { mt: 2 } }}>
                   <label className="text-sm font-medium">Image</label>
                   {selectedFile && filePreview ? (
                     <ImagePreview
@@ -1767,6 +1835,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       alt="Preview"
                       filename={selectedFile.name}
                       onRemove={handleFileRemove}
+                      initialImageSize={progressionContent.imageSize}
+                      onImageSizeChange={(size) => setProgressionContent(prev => ({ ...prev, imageSize: size }))}
                     />
                   ) : progressionContent.resourceUrl ? (
                     <div className="space-y-2">
@@ -1774,7 +1844,8 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                         src={progressionContent.resourceUrl}
                         alt="Current image"
                         onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
-                        showSizeControl={false}
+                        initialImageSize={progressionContent.imageSize}
+                        onImageSizeChange={(size) => setProgressionContent(prev => ({ ...prev, imageSize: size }))}
                       />
                       <p className="text-xs text-gray-500">Ou ajoutez une nouvelle image :</p>
                       <SmartFileUploader
@@ -1800,12 +1871,12 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
                     </Button>
                   )}
-                </div>
+                </Box>
               )}
 
               {contentPreset === 'pdf' && (
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">Document PDF</label>
+                <Box sx={{ '& > * + *': { mt: 2 } }}>
+                  <FormLabel component="legend">Document PDF</FormLabel>
                   {selectedFile ? (
                     <PDFViewer
                       src={URL.createObjectURL(selectedFile)}
@@ -1845,7 +1916,7 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                       {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
                     </Button>
                   )}
-                </div>
+                </Box>
               )}
 
               {/* URL de ressource pour vidéo ou comme alternative pour image/PDF */}
@@ -1876,6 +1947,100 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 />
               </div>
 
+              {/* Activité existante - crée une progression dédiée */}
+              {contentPreset === 'existing-activity' && (
+                <div className="space-y-4 border-t pt-4">
+                  <h5 className="text-sm font-medium">Associer une activité existante</h5>
+                
+                  {/* Sélection du cours */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Cours</label>
+                    <Select
+                      value={selectedCourseForProgression}
+                      onValueChange={(value) => {
+                        setSelectedCourseForProgression(value);
+                        setSelectedActivityForProgression('none');
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un cours" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous les cours</SelectItem>
+                        {courses
+                          .filter(course => course.theClasseId === selectedClasseForProgression)
+                          .map((course) => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {course.title}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Sélection de l'activité */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Activité</label>
+                    <Select
+                      value={selectedActivityForProgression}
+                      onValueChange={(value) => {
+                        setSelectedActivityForProgression(value);
+                        if (value === 'none') {
+                          setProgressionContent(prev => ({
+                            ...prev,
+                            title: prev.title,
+                          }));
+                          return;
+                        }
+                        const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
+                          ? courses.filter(c => c.id === selectedCourseForProgression)
+                          : courses.filter(c => c.theClasseId === selectedClasseForProgression);
+                        const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
+                        const found = withCourse.find(x => x.a && x.a.id === value);
+                        if (found) {
+                          setProgressionContent(prev => ({
+                            ...prev,
+                            title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
+                          }));
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une activité" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune activité</SelectItem>
+                        {(() => {
+                          const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
+                            ? courses.filter(c => c.id === selectedCourseForProgression)
+                            : courses.filter(c => c.theClasseId === selectedClasseForProgression);
+                          return filteredCourses
+                            .flatMap(course => (course.activities || []).map(activity => ({
+                              ...activity,
+                              courseName: course.title
+                            })))
+                            .filter(activity => activity && activity.id && activity.id.trim() !== '')
+                            .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+                            .map((activity) => (
+                              <SelectItem key={activity.id} value={activity.id}>
+                                {activity.title} {(selectedCourseForProgression === 'all') && `(${activity.courseName})`}
+                              </SelectItem>
+                            ));
+                        })()}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveProgression}
+                    className="w-full"
+                    disabled={selectedActivityForProgression === 'none'}
+                  >
+                    Ajouter la progression avec l&apos;activité sélectionnée
+                  </Button>
+                </div>
+              )}
+
               {/* Sélection d'icône et couleur */}
               <div className="flex space-x-4">
                 <div className="flex-1">
@@ -1899,12 +2064,12 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
               <Button onClick={handleSaveProgression} className="w-full">
                 Ajouter la progression
               </Button>
-            </div>
+            </Box>
           )}
 
           {/* Liste des progressions existantes */}
           {progressions.length > 0 && (
-            <div className="space-y-2">
+            <Box sx={{ '& > * + *': { mt: 1 } }}>
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold">Progressions existantes</h4>
                 <div className="flex items-center space-x-2">
@@ -1980,12 +2145,12 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                   </ul>
                 </SortableContext>
               </DndContext>
-            </div>
+            </Box>
           )}
 
           {errorProgression && <ErrorMessage message={errorProgression} />}
           {successMessageProgression && <SuccessMessage message={successMessageProgression} />}
-        </div>
+        </Box>
       </Card>
 
     {/* Dialog pour éditer une progression */}
@@ -2037,7 +2202,10 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 onClick={() => {
                   setEditPresetCache(prev => ({
                     ...prev,
-                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                    [editContentPreset]: { 
+                      resourceUrl: editProgressionContent.resourceUrl, 
+                      title: editProgressionContent.title, 
+                      content: editProgressionContent.content }
                   }));
                   setEditContentPreset('video');
                   setEditProgressionContent(prev => ({
@@ -2060,7 +2228,10 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 onClick={() => {
                   setEditPresetCache(prev => ({
                     ...prev,
-                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                    [editContentPreset]: { 
+                      resourceUrl: editProgressionContent.resourceUrl, 
+                      title: editProgressionContent.title, 
+                      content: editProgressionContent.content }
                   }));
                   setEditContentPreset('image');
                   setEditProgressionContent(prev => ({
@@ -2097,6 +2268,28 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 <PictureAsPdf className="mr-2 h-4 w-4" />
                 PDF
               </Button>
+              <Button
+                type="button"
+                variant={editContentPreset === 'existing-activity' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setEditPresetCache(prev => ({
+                    ...prev,
+                    [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+                  }));
+                  setEditContentPreset('existing-activity');
+                  setEditSelectedCourseForProgression('all');
+                  setEditSelectedActivityForProgression('none');
+                  setEditProgressionContent(prev => ({
+                    ...prev,
+                    contentType: 'activity' as any,
+                    resourceUrl: ''
+                  }));
+                  handleEditFileRemove();
+                }}
+              >
+                Activité existante
+              </Button>
             </div>
 
             {/* Titre */}
@@ -2117,12 +2310,16 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                     alt="Preview"
                     filename={editSelectedFile.name}
                     onRemove={handleEditFileRemove}
+                    initialImageSize={editProgressionContent.imageSize}
+                    onImageSizeChange={(size) => setEditProgressionContent(prev => ({ ...prev, imageSize: size }))}
                   />
                 ) : editProgressionContent.resourceUrl ? (
                   <ImagePreview
                     src={editProgressionContent.resourceUrl}
                     alt="Current image"
                     onRemove={() => setEditProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
+                    initialImageSize={editProgressionContent.imageSize}
+                    onImageSizeChange={(size) => setEditProgressionContent(prev => ({ ...prev, imageSize: size }))}
                   />
                 ) : (
                   <SmartFileUploader
@@ -2195,6 +2392,86 @@ const handleToggleVisibilityCourse = async (courseId: string, visibility: boolea
                 value={editProgressionContent.resourceUrl}
                 onChange={(e) => setEditProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
               />
+            )}
+
+            {/* Activité existante - attacher/détacher une activité à cette progression */}
+            {editContentPreset === 'existing-activity' && (
+              <div className="space-y-4 border-t pt-4">
+                <h5 className="text-sm font-medium">Associer une activité existante</h5>
+
+                {/* Sélection du cours */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Cours</label>
+                  <Select
+                    value={editSelectedCourseForProgression}
+                    onValueChange={(value) => {
+                      setEditSelectedCourseForProgression(value);
+                      setEditSelectedActivityForProgression('none');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un cours" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les cours</SelectItem>
+                      {courses
+                        .filter(course => course.theClasseId === (editingProgression?.classeId || selectedClasseForProgression))
+                        .map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sélection de l'activité */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Activité</label>
+                  <Select
+                    value={editSelectedActivityForProgression}
+                    onValueChange={(value) => {
+                      setEditSelectedActivityForProgression(value);
+                      if (value === 'none') return;
+                      const filteredCourses = (editSelectedCourseForProgression && editSelectedCourseForProgression !== 'all')
+                        ? courses.filter(c => c.id === editSelectedCourseForProgression)
+                        : courses.filter(c => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
+                      const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
+                      const found = withCourse.find(x => x.a && x.a.id === value);
+                      if (found) {
+                        setEditProgressionContent(prev => ({
+                          ...prev,
+                          title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une activité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucune activité</SelectItem>
+                      {(() => {
+                        const filteredCourses = (editSelectedCourseForProgression && editSelectedCourseForProgression !== 'all')
+                          ? courses.filter(c => c.id === editSelectedCourseForProgression)
+                          : courses.filter(c => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
+                        return filteredCourses
+                          .flatMap(course => (course.activities || []).map(activity => ({
+                            ...activity,
+                            courseName: course.title
+                          })))
+                          .filter(activity => activity && activity.id && activity.id.trim() !== '')
+                          .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+                          .map((activity) => (
+                            <SelectItem key={activity.id} value={activity.id}>
+                              {activity.title}
+                            </SelectItem>
+                          ));
+                      })()}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             )}
 
             {/* Éditeur de texte enrichi */}

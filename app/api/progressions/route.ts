@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { classeId, date, title, content, icon, iconColor, contentType, resourceUrl } = body;
+  const { classeId, date, title, content, icon, iconColor, contentType, resourceUrl, imageSize, activityId } = body;
 
     // Trouver le prochain ordre disponible
     const lastProgression = await prisma.progression.findFirst({
@@ -37,16 +37,39 @@ export async function POST(request: NextRequest) {
 
     const nextOrder = lastProgression ? lastProgression.order + 1 : 0;
 
+    let computedTitle = title;
+    let computedType = contentType;
+    let computedUrl = resourceUrl;
+    if (activityId) {
+      const activity = await prisma.activity.findUnique({ where: { id: activityId } });
+      if (!activity) {
+        return NextResponse.json({ error: 'Activité introuvable' }, { status: 400 });
+      }
+      // Use activity data if not explicitly provided
+      computedTitle = computedTitle || activity.title || 'Activité';
+      // Best-effort guess of type from fileUrl
+      if (!computedType) {
+        const url = activity.fileUrl || '';
+        if (url.match(/\.(png|jpe?g|gif|webp|svg)$/i)) computedType = 'image';
+        else if (url.match(/\.(mp4|webm|ogg)$/i)) computedType = 'video';
+        else if (url.match(/\.(pdf)$/i)) computedType = 'pdf';
+        else computedType = 'text';
+      }
+      if (!computedUrl) computedUrl = activity.fileUrl || '';
+    }
+
     const progression = await prisma.progression.create({
       data: {
         classeId,
         date: new Date(date),
-        title,
+        title: computedTitle,
         content,
         icon,
         iconColor,
-        contentType,
-        resourceUrl,
+        contentType: computedType,
+        resourceUrl: computedUrl,
+        imageSize,
+        activityId: activityId || undefined,
         order: nextOrder
       }
     });
@@ -61,18 +84,22 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, title, content, icon, iconColor, contentType, resourceUrl } = body;
+    const { id, title, content, icon, iconColor, contentType, resourceUrl, imageSize, date, order } = body;
+
+    const data: any = {};
+    if (typeof title !== 'undefined') data.title = title;
+    if (typeof content !== 'undefined') data.content = content;
+    if (typeof icon !== 'undefined') data.icon = icon;
+    if (typeof iconColor !== 'undefined') data.iconColor = iconColor;
+    if (typeof contentType !== 'undefined') data.contentType = contentType;
+    if (typeof resourceUrl !== 'undefined') data.resourceUrl = resourceUrl;
+    if (typeof imageSize !== 'undefined') data.imageSize = imageSize;
+    if (typeof order !== 'undefined') data.order = order;
+    if (typeof date !== 'undefined') data.date = new Date(date);
 
     const progression = await prisma.progression.update({
       where: { id },
-      data: {
-        title,
-        content,
-        icon,
-        iconColor,
-        contentType,
-        resourceUrl
-      }
+      data
     });
 
     return NextResponse.json({ progression, success: true });

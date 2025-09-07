@@ -5,7 +5,8 @@ import { fr } from 'date-fns/locale';
 import { MaterialIcon } from '@/components/ui/material-icon';
 import Image from 'next/image';
 import { CalendarMonth, VideoLibrary, PictureAsPdf } from '@mui/icons-material';
-import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress } from '@mui/material';
+import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip } from '@mui/material';
+import HistoryIcon from '@mui/icons-material/History';
 interface Progression {
   id: string;
   date: Date;
@@ -15,6 +16,10 @@ interface Progression {
   iconColor?: string;
   contentType: string;
   resourceUrl?: string;
+  imageSize?: number;
+  activityId?: string;
+  linkedActivityId?: string;
+  linkedCourseId?: string;
 }
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -30,14 +35,24 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate ?? new Date());
   const [selectedProgressions, setSelectedProgressions] = useState<Progression[]>([]);
   const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<any[]>([]);
 
   const loadProgressions = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/progressions?classeId=${classeId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProgressions(data.progressions);
+      const [progressionsRes, coursesRes] = await Promise.all([
+        fetch(`/api/progressions?classeId=${classeId}`),
+        fetch('/api/courses')
+      ]);
+      
+      if (progressionsRes.ok) {
+        const progressionData = await progressionsRes.json();
+        setProgressions(progressionData.progressions);
+      }
+      
+      if (coursesRes.ok) {
+        const courseData = await coursesRes.json();
+        setCourses(courseData.courses);
       }
     } catch (error) {
       console.error('Error loading progressions:', error);
@@ -90,6 +105,103 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
   }, [selectedDate, progressions, getProgressionsForDate]);
 
   const renderContent = (progression: Progression) => {
+    const effectiveActivityId = progression.activityId || progression.linkedActivityId;
+    const linkedCourse = effectiveActivityId ? courses.find(c => c.activities?.some((a: any) => a?.id === effectiveActivityId)) : null;
+    const linkedActivity = effectiveActivityId && linkedCourse ? linkedCourse.activities.find((a: any) => a?.id === effectiveActivityId) : null;
+    const isLinkedActivityDeleted = !!effectiveActivityId && !linkedActivity;
+
+    const renderActivity = () => {
+      if (!linkedActivity) {
+        return (
+          <Box sx={{ p: 2, bgcolor: 'error.50', border: '1px solid', borderColor: 'error.200', borderRadius: 1 }}>
+            <Typography variant="body2" color="error.main">
+              L&apos;activité associée à cette progression a été supprimée.
+            </Typography>
+          </Box>
+        );
+      }
+      const fileUrl: string = linkedActivity.fileUrl || '';
+      const apiUrl = `/api/files${fileUrl}`;
+      const ext = (fileUrl.split('.').pop() || '').toLowerCase();
+      const isImage = ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+      const isPdf = ext === 'pdf';
+      const isVideo = ['mp4','webm','ogg','avi','mov'].includes(ext);
+      const isAudio = ['mp3','wav','ogg','aac','flac'].includes(ext);
+      const isHtml = ext === 'html';
+      const isTxt = ['txt','rtf'].includes(ext);
+      const isIpynb = ext === 'ipynb';
+      const imageSize = progression.imageSize || 60;
+      const maxWidth = 960;
+      const currentWidth = (maxWidth * imageSize) / 100;
+
+      return (
+        <Box sx={{ '& > * + *': { mt: 2 } }}>
+          {progression.content && (
+            <Box
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: progression.content }}
+            />
+          )}
+          {isImage && (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ position: 'relative', width: `${currentWidth}px`, maxWidth: '100%', aspectRatio: '4 / 3' }}>
+                <Image
+                  src={apiUrl}
+                  alt={linkedActivity.title}
+                  fill
+                  className="rounded-lg shadow-md object-contain"
+                  sizes={`${currentWidth}px`}
+                />
+              </Box>
+            </Box>
+          )}
+          {isPdf && (
+            <Box sx={{ border: '1px solid', borderColor: 'grey.300', borderRadius: 1, overflow: 'hidden', bgcolor: 'grey.50' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: 'grey.100', borderBottom: '1px solid', borderColor: 'grey.300' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PictureAsPdf className="h-5 w-5" color="error" />
+                  <Typography variant="body2" fontWeight={600}>Document PDF</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button component="a" href={apiUrl} target="_blank" rel="noopener noreferrer" variant="contained" color="inherit" size="small">Ouvrir</Button>
+                  <Button component="a" href={apiUrl} download variant="outlined" color="inherit" size="small">Télécharger</Button>
+                </Box>
+              </Box>
+              <Box sx={{ bgcolor: 'white' }}>
+                <Box component="iframe" src={`${apiUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`} sx={{ width: '100%', height: 300, border: 0 }} title="PDF Document" />
+              </Box>
+            </Box>
+          )}
+          {isVideo && (
+            <Button component="a" href={apiUrl} target="_blank" rel="noopener noreferrer" variant="contained" color="inherit" startIcon={<VideoLibrary className="h-4 w-4" />}>Regarder la vidéo</Button>
+          )}
+          {isAudio && (
+            <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <audio controls className="w-full">
+                <source src={apiUrl} />
+                Votre navigateur ne prend pas en charge l&apos;audio.
+              </audio>
+            </Box>
+          )}
+          {isHtml && (
+            <Box sx={{ position: 'relative', pt: '56.25%' }}>
+              <Box component="iframe" src={apiUrl} sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} sandbox="allow-scripts allow-same-origin" />
+            </Box>
+          )}
+          {isTxt && (
+            <Button component="a" href={apiUrl} target="_blank" rel="noopener noreferrer" variant="outlined">Ouvrir le texte</Button>
+          )}
+          {isIpynb && linkedCourse && (
+            <Button component="a" href={`/courses/${linkedCourse.id}`} variant="contained" color="primary">Ouvrir l&apos;activité (Notebook)</Button>
+          )}
+        </Box>
+      );
+    };
+
+    if (progression.contentType === 'activity' || !!progression.activityId) {
+      return renderActivity();
+    }
+
     switch (progression.contentType) {
       case 'video':
         return (
@@ -103,45 +215,77 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
             {progression.resourceUrl && (
               <Button
                 component="a"
-                href={progression.resourceUrl}
+                href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="contained"
                 color="inherit"
-                sx={{ bgcolor: 'grey.900', color: 'common.white', '&:hover': { bgcolor: 'grey.800' } }}
+                disabled={!!isLinkedActivityDeleted}
+                sx={{ 
+                  bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.900', 
+                  color: isLinkedActivityDeleted ? 'grey.600' : 'common.white', 
+                  '&:hover': { bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.800' } 
+                }}
                 startIcon={<VideoLibrary className="h-4 w-4" />}
               >
-                Regarder la vidéo
+                {isLinkedActivityDeleted ? 'Vidéo indisponible' : 'Regarder la vidéo'}
               </Button>
             )}
           </Box>
         );
       case 'image':
+        const imageSize = progression.imageSize || 60; // Valeur par défaut si non définie
+        const maxWidth = 960; // Largeur maximale de référence
+        const currentWidth = (maxWidth * imageSize) / 100;
+        
         return (
           <Box sx={{ '& > * + *': { mt: 2 } }}>
-            {progression.resourceUrl && (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Box sx={{ position: 'relative', width: '100%', maxWidth: 960, aspectRatio: '4 / 3' }}>
-                  <Image
-                    src={progression.resourceUrl}
-                    alt={progression.title}
-                    fill
-                    className="rounded-lg shadow-md object-contain"
-                    sizes="(max-width: 768px) 100vw, 768px"
-                    priority={false}
-                  />
-                </Box>
-              </Box>
-            )}
             {progression.content && (
               <Box
                 className="prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: progression.content }}
               />
             )}
+            {progression.resourceUrl && (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ 
+                  position: 'relative', 
+                  width: `${currentWidth}px`, 
+                  maxWidth: '100%',
+                  aspectRatio: '4 / 3' 
+                }}>
+                  {isLinkedActivityDeleted ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      width: '100%',
+                      height: '100%',
+                      bgcolor: 'grey.100',
+                      borderRadius: 1,
+                      color: 'text.disabled',
+                      boxShadow: 1
+                    }}>
+                      <Typography variant="body1">
+                        Image indisponible - activité supprimée
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Image
+                      src={progression.resourceUrl}
+                      alt={progression.title}
+                      fill
+                      className="rounded-lg shadow-md object-contain"
+                      sizes={`${currentWidth}px`}
+                      priority={false}
+                    />
+                  )}
+                </Box>
+              </Box>
+            )}
           </Box>
         );
-      case 'pdf':
+  case 'pdf':
         return (
           <Box sx={{ '& > * + *': { mt: 2 } }}>
             {progression.content && (
@@ -154,29 +298,51 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
               <Box sx={{ border: '1px solid', borderColor: 'grey.300', borderRadius: 1, overflow: 'hidden', bgcolor: 'grey.50' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: 'grey.100', borderBottom: '1px solid', borderColor: 'grey.300' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PictureAsPdf className="h-5 w-5" color="error" />
-                    <Typography variant="body2" fontWeight={600} color="text.primary">Document PDF</Typography>
+                    <PictureAsPdf 
+                      className="h-5 w-5" 
+                      color={isLinkedActivityDeleted ? "disabled" : "error"} 
+                    />
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600} 
+                      color={isLinkedActivityDeleted ? "text.disabled" : "text.primary"}
+                    >
+                      {isLinkedActivityDeleted ? 'Document PDF indisponible' : 'Document PDF'}
+                    </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
                       component="a"
-                      href={progression.resourceUrl}
+                      href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       variant="contained"
                       color="inherit"
-                      sx={{ bgcolor: 'grey.900', color: 'common.white', '&:hover': { bgcolor: 'grey.800' } }}
+                      disabled={!!isLinkedActivityDeleted}
+                      sx={{ 
+                        bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.900', 
+                        color: isLinkedActivityDeleted ? 'grey.600' : 'common.white', 
+                        '&:hover': { bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.800' } 
+                      }}
                       size="small"
                     >
                       Ouvrir
                     </Button>
                     <Button
                       component="a"
-                      href={progression.resourceUrl}
-                      download
+                      href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
+                      download={isLinkedActivityDeleted ? false : true}
                       variant="outlined"
                       color="inherit"
-                      sx={{ borderColor: 'grey.700', color: 'grey.900', '&:hover': { borderColor: 'grey.900', bgcolor: 'grey.100' } }}
+                      disabled={!!isLinkedActivityDeleted}
+                      sx={{ 
+                        borderColor: isLinkedActivityDeleted ? 'grey.400' : 'grey.700', 
+                        color: isLinkedActivityDeleted ? 'grey.600' : 'grey.900', 
+                        '&:hover': { 
+                          borderColor: isLinkedActivityDeleted ? 'grey.400' : 'grey.900', 
+                          bgcolor: isLinkedActivityDeleted ? 'transparent' : 'grey.100' 
+                        } 
+                      }}
                       size="small"
                     >
                       Télécharger
@@ -184,12 +350,27 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                   </Box>
                 </Box>
                 <Box sx={{ bgcolor: 'white' }}>
-                  <Box
-                    component="iframe"
-                    src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                    sx={{ width: '100%', height: 300, border: 0 }}
-                    title="PDF Document"
-                  />
+                  {isLinkedActivityDeleted ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      height: 300, 
+                      bgcolor: 'grey.100',
+                      color: 'text.disabled'
+                    }}>
+                      <Typography variant="body1">
+                        Document indisponible - activité supprimée
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box
+                      component="iframe"
+                      src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                      sx={{ width: '100%', height: 300, border: 0 }}
+                      title="PDF Document"
+                    />
+                  )}
                 </Box>
               </Box>
             )}
@@ -239,11 +420,11 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                     head_row: 'grid grid-cols-7 w-full',
                     head_cell: 'text-muted-foreground rounded-md font-normal text-[0.8rem] text-center',
                     row: 'grid grid-cols-7 w-full mt-2',
-                    cell: 'p-0 relative min-h-[44px] sm:min-h-[52px] md:min-h-[60px]',
+                    cell: 'p-1 relative min-h-[25px] sm:min-h-[35px] md:min-h-[45px] h-full',
                     day: cn(
-          buttonVariants({ variant: 'ghost' }),
-          'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors'
-        ),
+                      buttonVariants({ variant: 'ghost' }),
+                      'w-full h-full p-0 font-normal aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors'
+                    ),
                     day_selected: 'border-2 border-[#1e40af] rounded',
                   }}
                   modifiers={{
@@ -255,10 +436,20 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                       backgroundColor: '#9fcbf8ff',
                       color: '#111827',
                       fontWeight: 'bold',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     },
                     selectedHasProgression: {
                       border: '2px solid #1e40af',
                       borderRadius: '4px',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     },
                   }}
                 />
@@ -281,21 +472,58 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                 </Box>
                 <Box sx={{ maxHeight: '60vh', overflowY: 'auto', pr: 2 }}>
                   <Box sx={{ '& > * + *': { mt: 3 } }}>
-                    {selectedProgressions.map((progression) => (
-                      <Box key={progression.id} sx={{ pb: 3, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none', pb: 0 } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                          {progression.icon && progression.icon !== 'none' && (
-                            <MaterialIcon
-                              name={progression.icon}
-                              className="h-5 w-5"
-                              style={{ color: progression.iconColor || '#000' }}
-                            />
+                    {selectedProgressions.map((progression) => {
+                      const linkedActivity = progression.linkedActivityId 
+                        ? courses.flatMap(c => c.activities).find(a => a?.id === progression.linkedActivityId)
+                        : null;
+                      const linkedCourse = progression.linkedCourseId
+                        ? courses.find(c => c.id === progression.linkedCourseId)
+                        : null;
+                      const activityExists = linkedActivity !== undefined;
+
+                      return (
+                        <Box key={progression.id} sx={{ pb: 3, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none', pb: 0 } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                            {progression.icon && progression.icon !== 'none' && (
+                              <MaterialIcon
+                                name={progression.icon}
+                                className="h-5 w-5"
+                                style={{ color: progression.iconColor || '#000' }}
+                              />
+                            )}
+                            <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {progression.title}
+                              {(progression.activityId || progression.contentType === 'activity') && (
+                                <Tooltip title="Réutilisation d’une activité existante">
+                                  <HistoryIcon fontSize="small" color="action" />
+                                </Tooltip>
+                              )}
+                            </Typography>
+                            
+              {(progression.linkedActivityId || progression.activityId) && (
+                              <Chip 
+                label={activityExists ? `Activité: ${linkedActivity?.title}` : 'Activité supprimée'} 
+                                variant="outlined" 
+                                size="small"
+                                color={activityExists ? 'primary' : 'error'}
+                                sx={{ ml: 'auto' }} 
+                              />
+                            )}
+                          </Box>
+                          
+                          {progression.linkedActivityId && !activityExists && (
+                            <Box sx={{ mb: 2, p: 2, bgcolor: 'error.50', border: '1px solid', borderColor: 'error.200', borderRadius: 1 }}>
+                              <Typography variant="body2" color="error.main">
+                                L&apos;activité associée à cette progression a été supprimée.
+                                {linkedCourse && ` Elle faisait partie du cours "${linkedCourse.title}".`}
+                              </Typography>
+                            </Box>
                           )}
-                          <Typography variant="subtitle1" fontWeight={600}>{progression.title}</Typography>
+                          
+                          {renderContent(progression)}
                         </Box>
-                        {renderContent(progression)}
-                      </Box>
-                    ))}
+                      );
+                    })}
                   </Box>
                 </Box>
               </>

@@ -57,7 +57,7 @@ export default function ClassesPage() {
                     {classe.name}
                   </Typography>
                   {classe.hasProgression && (
-                    <Chip size="small" color="primary" label="Progression" />
+                    <Chip size="small" color="secondary" variant="outlined" label="Progression" />
                   )}
                 </Box>
                 <Typography variant="body2" color="text.secondary">
@@ -68,8 +68,11 @@ export default function ClassesPage() {
                 <Button
                   component={NextLink}
                   href={`/classes/${classe.id}`}
-                  variant="contained"
+                  variant="outlined"
                   fullWidth
+                  sx = {{
+                    fontWeight: 'bold'
+                  }}
                 >
                   Ouvrir
                 </Button>

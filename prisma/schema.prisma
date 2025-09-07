@@ -57,6 +57,7 @@ model Activity {
   
   // Relations
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progressions Progression[]
   
   @@map("activities")
 }
@@ -71,12 +72,15 @@ model Progression {
   iconColor     String?
   contentType   String
   resourceUrl   String?  @db.VarChar(1024)
+  imageSize     Int?     @default(60)  // Taille de l'image en pourcentage
+  activityId    String?  // Activité préexistante liée (facultatif)
   order         Int      @default(0)  // Nouveau champ
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
   // Relations
   classe        Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  activity      Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
   
   @@index([classeId, date])
   @@map("progressions")
