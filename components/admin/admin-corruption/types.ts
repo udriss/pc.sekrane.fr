@@ -42,7 +42,8 @@ export type PresetCache = {
   };
 };
 
-export type ContentPresetType = 'text' | 'video' | 'image' | 'pdf' | 'existing-activity';
+// Ajout du type 'url' pour permettre l'ajout de liens externes dans les progressions
+export type ContentPresetType = 'text' | 'video' | 'image' | 'pdf' | 'url' | 'existing-activity';
 
 export interface SnackbarState {
   snackbarOpen: boolean;

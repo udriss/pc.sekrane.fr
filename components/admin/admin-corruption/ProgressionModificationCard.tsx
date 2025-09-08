@@ -1,7 +1,6 @@
 // /components/admin/admin-corruption/ProgressionModificationCard.tsx
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -13,7 +12,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Switch from '@mui/material/Switch';
-import { Box, Typography, FormLabel, List, ListItem, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, FormLabel, List, ListItem, IconButton, Tooltip, Button } from '@mui/material';
 import { Calendar } from '@/components/ui/calendar';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { IconPicker } from '@/components/ui/icon-picker';
@@ -21,6 +20,7 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Description, PictureAsPdf, VideoLibrary, PhotoCamera } from '@mui/icons-material';
+import LinkIcon from '@mui/icons-material/Link';
 import { SmartFileUploader } from '@/components/ui/smart-file-uploader';
 import { ImagePreview } from '@/components/ui/image-preview';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
@@ -496,28 +496,29 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
         </Typography>
 
         {/* Presets de type de contenu */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 1, mb: 2 }}>
           <Button
             type="button"
-            variant={contentPreset === 'text' ? 'default' : 'outline'}
-            size="sm"
+            variant={contentPreset === 'text' ? 'contained' : 'outlined'}
+            size='medium'
             onClick={() => {
             setContentPreset('text');
             setProgressionContent(prev => ({
               ...prev,
               contentType: 'text',
-              title: '📝 Note du jour'
+              title: 'Note du jour'
             }));
             handleFileRemove();
             }}
+            sx={{ width: '100%' }}
           >
             <Description className="mr-2 h-4 w-4" />
             Texte
           </Button>
           <Button
             type="button"
-            variant={contentPreset === 'video' ? 'default' : 'outline'}
-            size="sm"
+            variant={contentPreset === 'video' ? 'contained' : 'outlined'}
+            size="medium"
             onClick={() => {
             setContentPreset('video');
             setProgressionContent(prev => ({
@@ -527,14 +528,15 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             }));
             handleFileRemove();
             }}
+            sx={{ width: '100%' }}
           >
             <VideoLibrary className="mr-2 h-4 w-4" />
             Vidéo
           </Button>
           <Button
             type="button"
-            variant={contentPreset === 'image' ? 'default' : 'outline'}
-            size="sm"
+            variant={contentPreset === 'image' ? 'contained' : 'outlined'}
+            size="medium"
             onClick={() => {
             setContentPreset('image');
             setProgressionContent(prev => ({
@@ -546,14 +548,15 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             setSelectedFile(null);
             setFilePreview(null);
             }}
+            sx={{ width: '100%' }}
           >
             <PhotoCamera className="mr-2 h-4 w-4" />
             Image
           </Button>
           <Button
             type="button"
-            variant={contentPreset === 'pdf' ? 'default' : 'outline'}
-            size="sm"
+            variant={contentPreset === 'pdf' ? 'contained' : 'outlined'}
+            size="medium"
             onClick={() => {
             setContentPreset('pdf');
             setProgressionContent(prev => ({
@@ -565,14 +568,15 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             setSelectedFile(null);
             setFilePreview(null);
             }}
+            sx={{ width: '100%' }}
           >
             <PictureAsPdf className="mr-2 h-4 w-4" />
             PDF
           </Button>
           <Button
             type="button"
-            variant={contentPreset === 'existing-activity' ? 'default' : 'outline'}
-            size="sm"
+            variant={contentPreset === 'existing-activity' ? 'contained' : 'outlined'}
+            size="medium"
             onClick={() => {
             setContentPreset('existing-activity' as any);
             setSelectedActivityForProgression('none');
@@ -586,8 +590,28 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
               resourceUrl: ''
             }));
             }}
+            sx={{ width: '100%' }}
           >
             Activité existante
+          </Button>
+          <Button
+            type="button"
+            variant={contentPreset === 'url' ? 'contained' : 'outlined'}
+            size="medium"
+            onClick={() => {
+              setContentPreset('url');
+              setProgressionContent(prev => ({
+          ...prev,
+          contentType: 'url',
+          title: 'Lien externe',
+          resourceUrl: ''
+              }));
+              setSelectedFile(null);
+              setFilePreview(null);
+            }}
+            sx={{ width: '100%' }}
+          >
+            <LinkIcon className="mr-2 h-4 w-4" /> URL
           </Button>
         </Box>
 
@@ -695,6 +719,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
 
         {/* URL de ressource pour vidéo ou comme alternative pour image/PDF */}
         {(contentPreset === 'video' || 
+          contentPreset === 'url' ||
           ((contentPreset === 'image' || contentPreset === 'pdf') && !selectedFile)
         ) && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -705,7 +730,14 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             )}
             <Input
             type="url"
-            placeholder={`URL ${contentPreset === 'video' ? 'de la vidéo' : contentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+            placeholder={
+              `URL ${
+                contentPreset === 'video' ? 'de la vidéo' :
+                contentPreset === 'image' ? 'de l\'image' :
+                contentPreset === 'pdf' ? 'du PDF' :
+                'externe'
+              }`
+            }
             value={progressionContent.resourceUrl}
             onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
             />
@@ -861,8 +893,9 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             });
             return filteredProgressions.length > 0 ? (
               <Button
-                size="sm"
-                variant="destructive"
+                size='medium'
+                variant="outlined"
+                color="error"
                 onClick={() => {
                 setProgressionsToDelete(filteredProgressions);
                 setIsDeleteAllModalOpen(true);
@@ -873,8 +906,9 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             ) : null;
             })()}
             <Button
-            size="sm"
-            variant={showAllProgressions ? 'default' : 'outline'}
+            size='medium'
+            variant={showAllProgressions ? 'contained' : 'outlined'}
+            color='secondary'
             onClick={() => setShowAllProgressions(!showAllProgressions)}
             >
             {showAllProgressions ? 'Filtrer par date' : 'Tout afficher'}

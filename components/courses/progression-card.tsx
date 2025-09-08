@@ -36,6 +36,16 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
   const [selectedProgressions, setSelectedProgressions] = useState<Progression[]>([]);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<any[]>([]);
+  // IDs des progressions dont le PDF est actuellement pré-visualisé
+  const [openPdfIds, setOpenPdfIds] = useState<Set<string>>(new Set());
+
+  const togglePdfPreview = (id: string) => {
+    setOpenPdfIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const loadProgressions = useCallback(async () => {
     try {
@@ -164,12 +174,22 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button component="a" href={apiUrl} target="_blank" rel="noopener noreferrer" variant="contained" color="inherit" size="small">Ouvrir</Button>
+                  <Button
+                    variant={openPdfIds.has(`activity-pdf-${progression.id}`) ? 'contained' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    onClick={() => togglePdfPreview(`activity-pdf-${progression.id}`)}
+                  >
+                    {openPdfIds.has(`activity-pdf-${progression.id}`) ? 'Masquer' : 'Aperçu'}
+                  </Button>
                   <Button component="a" href={apiUrl} download variant="outlined" color="inherit" size="small">Télécharger</Button>
                 </Box>
               </Box>
-              <Box sx={{ bgcolor: 'white' }}>
-                <Box component="iframe" src={`${apiUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`} sx={{ width: '100%', height: 300, border: 0 }} title="PDF Document" />
-              </Box>
+              {openPdfIds.has(`activity-pdf-${progression.id}`) && (
+                <Box sx={{ bgcolor: 'white' }}>
+                  <Box component="iframe" src={`${apiUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`} sx={{ width: '100%', height: 300, border: 0 }} title="PDF Document" />
+                </Box>
+              )}
             </Box>
           )}
           {isVideo && (
@@ -229,6 +249,30 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                 startIcon={<VideoLibrary className="h-4 w-4" />}
               >
                 {isLinkedActivityDeleted ? 'Vidéo indisponible' : 'Regarder la vidéo'}
+              </Button>
+            )}
+          </Box>
+        );
+      case 'url':
+        return (
+          <Box sx={{ '& > * + *': { mt: 1.5 } }}>
+            {progression.content && (
+              <Box
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: progression.content }}
+              />
+            )}
+            {progression.resourceUrl && (
+              <Button
+                component="a"
+                href={progression.resourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                color="primary"
+                sx={{ textTransform: 'none', maxWidth: '100%', justifyContent: 'flex-start' }}
+              >
+                {progression.resourceUrl.length > 60 ? progression.resourceUrl.slice(0, 57) + '…' : progression.resourceUrl}
               </Button>
             )}
           </Box>
@@ -329,6 +373,15 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                       Ouvrir
                     </Button>
                     <Button
+                      variant={openPdfIds.has(`pdf-${progression.id}`) ? 'contained' : 'outlined'}
+                      color="primary"
+                      size="small"
+                      onClick={() => togglePdfPreview(`pdf-${progression.id}`)}
+                      disabled={!!isLinkedActivityDeleted}
+                    >
+                      {openPdfIds.has(`pdf-${progression.id}`) ? 'Masquer' : 'Aperçu'}
+                    </Button>
+                    <Button
                       component="a"
                       href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
                       download={isLinkedActivityDeleted ? false : true}
@@ -349,29 +402,31 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                     </Button>
                   </Box>
                 </Box>
-                <Box sx={{ bgcolor: 'white' }}>
-                  {isLinkedActivityDeleted ? (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      height: 300, 
-                      bgcolor: 'grey.100',
-                      color: 'text.disabled'
-                    }}>
-                      <Typography variant="body1">
-                        Document indisponible - activité supprimée
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Box
-                      component="iframe"
-                      src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                      sx={{ width: '100%', height: 300, border: 0 }}
-                      title="PDF Document"
-                    />
-                  )}
-                </Box>
+                {openPdfIds.has(`pdf-${progression.id}`) && (
+                  <Box sx={{ bgcolor: 'white' }}>
+                    {isLinkedActivityDeleted ? (
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        height: 300, 
+                        bgcolor: 'grey.100',
+                        color: 'text.disabled'
+                      }}>
+                        <Typography variant="body1">
+                          Document indisponible - activité supprimée
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        component="iframe"
+                        src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                        sx={{ width: '100%', height: 300, border: 0 }}
+                        title="PDF Document"
+                      />
+                    )}
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
@@ -392,7 +447,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
             <CalendarMonth className="mr-2 h-5 w-5" />
-            Progression — {classeName}
+            Progression — {classeName} 
           </Typography>
           <Chip label={`${daysWithProgressionCount} progression${daysWithProgressionCount > 1 ? 's' : ''}`} variant="outlined" />
         </Box>
