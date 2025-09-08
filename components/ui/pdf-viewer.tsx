@@ -25,13 +25,17 @@ export function PDFViewer({
   showControls = true,
   isEmbedded = false
 }: PDFViewerProps) {
+  // Préfixer via l'API de fichiers si le chemin pointe vers /progressions
+  const isProgressionStored = src.startsWith('/progressions/');
+  const apiServedSrc = isProgressionStored ? `/api/files${src}` : src;
+
   const openInNewTab = () => {
-    window.open(src, '_blank');
+    window.open(apiServedSrc, '_blank');
   };
 
   const downloadFile = () => {
     const link = document.createElement('a');
-    link.href = src;
+    link.href = apiServedSrc;
     link.download = filename || 'document.pdf';
     link.click();
   };
@@ -82,7 +86,7 @@ export function PDFViewer({
 
           <div className="relative bg-white rounded-lg border border-red-200 overflow-hidden">
             <iframe
-              src={`${src}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+              src={`${apiServedSrc}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
               width="100%"
               height="400px"
               className="border-0"
