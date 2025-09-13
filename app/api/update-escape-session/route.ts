@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseConnection } from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { escapeGamePrisma } from '@/lib/escape-game-db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-
     const { gameId, scores, answeredQuestions } = body;
 
     if (!gameId) {
@@ -18,70 +16,56 @@ export async function POST(request: NextRequest) {
     const answeredQuestionsC = answeredQuestions.C.length ? answeredQuestions.C.join(',') : '';
     const answeredQuestionsR = answeredQuestions.R.length ? answeredQuestions.R.join(',') : '';
 
-    let connection;
     try {
-      connection = await getDatabaseConnection();
+      // Check if session exists
+      const sessionData = await escapeGamePrisma.partie.findUnique({
+        where: { id: gameId },
+        select: { 
+          questionIdsS: true, 
+          questionIdsC: true, 
+          questionIdsR: true, 
+          passSession: true 
+        }
+      });
       
-      // Récupérer d'abord les questionIdsS, questionIdsC, questionIdsR existants
-      const [sessionRows] = await connection.execute<RowDataPacket[]>(
-        'SELECT questionIdsS, questionIdsC, questionIdsR, passSession FROM parties WHERE ID = ?',
-        [gameId]
-      );
-      
-      if (!Array.isArray(sessionRows) || sessionRows.length === 0) {
+      if (!sessionData) {
         return NextResponse.json({ error: 'Session not found' }, { status: 404 });
       }
       
-      const sessionData = sessionRows[0];
-      
-      // Update the scores and answered questions in the database
-      const query = `
-        UPDATE parties 
-        SET scoreS = ?, 
-            scoreC = ?, 
-            scoreR = ?, 
-            scoreE = ?,
-            answeredQuestionsS = ?, 
-            answeredQuestionsC = ?, 
-            answeredQuestionsR = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE ID = ?
-      `;
-      
-      const [result] = await connection.execute(
-        query,
-        [
-          scores.S,
-          scores.C,
-          scores.R,
-          scores.E,
+      // Update the scores and answered questions using Prisma
+      const updatedSession = await escapeGamePrisma.partie.update({
+        where: { id: gameId },
+        data: {
+          scoreS: scores.S,
+          scoreC: scores.C,
+          scoreR: scores.R,
+          scoreE: scores.E,
           answeredQuestionsS,
           answeredQuestionsC,
-          answeredQuestionsR,
-          gameId
-        ]
-      );
-      
-      // Get the updated timestamp and all session data
-      const [updatedRows] = await connection.execute<RowDataPacket[]>(
-        'SELECT updated_at, passSession, scoreS, scoreC, scoreR, scoreE FROM parties WHERE ID = ?',
-        [gameId]
-      );
+          answeredQuestionsR
+        },
+        select: {
+          passSession: true,
+          scoreS: true,
+          scoreC: true,
+          scoreR: true,
+          scoreE: true
+        }
+      });
       
       return NextResponse.json({ 
         success: true, 
         message: 'Escape game progress updated successfully',
-        updatedAt: updatedRows[0]?.updated_at,
-        passSession: updatedRows[0]?.passSession,
+        passSession: updatedSession.passSession,
         scores: {
-          S: updatedRows[0]?.scoreS || 0,
-          C: updatedRows[0]?.scoreC || 0,
-          R: updatedRows[0]?.scoreR || 0,
-          E: updatedRows[0]?.scoreE || 0
+          S: updatedSession.scoreS || 0,
+          C: updatedSession.scoreC || 0,
+          R: updatedSession.scoreR || 0,
+          E: updatedSession.scoreE || 0
         }
       });
     } finally {
-      if (connection) connection.release();
+      await escapeGamePrisma.$disconnect();
     }
   } catch (error) {
     console.error('Error updating escape game activity:', error);

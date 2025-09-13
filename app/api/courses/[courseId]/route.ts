@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     await logConnection(request, '/api/courses/[courseId]');
     const url = new URL(request.url);
     const courseId = url.pathname.split('/').pop();
+    console.log('[API] Course ID:', courseId);
 
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 
     // Récupération directe depuis la base de données
     const courseData = await getCourseById(courseId);
-
+    console.log('[API] Course Data:', courseData);
     if (courseData) {
       // Transformation vers le format attendu
       const course: Course = {

@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseConnection } from '@/lib/db';
+import { escapeGamePrisma } from '@/lib/escape-game-db';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req: NextRequest) {
-  let connection;
   try {
-    // Test connection first
-    connection = await getDatabaseConnection();
-    await connection.ping();
-
     const sessionId = uuidv4();
     const passSession = generatePass(7);
     const clientIp = req.headers.get('x-forwarded-for') || '0.0.0.0';
@@ -16,9 +11,7 @@ export async function POST(req: NextRequest) {
     // Fetch questions from the API using an absolute URL
     const questionsResponse = await fetch('https://pc.sekrane.fr/api/fetch-questions');
 
-
     const questions = await questionsResponse.json();
-
 
     if (typeof questions !== 'object' || questions === null) {
       throw new Error('Invalid response format: questions should be an object');
@@ -43,26 +36,34 @@ export async function POST(req: NextRequest) {
     const questionIdsCString = questionIdsC.join(',');
     const questionIdsRString = questionIdsR.join(',');
 
-    // Verify table exists
-    const [tables] = await connection.query('SHOW TABLES LIKE "sessions"');
-    if (!Array.isArray(tables) || tables.length === 0) {
-      throw new Error('Sessions table not found');
-    }
-
-    // Insert with error checking
-    const [result] = await connection.execute(
-      'INSERT INTO sessions (session_id, ip, navigateur) VALUES (?, ?, ?)',
-      [sessionId, clientIp, req.headers.get('user-agent')]
-    );
-
-    if (!result) {
-      throw new Error('Failed to insert session');
-    }
+    // Insert session using Prisma
+    const sessionResult = await escapeGamePrisma.escapeGameSession.create({
+      data: {
+        session_id: sessionId,
+        ip: clientIp,
+        navigateur: req.headers.get('user-agent') || null
+      }
+    });
 
     // Start game and insert record into 'parties' table
-    const gameId = await startGame(connection, passSession, 0, 0, 0, 0, questionIdsSString, questionIdsCString, questionIdsRString);
+    const gameResult = await escapeGamePrisma.partie.create({
+      data: {
+        passSession,
+        scoreS: 0,
+        scoreC: 0,
+        scoreR: 0,
+        scoreE: 0,
+        questionIdsS: questionIdsSString,
+        questionIdsC: questionIdsCString,
+        questionIdsR: questionIdsRString,
+        answeredQuestionsS: '',
+        answeredQuestionsC: '',
+        answeredQuestionsR: ''
+      }
+    });
+
     const sessionData = {
-      ID: gameId,
+      ID: gameResult.id,
       passSession,
       scores: { S: 0, C: 0, R: 0, E: 0 },
       questions
@@ -84,9 +85,7 @@ export async function POST(req: NextRequest) {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined 
     }, { status: 500 });
   } finally {
-    if (connection) {
-      connection.release();
-    }
+    await escapeGamePrisma.$disconnect();
   }
 }
 
@@ -100,36 +99,4 @@ function generatePass(n: number) {
   }
 
   return randomString;
-}
-
-async function startGame(connection: any, passSession: string, scoreS: number, scoreC: number, scoreR: number, scoreE: number, questionIdsS: string, questionIdsC: string, questionIdsR: string) {
-  // Check if the table exists
-  const [tables] = await connection.query('SHOW TABLES LIKE "parties"');
-  if (!Array.isArray(tables) || tables.length === 0) {
-    // Make the table if it doesn't exist
-    await connection.query(`
-      CREATE TABLE parties (
-        ID INT AUTO_INCREMENT PRIMARY KEY,
-        passSession VARCHAR(255),
-        scoreS INT,
-        scoreC INT,
-        scoreR INT,
-        scoreE INT,
-        questionIdsS TEXT,
-        questionIdsC TEXT,
-        questionIdsR TEXT,
-        answeredQuestionsS TEXT,
-        answeredQuestionsC TEXT,
-        answeredQuestionsR TEXT
-      )
-    `);
-  }
-
-  // Insert a new record into the table and return the ID
-  const [result] = await connection.execute(
-    'INSERT INTO parties (passSession, scoreS, scoreC, scoreR, scoreE, questionIdsS, questionIdsC, questionIdsR, answeredQuestionsS, answeredQuestionsC, answeredQuestionsR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [passSession, scoreS, scoreC, scoreR, scoreE, questionIdsS, questionIdsC, questionIdsR, '', '', '']
-  );
-
-  return result.insertId;
 }

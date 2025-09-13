@@ -1,0 +1,84 @@
+// generator escapeGameClient {
+  provider = "prisma-client-js"
+  output   = "/var/www/pc.sekrane.fr/lib/generated/escape-game-client"
+} is the Prisma schema file for the escape game database
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator escapeGameClient {
+  provider = "prisma-client-js"
+  output   = "@/lib/generated/escape-game-client"
+}
+
+datasource escapeGameDb {
+  provider = "mysql"
+  url      = env("ESCAPE_GAME_DATABASE_URL")
+}
+
+model Conquete {
+  id        Int      @id @default(autoincrement()) @map("ID")
+  question  String   @escapeGameDb.Text
+  reponse   String   @escapeGameDb.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conquete")
+}
+
+model Structure {
+  id        Int      @id @default(autoincrement()) @map("ID")
+  question  String   @escapeGameDb.Text
+  reponse   String   @escapeGameDb.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("structure")
+}
+
+model Rebus {
+  id        Int      @id @default(autoincrement()) @map("ID")
+  reponse   String   @escapeGameDb.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rebus")
+}
+
+model Enigmes {
+  id        Int      @id @default(autoincrement()) @map("ID")
+  question  String   @escapeGameDb.Text
+  reponse   String   @escapeGameDb.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("enigmes")
+}
+
+model EscapeGameSession {
+  id         Int      @id @default(autoincrement())
+  session_id String   @unique
+  ip         String
+  navigateur String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model Partie {
+  id                    Int      @id @default(autoincrement()) @map("ID")
+  passSession           String
+  scoreS                Int      @default(0)
+  scoreC                Int      @default(0)
+  scoreR                Int      @default(0)
+  scoreE                Int      @default(0)
+  questionIdsS          String?  @escapeGameDb.Text
+  questionIdsC          String?  @escapeGameDb.Text
+  questionIdsR          String?  @escapeGameDb.Text
+  answeredQuestionsS    String?  @escapeGameDb.Text
+  answeredQuestionsC    String?  @escapeGameDb.Text
+  answeredQuestionsR    String?  @escapeGameDb.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("parties")
+}

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseConnection } from '@/lib/db';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { escapeGamePrisma } from '@/lib/escape-game-db';
 
 interface RequestData {
   type: 'conquete' | 'structure' | 'rebus' | 'enigmes';
@@ -10,41 +9,40 @@ interface RequestData {
   gameId: number;
 }
 
-interface QuestionRow extends RowDataPacket {
-  reponse: string;
-}
-
-interface SessionRow extends RowDataPacket {
-  answeredQuestionsS: string;
-  answeredQuestionsC: string;
-  answeredQuestionsR: string;
-  scoreS: number;
-  scoreC: number;
-  scoreR: number;
-  updated_at: string;
-}
-
 export async function POST(req: NextRequest) {
-  let connection;
   try {
-    const { type, index, questionID, userAnswer, gameId } = await req.json() as RequestData;
+  const { type: rawType, index, questionID, userAnswer, gameId } = await req.json() as any;
+  const type = (rawType === 'enigme' ? 'enigmes' : rawType) as RequestData['type'];
     
-    connection = await getDatabaseConnection();
     let correct = false;
 
-    const queries: Record<RequestData['type'], string> = {
-      conquete: 'SELECT reponse FROM conquete WHERE ID = ?',
-      structure: 'SELECT reponse FROM structure WHERE ID = ?',
-      rebus: 'SELECT reponse FROM rebus WHERE ID = ?',
-      enigmes: 'SELECT reponse FROM enigmes WHERE ID = ?'
-    };
+    // Query the appropriate table using Prisma Client
+    let questionRow: { reponse: string | null } | null = null;
+    if (type === 'conquete') {
+      questionRow = await escapeGamePrisma.conquete.findUnique({
+        where: { id: questionID },
+        select: { reponse: true }
+      });
+    } else if (type === 'structure') {
+      questionRow = await escapeGamePrisma.structure.findUnique({
+        where: { id: questionID },
+        select: { reponse: true }
+      });
+    } else if (type === 'rebus') {
+      questionRow = await escapeGamePrisma.rebus.findUnique({
+        where: { id: questionID },
+        select: { reponse: true }
+      });
+    } else if (type === 'enigmes') {
+      questionRow = await escapeGamePrisma.enigmes.findUnique({
+        where: { id: questionID },
+        select: { reponse: true }
+      });
+    }
 
-    if (type in queries) {
-      const [rows] = await connection.execute<QuestionRow[]>(queries[type], [questionID]);
-      console.log('rows:', rows);
-      
+    if (questionRow) {
       // Compare answers case-insensitive and trimmed
-      const correctAnswer = rows[0]?.reponse?.trim()?.toLowerCase();
+      const correctAnswer = questionRow.reponse?.trim()?.toLowerCase();
       const userAnswerCleaned = userAnswer?.trim()?.toLowerCase();
       correct = correctAnswer === userAnswerCleaned;
       
@@ -53,49 +51,57 @@ export async function POST(req: NextRequest) {
                         type === 'conquete' ? 'C' : 
                         type === 'rebus' ? 'R' : '';
 
-        const [currentData] = await connection.execute<SessionRow[]>(
-          'SELECT COALESCE(answeredQuestionsS, \'\') as answeredQuestionsS, ' +
-          'COALESCE(answeredQuestionsC, \'\') as answeredQuestionsC, ' +
-          'COALESCE(answeredQuestionsR, \'\') as answeredQuestionsR, ' +
-          'scoreS, scoreC, scoreR, updated_at ' +
-          'FROM parties WHERE ID = ?',
-          [gameId]
-        );
-
-        if (!currentData[0]) {
-          throw new Error('Session data not found');
-        }
-
-        const answeredField = `answeredQuestions${category}` as keyof SessionRow;
-        const scoreField = `score${category}` as keyof SessionRow;
-        
-        const currentAnswered = currentData[0][answeredField] 
-          ? currentData[0][answeredField].split(',').map(Number)
-          : [];
-
-        if (!currentAnswered.includes(questionID)) {
-          const newAnswered = [...currentAnswered, questionID].join(',');
-          const currentScore = currentData[0][scoreField] as number;
-          const updatedScore = currentScore + 1;
-          
-          await connection.execute(
-            `UPDATE parties SET ${answeredField} = ?, ${scoreField} = ?, updated_at = CURRENT_TIMESTAMP WHERE ID = ?`,
-            [newAnswered, updatedScore, gameId]
-          );
-          
-          // Récupérer la date de mise à jour
-          const [updatedData] = await connection.execute<SessionRow[]>(
-            'SELECT updated_at FROM parties WHERE ID = ?',
-            [gameId]
-          );
-          
-          return NextResponse.json({ 
-            correct: true,
-            scoreUpdated: true,
-            updatedAnswers: [...currentAnswered, questionID],
-            updatedScore,
-            updated_at: updatedData[0]?.updated_at
+        // Only update scores/answers for S/C/R categories
+        if (category) {
+          // Get current session data
+          const currentSession = await escapeGamePrisma.partie.findUnique({
+            where: { id: gameId },
+            select: {
+              answeredQuestionsS: true,
+              answeredQuestionsC: true,
+              answeredQuestionsR: true,
+              scoreS: true,
+              scoreC: true,
+              scoreR: true
+            }
           });
+
+          if (!currentSession) {
+            throw new Error('Session data not found');
+          }
+
+          const answeredField = `answeredQuestions${category}` as keyof typeof currentSession;
+          const scoreField = `score${category}` as keyof typeof currentSession;
+          
+          const currentAnsweredString = currentSession[answeredField] as string | null;
+          const currentAnswered = currentAnsweredString 
+            ? currentAnsweredString.split(',').map(Number)
+            : [];
+
+          if (!currentAnswered.includes(questionID)) {
+            const newAnswered = [...currentAnswered, questionID].join(',');
+            const currentScore = currentSession[scoreField] as number;
+            const updatedScore = currentScore + 1;
+            
+            // Update the session with new answers and score
+            const updateData: any = {};
+            updateData[answeredField as string] = newAnswered;
+            updateData[scoreField as string] = updatedScore;
+            
+            await escapeGamePrisma.partie.update({
+              where: { id: gameId },
+              data: updateData,
+              select: { id: true }
+            });
+            
+            return NextResponse.json({ 
+              correct: true,
+              scoreUpdated: true,
+              updatedAnswers: [...currentAnswered, questionID],
+              updatedScore,
+              updated_at: new Date().toISOString()
+            });
+          }
         }
       }
     }
@@ -108,8 +114,6 @@ export async function POST(req: NextRequest) {
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
     }, { status: 500 });
   } finally {
-    if (connection) {
-      connection.release();
-    }
+    await escapeGamePrisma.$disconnect();
   }
 }

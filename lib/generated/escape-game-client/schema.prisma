@@ -1,0 +1,69 @@
+// This is the Prisma schema file for the escape game database
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator escapeGameClient {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/escape-game-client"
+}
+
+datasource dbEscapeGame {
+  provider = "mysql"
+  url      = env("ESCAPE_GAME_DATABASE_URL")
+}
+
+model Conquete {
+  id       Int    @id @default(autoincrement()) @map("ID")
+  question String @dbEscapeGame.Text
+  reponse  String @dbEscapeGame.Text
+
+  @@map("conquete")
+}
+
+model Structure {
+  id       Int    @id @default(autoincrement()) @map("ID")
+  question String @dbEscapeGame.Text
+  reponse  String @dbEscapeGame.Text
+
+  @@map("structure")
+}
+
+model Rebus {
+  id      Int    @id @default(autoincrement()) @map("ID")
+  reponse String @dbEscapeGame.Text
+
+  @@map("rebus")
+}
+
+model Enigmes {
+  id       Int    @id @default(autoincrement()) @map("ID")
+  question String @dbEscapeGame.Text
+  reponse  String @dbEscapeGame.Text
+
+  @@map("enigmes")
+}
+
+model EscapeGameSession {
+  id         Int     @id @default(autoincrement())
+  session_id String  @unique
+  ip         String
+  navigateur String?
+
+  @@map("sessions")
+}
+
+model Partie {
+  id                 Int     @id @default(autoincrement()) @map("ID")
+  passSession        String
+  scoreS             Int     @default(0)
+  scoreC             Int     @default(0)
+  scoreR             Int     @default(0)
+  scoreE             Int     @default(0)
+  questionIdsS       String? @dbEscapeGame.Text
+  questionIdsC       String? @dbEscapeGame.Text
+  questionIdsR       String? @dbEscapeGame.Text
+  answeredQuestionsS String? @dbEscapeGame.Text
+  answeredQuestionsC String? @dbEscapeGame.Text
+  answeredQuestionsR String? @dbEscapeGame.Text
+
+  @@map("parties")
+}

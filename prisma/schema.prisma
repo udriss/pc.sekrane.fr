@@ -17,32 +17,32 @@ model Classe {
   id                     String   @id
   name                   String
   toggleVisibilityClasse Boolean? @default(false)
-  hasProgression         Boolean  @default(false)  // Nouveau champ
+  hasProgression         Boolean  @default(false) // Nouveau champ
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
-  
+
   // Relations
-  courses Course[]
-  progressions Progression[]  // Nouvelle relation
-  
+  courses      Course[]
+  progressions Progression[] // Nouvelle relation
+
   @@map("classes")
 }
 
 model Course {
-  id                    String     @id
-  title                 String
-  description           String     @db.Text
-  classe                String
-  theClasseId           String
-  toggleVisibilityCourse Boolean?   @default(false)
-  themeChoice           Int?       @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-  
+  id                     String   @id
+  title                  String
+  description            String   @db.Text
+  classe                 String
+  theClasseId            String
+  toggleVisibilityCourse Boolean? @default(false)
+  themeChoice            Int?     @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
   // Relations
-  classeRelation        Classe     @relation(fields: [theClasseId], references: [id], onDelete: Cascade)
-  activities            Activity[]
-  
+  classeRelation Classe     @relation(fields: [theClasseId], references: [id], onDelete: Cascade)
+  activities     Activity[]
+
   @@map("courses")
 }
 
@@ -54,34 +54,34 @@ model Activity {
   courseId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   progressions Progression[]
-  
+
   @@map("activities")
 }
 
 model Progression {
-  id            String   @id @default(uuid())
-  classeId      String
-  date          DateTime
-  title         String
-  content       String   @db.Text
-  icon          String?
-  iconColor     String?
-  contentType   String
-  resourceUrl   String?  @db.VarChar(1024)
-  imageSize     Int?     @default(60)  // Taille de l'image en pourcentage
-  activityId    String?  // Activité préexistante liée (facultatif)
-  order         Int      @default(0)  // Nouveau champ
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  id          String   @id @default(uuid())
+  classeId    String
+  date        DateTime
+  title       String
+  content     String   @db.Text
+  icon        String?
+  iconColor   String?
+  contentType String
+  resourceUrl String?  @db.VarChar(1024)
+  imageSize   Int?     @default(60) // Taille de l'image en pourcentage
+  activityId  String? // Activité préexistante liée (facultatif)
+  order       Int      @default(0) // Nouveau champ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  classe        Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
-  activity      Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
-  
+  classe   Classe    @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+
   @@index([classeId, date])
   @@map("progressions")
 }
@@ -96,6 +96,6 @@ model ConnectionLog {
   language  String?
   screen    String?
   timezone  String?
-  
+
   @@map("connection_logs")
 }
