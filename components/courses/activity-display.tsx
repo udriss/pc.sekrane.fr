@@ -28,6 +28,7 @@ import {
 import { 
   FileDownload as Download 
 } from '@mui/icons-material';
+import SimplePDFViewer from "@/components/ui/simple-pdf-viewer";
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -1057,13 +1058,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     ></iframe>
               )}
               {leftFileType === 'pdfType' && selectedFileLeft && (
-                <iframe
-                  key={iframeKeyLeft}
-                  ref={iframeRef}
-                  src={selectedFileLeft}
-                  className="w-full h-full"
-                  allowFullScreen
-                />
+                <SimplePDFViewer src={selectedFileLeft} className="w-full h-full" />
               )}
               {leftFileType === 'html' && selectedFileLeft && (
                 <iframe 

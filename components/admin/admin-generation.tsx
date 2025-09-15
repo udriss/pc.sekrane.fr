@@ -33,7 +33,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
   const [warningAddFile, setWarningAddFile] = useState<string>('');
   const [warningAddCourse, setWarningAddCourse] = useState<string>('');
   const [selectedClassFilter, setSelectedClassFilter] = useState('');
-
+  const [rejectedFile, setRejectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -226,6 +226,9 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             onFileRemove={() => setFile(null)}
             selectedFile={file}
             maxFileSize={50 * 1024 * 1024} // 50MB
+            rejectedFile={rejectedFile}
+            onFileReject={(file, errors) => setRejectedFile(file)}
+            onRejectedFileRemove={() => setRejectedFile(null)}
           />
         </div>
         {warningAddFile && <WarningMessage message={warningAddFile} />}

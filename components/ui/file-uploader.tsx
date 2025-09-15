@@ -1,10 +1,7 @@
-'use client';
-
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Upload, File, X, Image as ImageIcon, AlertTriangle } from 'lucide-react';
-import { CloudUpload, PictureAsPdf, PhotoCamera } from '@mui/icons-material';
+import { Button, Box, Typography, IconButton } from '@mui/material';
+import { CloudUpload, PictureAsPdf, PhotoCamera, ErrorOutline, Close, InsertDriveFile } from '@mui/icons-material';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -19,6 +16,7 @@ interface FileUploaderProps {
   fileType?: 'image' | 'pdf' | 'all';
   rejectedFile?: File | null;
   onRejectedFileRemove?: () => void;
+  onFileReject?: (file: File, errors: any[]) => void;
 }
 
 export function FileUploader({
@@ -34,7 +32,8 @@ export function FileUploader({
   className,
   fileType,
   rejectedFile,
-  onRejectedFileRemove
+  onRejectedFileRemove,
+  onFileReject
 }: FileUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -46,9 +45,12 @@ export function FileUploader({
       const rejectedFile = rejectedFiles[0].file;
       // Vous pouvez appeler une fonction callback pour gérer les rejets
       console.log('Fichier rejeté:', rejectedFile.name, rejectedFiles[0].errors);
+      if (onFileReject) {
+        onFileReject(rejectedFile, rejectedFiles[0].errors);
+      }
     }
     setIsDragOver(false);
-  }, [onFileSelect]);
+  }, [onFileSelect, onFileReject]);
 
   const onDropRejected = useCallback((rejectedFiles: any[]) => {
     // Gérer les fichiers rejetés si nécessaire
@@ -85,7 +87,8 @@ export function FileUploader({
           'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
           'application/vnd.ms-powerpoint': ['.ppt'],
           'application/vnd.oasis.opendocument.spreadsheet': ['.ods'],
-          'text/plain': ['.txt']
+          'text/plain': ['.txt'],
+          'application/x-ipynb+json': ['.ipynb'],
         },
     maxSize: maxFileSize,
     multiple: false
@@ -93,12 +96,12 @@ export function FileUploader({
 
   const getIcon = () => {
     if (fileType === 'image') {
-      return <PhotoCamera className="h-8 w-8 text-gray-400" />;
+      return <PhotoCamera sx={{ fontSize: 32, color: 'gray.400' }} />;
     }
     if (fileType === 'pdf') {
-      return <PictureAsPdf className="h-8 w-8 text-gray-400" />;
+      return <PictureAsPdf sx={{ fontSize: 32, color: 'gray.400' }} />;
     }
-    return <CloudUpload className="h-8 w-8 text-gray-400" />;
+    return <CloudUpload sx={{ fontSize: 32, color: 'gray.400' }} />;
   };
 
   const getAcceptText = () => {
@@ -108,27 +111,25 @@ export function FileUploader({
     if (fileType === 'pdf') {
       return 'Documents PDF';
     }
-    return 'Fichiers (Images, PDF, CSV, XLSX, Vidéo, Audio, DOCX, ODT, PPTX, ODS, TXT)';
+    return 'Fichiers (Images, PDF, CSV, XLSX, Vidéo, Audio, DOCX, ODT, PPTX, ODS, TXT, IPYNB)';
   };
 
   if (selectedFile && preview && fileType === 'image') {
     return (
-      <div className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-700">Image sélectionnée :</span>
+      <Box className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
+        <Box className="flex items-center justify-between mb-3">
+          <Typography variant="body2" fontWeight="medium" color="text.secondary">Image sélectionnée :</Typography>
           {onFileRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+            <IconButton
+              size="small"
               onClick={onFileRemove}
-              className="h-6 w-6 p-0 hover:bg-red-100"
+              sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' } }}
             >
-              <X className="h-4 w-4 text-red-500" />
-            </Button>
+              <Close sx={{ fontSize: 16, color: 'red.500' }} />
+            </IconButton>
           )}
-        </div>
-        <div className="flex flex-col items-center">
+        </Box>
+        <Box className="flex flex-col items-center">
           <Image
             src={preview}
             alt="Preview"
@@ -137,78 +138,74 @@ export function FileUploader({
             className="max-w-full max-h-48 rounded-lg shadow-md object-contain"
             style={{ width: 'auto', height: 'auto' }}
           />
-          <p className="text-xs text-gray-500 mt-2">{selectedFile.name}</p>
-        </div>
-      </div>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>{selectedFile.name}</Typography>
+        </Box>
+      </Box>
     );
   }
 
   if (selectedFile && (fileType === 'pdf' || fileType === 'all')) {
     const isPdf = selectedFile.type === 'application/pdf';
     return (
-      <div className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-700">Fichier sélectionné :</span>
+      <Box className={cn("relative border-2 border-dashed border-gray-200 rounded-lg p-4", className)}>
+        <Box className="flex items-center justify-between mb-3">
+          <Typography variant="body2" fontWeight="medium" color="text.secondary">Fichier sélectionné :</Typography>
           {onFileRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+            <IconButton
+              size="small"
               onClick={onFileRemove}
-              className="h-6 w-6 p-0 hover:bg-red-100"
+              sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' } }}
             >
-              <X className="h-4 w-4 text-red-500" />
-            </Button>
+              <Close sx={{ fontSize: 16, color: 'red.500' }} />
+            </IconButton>
           )}
-        </div>
-        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-          {isPdf ? <PictureAsPdf className="h-8 w-8 text-red-600" /> : <File className="h-8 w-8 text-gray-600" />}
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-            <p className="text-xs text-gray-500">
+        </Box>
+        <Box className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          {isPdf ? <PictureAsPdf sx={{ fontSize: 32, color: 'red.600' }} /> : <InsertDriveFile sx={{ fontSize: 32, color: 'gray.600' }} />}
+          <Box className="flex-1">
+            <Typography variant="body2" fontWeight="medium" color="text.primary">{selectedFile.name}</Typography>
+            <Typography variant="caption" color="text.secondary">
               {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-            </p>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 
   // Affichage de l'erreur si fichier rejeté
   if (rejectedFile) {
     return (
-      <div className={cn("relative border-2 border-dashed border-red-300 rounded-lg p-4 bg-red-50", className)}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-red-700">Fichier rejeté :</span>
+      <Box className={cn("relative border-2 border-dashed border-red-300 rounded-lg p-4 bg-red-50", className)}>
+        <Box className="flex items-center justify-between mb-3">
+          <Typography variant="body2" fontWeight="medium" color="error.main">Fichier rejeté :</Typography>
           {onRejectedFileRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+            <IconButton
+              size="small"
               onClick={onRejectedFileRemove}
-              className="h-6 w-6 p-0 hover:bg-red-200"
+              sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' } }}
             >
-              <X className="h-4 w-4 text-red-600" />
-            </Button>
+              <Close sx={{ fontSize: 16, color: 'red.600' }} />
+            </IconButton>
           )}
-        </div>
-        <div className="flex items-center space-x-3 p-3 bg-red-100 rounded-lg">
-          <AlertTriangle className="h-8 w-8 text-red-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-red-900 line-through opacity-70">
+        </Box>
+        <Box className="flex items-center space-x-3 p-3 bg-red-100 rounded-lg">
+          <ErrorOutline sx={{ fontSize: 32, color: 'red.600' }} />
+          <Box className="flex-1">
+            <Typography variant="body2" fontWeight="medium" color="error.dark" sx={{ textDecoration: 'line-through', opacity: 0.7 }}>
               {rejectedFile.name}
-            </p>
-            <p className="text-xs text-red-600 font-medium">
+            </Typography>
+            <Typography variant="caption" color="error.main" fontWeight="medium">
               Format invalide - {getAcceptText()} uniquement
-            </p>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div
+    <Box
       {...getRootProps()}
       className={cn(
         "relative border-2 border-dashed border-gray-300 rounded-lg p-6 transition-all duration-200 cursor-pointer hover:border-gray-400",
@@ -217,25 +214,25 @@ export function FileUploader({
       )}
     >
       <input {...getInputProps()} />
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
+      <Box className="text-center">
+        <Box className="flex justify-center mb-4">
           {isDragActive || isDragOver ? (
-            <CloudUpload className="h-8 w-8 text-blue-500" />
+            <CloudUpload sx={{ fontSize: 32, color: 'blue.500' }} />
           ) : (
             getIcon()
           )}
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">
+        </Box>
+        <Box className="space-y-2">
+          <Typography variant="body2" color="text.secondary">
             {isDragActive || isDragOver
               ? `Relâchez pour ajouter le ${fileType === 'image' ? 'image' : 'PDF'}`
               : `Glissez-déposez ${fileType === 'image' ? 'une image' : 'un PDF'} ici, ou cliquez pour sélectionner`}
-          </p>
-          <p className="text-xs text-gray-500">
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
             {getAcceptText()} - Max {Math.round(maxFileSize / 1024 / 1024)}MB
-          </p>
-        </div>
-      </div>
-    </div>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }

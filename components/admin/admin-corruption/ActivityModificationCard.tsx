@@ -40,7 +40,8 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
   const [warningUpdateActivity, setWarningUpdateActivity] = useState<string>('');
   const [successMessageUpdateActivity, setSuccessMessageUpdateActivity] = useState<string>('');
   const [successMessageUploadFileName, setSuccessMessageUploadFileName] = useState<string>('');
-
+  const [rejectedFile, setRejectedFile] = useState<File | null>(null);
+  
   const resetMessages = () => {
     setErrorUpdateActivity('');
     setWarningUpdateActivity('');
@@ -232,6 +233,9 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
           onFileRemove={() => setNewFile(null)}
           selectedFile={newFile}
           maxFileSize={50 * 1024 * 1024}
+          rejectedFile={rejectedFile}
+          onFileReject={(file, errors) => setRejectedFile(file)}
+          onRejectedFileRemove={() => setRejectedFile(null)}
         />
 
         <Button className="w-full" onClick={handleUpdate}>
