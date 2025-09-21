@@ -61,6 +61,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [isLoading, setIsLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreenOverlay, setShowFullscreenOverlay] = useState(false);
 
 
 
@@ -332,9 +333,13 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   const handleFullscreen = () => {
     if (isFullscreen) {
       document.exitFullscreen();
-    } else if (iframeRightRef.current) {
-      if (iframeRightRef.current.requestFullscreen) {
-        iframeRightRef.current.requestFullscreen();
+      setShowFullscreenOverlay(false);
+    } else {
+      // Mettre le conteneur parent en plein écran au lieu de l'iframe
+      const container = iframeRightRef.current?.parentElement;
+      if (container && container.requestFullscreen) {
+        container.requestFullscreen();
+        setShowFullscreenOverlay(true);
       }
     }
   };
@@ -454,12 +459,27 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const fullscreen = !!document.fullscreenElement;
+      setIsFullscreen(fullscreen);
+      if (!fullscreen) {
+        setShowFullscreenOverlay(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        document.exitFullscreen();
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
 
   if (!course) {
     return <LoadingPage />;
@@ -720,8 +740,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
       </div>
     </div>
   );
-};
-
+}
 
 
   return (
@@ -1031,7 +1050,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
             </div>
             <div className="w-full h-full md:h-auto">
               {selectedFileRight && (
-                <div className="w-full h-full relative">
+                <div className="w-full h-full relative" id="fullscreen-container">
                   <iframe 
                     ref={iframeRightRef} 
                     src={selectedFileRight} 
@@ -1045,6 +1064,19 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   >
                     <FullscreenIcon className="mr-2 h-4 w-4" /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
                   </Button>
+                  
+                  {/* Overlay dans le conteneur */}
+                  {showFullscreenOverlay && (
+                    <div className="absolute inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center pointer-events-none">
+                      <Button 
+                        onClick={handleFullscreen}
+                        className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white pointer-events-auto"
+                        size="sm"
+                      >
+                        <FullscreenIcon className="mr-2 h-4 w-4" /> Quitter le plein écran
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1109,8 +1141,8 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
               className="ipynbDiv"
               style={{ width: lastClickedType === 'ipynb' && selectedFileRight ? '100%' : '0%', height: '100%', display: selectedFileRight && lastClickedType === 'ipynb' ? 'block' : 'none' }}>
               {selectedFileRight && (
-                <div className="relative w-full h-full">
-                  <iframe  ref={iframeRightRef} src={selectedFileRight} style={{ width: '100%', height: '100%' }}></iframe>
+                <div className="relative w-full h-full" id="fullscreen-container-single">
+                  <iframe  ref={iframeRightRef} src={selectedFileRight} className="w-full h-full absolute inset-0" style={{border: 'none'}}></iframe>
                   <Button 
                     onClick={handleFullscreen}
                     className="absolute top-0 right-0 z-10 m-2 bg-green-600 hover:bg-green-700"
