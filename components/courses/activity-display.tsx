@@ -23,7 +23,8 @@ import { downloadFileWithProgress } from '@/components/courses/donwload-track';
 import "pdfjs-dist/web/pdf_viewer.css";
 
 import { 
-  OpenInNew as ExternalLink 
+  OpenInNew as ExternalLink,
+  Fullscreen as FullscreenIcon
 } from '@mui/icons-material';
 import { 
   FileDownload as Download 
@@ -59,6 +60,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [currentUniqueId, setCurrentUniqueId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
 
 
@@ -327,6 +329,15 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     });
     setSplitSizes(newSizes);
   };
+  const handleFullscreen = () => {
+    if (isFullscreen) {
+      document.exitFullscreen();
+    } else if (iframeRightRef.current) {
+      if (iframeRightRef.current.requestFullscreen) {
+        iframeRightRef.current.requestFullscreen();
+      }
+    }
+  };
   const sanitizeContent = (content: string): string => {
     return DOMPurify.sanitize(content, {
       ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
@@ -404,7 +415,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
           toast.dismiss();
           toast.clearWaitingQueue();
           toast.error(
-            'Code introuvable ...', 
+            'Code introuvable...', 
             {
               className: "toast-centered",
               style: {
@@ -442,10 +453,13 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
   };
 
   useEffect(() => {
-    if (selectedFileLeft && iframeRightRef.current && leftFileType === 'ipynb') {
-      iframeRightRef.current.src = selectedFileLeft;
-    }
-  }, [selectedFileLeft, leftFileType]);
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   if (!course) {
     return <LoadingPage />;
@@ -1024,6 +1038,13 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     className="w-full h-full absolute inset-0"
                     style={{border: 'none'}}
                   />
+                  <Button 
+                    onClick={handleFullscreen}
+                    className="absolute top-0 right-0 z-10 m-2 bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    <FullscreenIcon className="mr-2 h-4 w-4" /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                  </Button>
                 </div>
               )}
             </div>
@@ -1088,7 +1109,16 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
               className="ipynbDiv"
               style={{ width: lastClickedType === 'ipynb' && selectedFileRight ? '100%' : '0%', height: '100%', display: selectedFileRight && lastClickedType === 'ipynb' ? 'block' : 'none' }}>
               {selectedFileRight && (
-                <iframe  ref={iframeRightRef} src={selectedFileRight} style={{ width: '100%', height: '100%' }}></iframe>
+                <div className="relative w-full h-full">
+                  <iframe  ref={iframeRightRef} src={selectedFileRight} style={{ width: '100%', height: '100%' }}></iframe>
+                  <Button 
+                    onClick={handleFullscreen}
+                    className="absolute top-0 right-0 z-10 m-2 bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    <FullscreenIcon className="mr-2 h-4 w-4" /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                  </Button>
+                </div>
               )}
             </div>
           </>
