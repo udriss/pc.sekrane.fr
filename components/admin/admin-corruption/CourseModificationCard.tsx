@@ -61,6 +61,25 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     })
   );
 
+  const naturalSort = (a: string, b: string) => {
+    const regex = /(\d+|\D+)/g;
+    const aParts = a.match(regex) || [];
+    const bParts = b.match(regex) || [];
+    for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+      const aPart = aParts[i];
+      const bPart = bParts[i];
+      if (aPart !== bPart) {
+        const aNum = parseInt(aPart, 10);
+        const bNum = parseInt(bPart, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return aPart.localeCompare(bPart);
+      }
+    }
+    return aParts.length - bParts.length;
+  };
+
   useEffect(() => {
     if (selectedCourse) {
       const updatedCourse = courses.find((course) => course.id === selectedCourse);
@@ -330,39 +349,40 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     <Card className="p-4 mt-4" defaultExpanded={true} title="Modifier un cours">
       <Box sx={{ '& > * + *': { mt: 3 } }}>
         <Box>
-          <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
+            <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner une classe" />
             </SelectTrigger>
             <SelectContent>
               {classes && Array.isArray(classes) ? (
-                classes.map((classe) => (
-                  <SelectItem key={classe.id} value={classe.id}>
-                    {classe.name}
-                  </SelectItem>
-                ))
+              [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
+                <SelectItem key={classe.id} value={classe.id}>
+                {classe.name}
+                </SelectItem>
+              ))
               ) : null}
             </SelectContent>
-          </Select>
+            </Select>
         </Box>
         <Box>
-          <Select value={selectedCourse} onValueChange={(value) => {
+            <Select value={selectedCourse} onValueChange={(value) => {
             handleCourseChange(value);
             setCourseToDelete(value);
-          }}>
+            }}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un cours" />
             </SelectTrigger>
             <SelectContent>
               {courses && courses
               .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+              .sort((a, b) => naturalSort(a.title, b.title))
               .map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
+              <SelectItem key={course.id} value={course.id}>
+                {course.title}
+              </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+            </Select>
         </Box>
         {selectedCourse && (
         <form onSubmit={handleSaveCourseDetails} style={{ marginTop: '2rem' }}>

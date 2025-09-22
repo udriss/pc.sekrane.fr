@@ -42,6 +42,25 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
   const [successMessageUploadFileName, setSuccessMessageUploadFileName] = useState<string>('');
   const [rejectedFile, setRejectedFile] = useState<File | null>(null);
   
+  const naturalSort = (a: string, b: string) => {
+    const regex = /(\d+|\D+)/g;
+    const aParts = a.match(regex) || [];
+    const bParts = b.match(regex) || [];
+    for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+      const aPart = aParts[i];
+      const bPart = bParts[i];
+      if (aPart !== bPart) {
+        const aNum = parseInt(aPart, 10);
+        const bNum = parseInt(bPart, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return aPart.localeCompare(bPart);
+      }
+    }
+    return aParts.length - bParts.length;
+  };
+  
   const resetMessages = () => {
     setErrorUpdateActivity('');
     setWarningUpdateActivity('');
@@ -153,7 +172,7 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
             <SelectValue placeholder="Sélectionner une classe" />
           </SelectTrigger>
           <SelectContent>
-            {classes.map(classe => (
+            {classes.sort((a, b) => naturalSort(a.name, b.name)).map(classe => (
               <SelectItem key={classe.id} value={classe.id}>{classe.name}</SelectItem>
             ))}
           </SelectContent>
@@ -167,8 +186,9 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
           <SelectContent>
             {courses
               .filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity)
+              .sort((a, b) => naturalSort(a.title, b.title))
               .map(course => (
-                <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+          <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
               ))}
           </SelectContent>
         </Select>
@@ -182,17 +202,17 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
             {(() => {
               const filteredCourses = courses.filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity);
               if (selectedCourseForActivity) {
-                const chosenCourse = filteredCourses.find(c => c.id === selectedCourseForActivity);
-                return chosenCourse?.activities
-                  .filter(a => a && a.id && a.id.trim() !== '')
-                  .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
-                  .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
+          const chosenCourse = filteredCourses.find(c => c.id === selectedCourseForActivity);
+          return chosenCourse?.activities
+            .filter(a => a && a.id && a.id.trim() !== '')
+            .sort((a, b) => naturalSort(a.title || '', b.title || ''))
+            .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
               }
               return filteredCourses
-                .flatMap(c => c.activities || [])
-                .filter(a => a && a.id && a.id.trim() !== '')
-                .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
-                .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
+          .flatMap(c => c.activities || [])
+          .filter(a => a && a.id && a.id.trim() !== '')
+          .sort((a, b) => naturalSort(a.title || '', b.title || ''))
+          .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
             })()}
           </SelectContent>
         </Select>

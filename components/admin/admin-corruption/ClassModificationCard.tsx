@@ -39,6 +39,25 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
   const [errorDeleteCourseRapide, setErrorDeleteCourseRapide] = useState<string>('');
   const [successMessageDeleteCourseRapide, setSuccessMessageDeleteCourseRapide] = useState<string>('');
 
+  const naturalSort = (a: string, b: string) => {
+    const regex = /(\d+|\D+)/g;
+    const aParts = a.match(regex) || [];
+    const bParts = b.match(regex) || [];
+    for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+      const aPart = aParts[i];
+      const bPart = bParts[i];
+      if (aPart !== bPart) {
+        const aNum = parseInt(aPart, 10);
+        const bNum = parseInt(bPart, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return aPart.localeCompare(bPart);
+      }
+    }
+    return aParts.length - bParts.length;
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -280,7 +299,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
             </SelectTrigger>
             <SelectContent>
               {classes && Array.isArray(classes) ? (
-                classes.map((classe) => (
+                [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
                   <SelectItem key={classe.id} value={classe.id}>
                     {classe.name}
                   </SelectItem>
@@ -322,23 +341,23 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
               collisionDetection={closestCenter}
               onDragEnd={handleDragEndCourse}
             >
-              <SortableContext
-                items={associatedCourses.map(course => course.id)}
+                <SortableContext
+                items={associatedCourses.sort((a, b) => naturalSort(a.title, b.title)).map(course => course.id)}
                 strategy={verticalListSortingStrategy}
-              >
+                >
                 <ul className="space-y-2">
                 {associatedCourses.map((course) => (
                   <SortableCourse
-                    key={course.id}
-                    courseId={course.id}
-                    courseTitle={course.title}
-                    toggleVisibilityCourse={course.toggleVisibilityCourse}
-                    onDelete={handleDeleteClickRapide}
-                    onToggleVisibility={handleToggleVisibilityCourse}
+                  key={course.id}
+                  courseId={course.id}
+                  courseTitle={course.title}
+                  toggleVisibilityCourse={course.toggleVisibilityCourse}
+                  onDelete={handleDeleteClickRapide}
+                  onToggleVisibility={handleToggleVisibilityCourse}
                   />
                 ))}
                 </ul>
-              </SortableContext>
+                </SortableContext>
             </DndContext>
           </div>
         )}
