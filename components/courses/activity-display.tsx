@@ -341,7 +341,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
         container.requestFullscreen();
         setShowFullscreenOverlay(true);
       }
-    }
+    } 
   };
   const sanitizeContent = (content: string): string => {
     return DOMPurify.sanitize(content, {
@@ -1111,7 +1111,15 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     ></iframe>
               )}
               {leftFileType === 'pdfType' && selectedFileLeft && (
-                <SimplePDFViewer src={selectedFileLeft} className="w-full h-full" />
+                // <SimplePDFViewer src={selectedFileLeft} className="w-full h-full" />
+                <div className="w-full h-full relative">
+                  <iframe 
+                    key={iframeKeyLeft} 
+                    src={selectedFileLeft} 
+                    className="w-full h-full absolute inset-0"
+                    style={{border: 'none'}}
+                  />
+                </div>
               )}
               {leftFileType === 'html' && selectedFileLeft && (
                 <iframe 

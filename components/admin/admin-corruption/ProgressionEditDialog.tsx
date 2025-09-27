@@ -110,7 +110,7 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
     setErrorProgression,
     setProgressionContent
   } = progressionState;
-
+ 
   // Fonction pour sauvegarder les modifications
   const handleUpdateProgression = async () => {
     if (!editingProgression || !editProgressionContent.title) {
@@ -142,7 +142,7 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
         setProgressionContent({
           title: '',
           content: '',
-          icon: 'edit',
+          icon: 'none',
           iconColor: '#3f51b5',
           contentType: 'text',
           resourceUrl: '',
@@ -251,7 +251,7 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
     setProgressionContent({
       title: '',
       content: '',
-      icon: 'edit',
+      icon: 'none',
       iconColor: '#3f51b5',
       contentType: 'text',
       resourceUrl: '',

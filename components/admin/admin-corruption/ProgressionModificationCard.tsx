@@ -177,6 +177,10 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     }
   };
 
+  const getDatesWithProgression = () => {
+    return progressions.map(p => new Date(p.date));
+  };
+
   const handleSaveProgression = async () => {
     if (!selectedClasseForProgression || !selectedDate || !progressionContent.title) {
       setErrorProgression('Veuillez remplir tous les champs obligatoires');
@@ -208,7 +212,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
         setProgressionContent({
           title: '',
           content: '',
-          icon: 'calendar',
+          icon: 'none',
           iconColor: '#3f51b5',
           contentType: 'text',
           resourceUrl: '',
@@ -394,7 +398,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     setProgressionContent({
       title: '',
       content: '',
-      icon: 'edit',
+      icon: 'none',
       iconColor: '#3f51b5',
       contentType: 'text',
       resourceUrl: '',
@@ -503,6 +507,31 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
           }}
           locale={fr}
           className="rounded-md border"
+          modifiers={{
+            hasProgression: getDatesWithProgression(),
+            selectedHasProgression: selectedDate ? getDatesWithProgression().filter(d => d.toDateString() === selectedDate.toDateString()) : [],
+          }}
+          modifiersStyles={{
+            hasProgression: {
+              backgroundColor: '#9fcbf8ff',
+              color: '#111827',
+              fontWeight: 'bold',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+            selectedHasProgression: {
+              border: '2px solid #1e40af',
+              borderRadius: '4px',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
         />
         </Box>
       )}

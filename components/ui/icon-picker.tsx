@@ -102,21 +102,21 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="grid grid-cols-5 gap-2">
-            {icons.map((iconData) => {
-              const IconComponent = iconData.icon;
+            {icons.map((iconData: { icon: React.ComponentType<any> | null; name: string }) => {
+              const IconComponent: React.ComponentType<any> | null = iconData.icon;
               return (
-                <Button
-                  type="button"
-                  key={iconData.name}
-                  variant={value === iconData.name ? 'default' : 'outline'}
-                  className="h-10 w-10 p-0"
-                  onClick={() => {
-                    onChange(iconData.name);
-                    setOpen(false);
-                  }}
-                >
-                  {IconComponent ? <IconComponent className="h-4 w-4" /> : <div className="w-4 h-4"></div>}
-                </Button>
+              <Button
+                type="button"
+                key={iconData.name}
+                variant={value === iconData.name ? 'default' : 'outline'}
+                className="h-10 w-10 p-0"
+                onClick={() => {
+                onChange(iconData.name);
+                setOpen(false);
+                }}
+              >
+                {IconComponent ? <IconComponent className="h-4 w-4" /> : <div className="w-4 h-4"></div>}
+              </Button>
               );
             })}
           </div>

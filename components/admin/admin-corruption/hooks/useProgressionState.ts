@@ -11,7 +11,7 @@ export const useProgressionState = () => {
   const [progressionContent, setProgressionContent] = useState<ProgressionContent>({
     title: '',
     content: '',
-    icon: 'edit',
+    icon: 'none',
     iconColor: '#3f51b5',
     contentType: 'text',
     resourceUrl: '',

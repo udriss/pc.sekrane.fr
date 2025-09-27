@@ -447,7 +447,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
             <CalendarMonth className="mr-2 h-5 w-5" />
-            Progression — {classeName} 
+            Classe de <Typography component="span" fontWeight="bold">{classeName}</Typography>
           </Typography>
           <Chip label={`${daysWithProgressionCount} progression${daysWithProgressionCount > 1 ? 's' : ''}`} variant="outlined" />
         </Box>
