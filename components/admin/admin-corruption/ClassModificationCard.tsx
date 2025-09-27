@@ -9,6 +9,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import Switch from '@mui/material/Switch';
 import { Typography, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface ClassModificationCardProps {
   courses: Course[];
@@ -284,8 +285,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" fontWeight="bold">
-          Modifier une classe
+        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> classe
         </Typography>
       </AccordionSummary>
       <AccordionDetails>

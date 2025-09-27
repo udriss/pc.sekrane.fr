@@ -182,7 +182,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                   >
                     {openPdfIds.has(`activity-pdf-${progression.id}`) ? 'Masquer' : 'Aperçu'}
                   </Button>
-                  <Button component="a" href={apiUrl} download variant="outlined" color="inherit" size="small">Télécharger</Button>
+                  <Button component="a" href={apiUrl} download variant="outlined" color="inherit" size="small" sx = {{ fontWeight: 700 }}>Télécharger</Button>
                 </Box>
               </Box>
               {openPdfIds.has(`activity-pdf-${progression.id}`) && (
@@ -389,6 +389,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                       color="inherit"
                       disabled={!!isLinkedActivityDeleted}
                       sx={{ 
+                        fontWeight: 700,
                         borderColor: isLinkedActivityDeleted ? 'grey.400' : 'grey.700', 
                         color: isLinkedActivityDeleted ? 'grey.600' : 'grey.900', 
                         '&:hover': { 

@@ -40,8 +40,15 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false
   },
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   metadataBase: new URL(deploymentDomain),
+};
+
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
 };
 
 
@@ -53,13 +60,13 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.className} min-h-screen w-full`}>
-        <Container maxWidth="sm" sx={{ width: '100%' }}>
+        <Container maxWidth="xl" sx={{ width: '100%', mt: 2 }}>
           <MainNav />
         </Container>
         <Box
           component="main"
           sx={{
-            mt: 16, // équivalent à mt-32 (32 * 0.25rem = 8rem = 128px, mais ajusté pour Material UI)
+            mt: 4,
             minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',

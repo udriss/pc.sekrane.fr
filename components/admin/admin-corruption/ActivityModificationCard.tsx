@@ -7,6 +7,7 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EditIcon from '@mui/icons-material/Edit';
 
 /**
  * ActivityModificationCard
@@ -163,8 +164,7 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" fontWeight="bold">
-          Modifier une activité
+        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> activité
         </Typography>
       </AccordionSummary>
       <AccordionDetails>

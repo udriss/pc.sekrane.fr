@@ -24,7 +24,7 @@ import { ProgressionContent } from './types';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
+import EditIcon from '@mui/icons-material/Edit';
 
 interface Progression {
   id: string;
@@ -409,8 +409,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" fontWeight="bold">
-          Modifier une progression
+        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> progression
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -544,7 +543,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
       {/* Formulaire de contenu si une date est sélectionnée */}
       {selectedDate && (
         <Box sx={{ '& > * + *': { mt: 2 }, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-        <Typography variant="h6" fontWeight={600}>
+        <Typography variant="body2" fontWeight={600}>
           Ajouter du contenu pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
         </Typography>
 
@@ -933,7 +932,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
           </Box>
         </Box>
 
-        <Button onClick={handleSaveProgression} className="w-full">
+        <Button onClick={handleSaveProgression} className="w-full" variant='outlined' sx = {{ fontWeight: 700 }}>
           Ajouter la progression
         </Button>
         </Box>

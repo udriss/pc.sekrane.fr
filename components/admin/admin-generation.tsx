@@ -5,6 +5,7 @@ import React, { useRef, useEffect } from 'react';
 import { Course, Classe } from '@/lib/data';
 import {SuccessMessage, ErrorMessage, WarningMessage} from '@/components/message-display';
 import { FileUploader } from '@/components/ui/file-uploader';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 interface GenerationsAdminProps {
   courses: Course[];
@@ -197,7 +198,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
     <>
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" fontWeight="bold">Ajouter une nouvelle activité</Typography>
+        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><AddCircleIcon color='success' /> activité</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Box component="form" onSubmit={handleAddFile} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -277,7 +278,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           {errorAddFile && <ErrorMessage message={errorAddFile} />}
           {successMessageAddFile && <SuccessMessage message={successMessageAddFile} />}
 
-          <Button type="submit" variant="contained" fullWidth>
+          <Button type="submit" variant="outlined" fullWidth sx={{ fontWeight: 700 }}>
             Télécharger
           </Button>
         </Box>
@@ -286,7 +287,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
 
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6" fontWeight="bold">Ajouter un nouveau cours</Typography>
+          <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><AddCircleIcon color='success' /> cours</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box component="form" onSubmit={handleAddCourse} sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
@@ -367,7 +368,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             {errorAddCourse && <ErrorMessage message={errorAddCourse} />}
             {successMessageAddCourse && <SuccessMessage message={successMessageAddCourse} />}
 
-            <Button type="submit" variant="contained" fullWidth>
+            <Button type="submit" variant="outlined" fullWidth sx = {{ fontWeight: 700 }}>
               Ajouter le cours
             </Button>
           </Box>
@@ -375,7 +376,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
       </Accordion>
             <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6" fontWeight="bold">Ajouter une nouvelle classe</Typography>
+          <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><AddCircleIcon color='success' /> classe</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box component="form" onSubmit={handleAddClasse} sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
@@ -407,7 +408,7 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             {errorAddClasse && <ErrorMessage message={errorAddClasse} />}
             {successMessageAddClasse && <SuccessMessage message={successMessageAddClasse} />}
 
-            <Button type="submit" variant="contained" fullWidth>
+            <Button type="submit" variant="outlined" fullWidth sx={{ fontWeight: 700 }}>
               Ajouter la classe
             </Button>
           </Box>

@@ -7,10 +7,9 @@ import { SortableFile } from '@/components/admin/SortableFile';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Box, Typography, FormLabel, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox } from '@mui/material';
+import { Box, Typography, FormLabel, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
-import { BaseCardProps } from './types';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface CourseModificationCardProps {
   courses: Course[];
@@ -345,8 +344,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" fontWeight="bold">
-          Modifier un cours
+        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> cours
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -491,15 +489,21 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
 
       <form onSubmit={handleDeleteCourse} style={{ marginTop: '2rem' }}>
         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', my: 2 }}>
-          <FormLabel component="legend" className="checkboxSwitch">
-            <Checkbox
-              className="col-span-1"
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Switch
               checked={deleteFiles}
               onChange={(e) => setDeleteFiles(e.target.checked)}
+              disabled={!courseToDelete}
             />
-            <Typography component="span" className="checkboxSlider checkboxSliderAdmin"></Typography>
-          </FormLabel>
-          <Typography sx={{ ml: 2 }}>Supprimer les fichiers associés</Typography>
+            <Typography
+              sx={{
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              }}
+            >
+              Supprimer les fichiers associés
+            </Typography>
+          </Box>
         </Box>
         <Button color='error' type="submit" disabled={!courseToDelete} className="w-full">
           Supprimer le cours
