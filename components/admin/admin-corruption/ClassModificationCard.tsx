@@ -1,16 +1,14 @@
 // /components/admin/admin-corruption/ClassModificationCard.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import { Course, Classe } from '@/lib/dataTemplate';
 import { SortableCourse } from '@/components/admin/SortableCourse';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Switch from '@mui/material/Switch';
+import { Typography, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface ClassModificationCardProps {
   courses: Course[];
@@ -284,91 +282,114 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
   };
 
   return (
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une classe">
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <Select 
-            value={selectedClasseToDelete} 
-            onValueChange={(value) => {
-              setSelectedClasseToDelete(value);
-              handleSelectChange(value);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes && Array.isArray(classes) ? (
-                [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
-                  <SelectItem key={classe.id} value={classe.id}>
-                    {classe.name}
-                  </SelectItem>
-                ))
-              ) : null}
-            </SelectContent>
-          </Select>
-        </div>
-        <Input
-          type="text"
-          placeholder="Nouveau nom de la classe"
-          value={editedClasseName}
-          onChange={(e) => setEditedClasseName(e.target.value)}
-        />
-
-        <div className="flex flex-row justify-around">
-          <Button onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
-            Modifier la classe
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => handleDeleteClasse(selectedClasseToDelete)}
-          >
-            Supprimer la classe
-          </Button>
-          <div className="flex flex-row items-center">
-            <h4 className="text-sm font-medium text-gray-500">Visible</h4>
-            <Switch
-              checked={classes.find(classe => classe.id === selectedClasseToDelete)?.toggleVisibilityClasse || false}
-              onChange={(e) => handleToggleVisibility(selectedClasseToDelete, e.target.checked)}
-              disabled={!selectedClasseToDelete || classes.length === 0}
-            />
-          </div>
-        </div>
-        {associatedCourses.length > 0 && (
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant="h6" fontWeight="bold">
+          Modifier une classe
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <div className="space-y-6">
           <div className="space-y-2">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEndCourse}
-            >
-                <SortableContext
-                items={associatedCourses.sort((a, b) => naturalSort(a.title, b.title)).map(course => course.id)}
-                strategy={verticalListSortingStrategy}
-                >
-                <ul className="space-y-2">
-                {associatedCourses.map((course) => (
-                  <SortableCourse
-                  key={course.id}
-                  courseId={course.id}
-                  courseTitle={course.title}
-                  toggleVisibilityCourse={course.toggleVisibilityCourse}
-                  onDelete={handleDeleteClickRapide}
-                  onToggleVisibility={handleToggleVisibilityCourse}
-                  />
-                ))}
-                </ul>
-                </SortableContext>
-            </DndContext>
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase', transform: 'translate(14px, 20px) scale(1)' }}>
+                Sélectionner une classe
+              </InputLabel>
+              <MuiSelect
+                value={selectedClasseToDelete}
+                onChange={(e) => {
+                  setSelectedClasseToDelete(e.target.value);
+                  handleSelectChange(e.target.value);
+                }}
+                label="Sélectionner une classe"
+              >
+                {classes && Array.isArray(classes) ? (
+                  [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
+                    <MenuItem key={classe.id} value={classe.id}>
+                      {classe.name}
+                    </MenuItem>
+                  ))
+                ) : null}
+              </MuiSelect>
+            </FormControl>
           </div>
-        )}
+          <TextField
+            fullWidth
+            type="text"
+            label="Nouveau nom de la classe"
+            placeholder="Nouveau nom de la classe"
+            value={editedClasseName}
+            onChange={(e) => setEditedClasseName(e.target.value)}
+            slotProps={{
+            inputLabel: {
+              sx: {
+              fontSize: 'small',
+              textTransform: 'uppercase',
+              
+              },
+            },
+            input: {
+              sx: {
+              '&::placeholder': {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              },
+              },
+            },
+            }}
+          />
+          <div className="flex flex-row justify-around">
+            <Button onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
+              Modifier la classe
+            </Button>
+            <Button color="error" onClick={() => handleDeleteClasse(selectedClasseToDelete)}>
+              Supprimer la classe
+            </Button>
+            <div className="flex flex-row items-center">
+              <h4 className="text-sm font-medium text-gray-500">Visible</h4>
+              <Switch
+                checked={classes.find(classe => classe.id === selectedClasseToDelete)?.toggleVisibilityClasse || false}
+                onChange={(e) => handleToggleVisibility(selectedClasseToDelete, e.target.checked)}
+                disabled={!selectedClasseToDelete || classes.length === 0}
+              />
+            </div>
+          </div>
+          {associatedCourses.length > 0 && (
+            <div className="space-y-2">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEndCourse}
+              >
+                  <SortableContext
+                  items={associatedCourses.sort((a, b) => naturalSort(a.title, b.title)).map(course => course.id)}
+                  strategy={verticalListSortingStrategy}
+                  >
+                  <ul className="space-y-2">
+                  {associatedCourses.map((course) => (
+                    <SortableCourse
+                    key={course.id}
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    toggleVisibilityCourse={course.toggleVisibilityCourse}
+                    onDelete={handleDeleteClickRapide}
+                    onToggleVisibility={handleToggleVisibilityCourse}
+                    />
+                  ))}
+                  </ul>
+                  </SortableContext>
+              </DndContext>
+            </div>
+          )}
 
-        <div className="mt-2">
-          {errorDeleteClasse && <ErrorMessage message={errorDeleteClasse} />}
-          {warningDeleteClasse && <WarningMessage message={warningDeleteClasse} />}
-          {successMessageDeleteClasse && <SuccessMessage message={successMessageDeleteClasse} />}
-          {warningRenameClasse && <WarningMessage message={warningRenameClasse} />}
+          <div className="mt-2">
+            {errorDeleteClasse && <ErrorMessage message={errorDeleteClasse} />}
+            {warningDeleteClasse && <WarningMessage message={warningDeleteClasse} />}
+            {successMessageDeleteClasse && <SuccessMessage message={successMessageDeleteClasse} />}
+            {warningRenameClasse && <WarningMessage message={warningRenameClasse} />}
+          </div>
         </div>
-      </div>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   );
 };

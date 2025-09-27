@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button, Typography, Box, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import React, { useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Course, Classe } from '@/lib/data';
 import {SuccessMessage, ErrorMessage, WarningMessage} from '@/components/message-display';
 import { FileUploader } from '@/components/ui/file-uploader';
@@ -197,49 +195,73 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
 
   return (
     <>
-    <Card title='Ajouter une nouvelle activité' defaultExpanded={true} className="p-4">
-      <form onSubmit={handleAddFile} className="space-y-6">
-        <div className="space-y-2">
-          <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant="h6" fontWeight="bold">Ajouter une nouvelle activité</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Box component="form" onSubmit={handleAddFile} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+              Sélectionner une classe
+            </InputLabel>
+            <MuiSelect
+              value={selectedClassFilter}
+              onChange={(e) => setSelectedClassFilter(e.target.value)}
+              label="Sélectionner une classe"
+            >
               {classes && classes.sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
-                <SelectItem key={classe.id} value={classe.id}>
+                <MenuItem key={classe.id} value={classe.id}>
                   {classe.name}
-                </SelectItem>
+                </MenuItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un cours" />
-            </SelectTrigger>
-            <SelectContent>
+            </MuiSelect>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+              Sélectionner un cours
+            </InputLabel>
+            <MuiSelect
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              label="Sélectionner un cours"
+            >
               {courses && courses
                 .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
                 .sort((a, b) => naturalSort(a.title, b.title))
                 .map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
+                  <MenuItem key={course.id} value={course.id}>
                     {course.title}
-                  </SelectItem>
+                  </MenuItem>
                 ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Nom de l&apos;activité</label>
-          <Input
-            type="text"
+            </MuiSelect>
+          </FormControl>
+
+          <TextField
+            fullWidth
+            label="Nom de l'activité"
             value={ActivityTitle}
             onChange={(e) => setActivityTitle(e.target.value)}
             placeholder="Entrez le nom de l'activité"
+            slotProps={{
+            inputLabel: {
+              sx: {
+              fontSize: 'small',
+              textTransform: 'uppercase',
+              },
+            },
+            input: {
+              sx: {
+              '&::placeholder': {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              },
+              },
+            },
+            }}
           />
-        </div>
-        <div className="space-y-2">
+
           <FileUploader
             fileType="all"
             onFileSelect={(selectedFile) => setFile(selectedFile)}
@@ -250,78 +272,147 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
             onFileReject={(file, errors) => setRejectedFile(file)}
             onRejectedFileRemove={() => setRejectedFile(null)}
           />
-        </div>
-        {warningAddFile && <WarningMessage message={warningAddFile} />}
-        {errorAddFile && <ErrorMessage message={errorAddFile} />}
-        {successMessageAddFile && <SuccessMessage message={successMessageAddFile} />}
-        <Button type="submit" className="w-full">
-          Télécharger
-        </Button>
-      </form>
-      </Card>
 
-      <Card title='Ajouter un nouveau cours' defaultExpanded={true} className="p-4 mt-4">
-      <form onSubmit={handleAddCourse} className="space-y-6 mt-8">
-        <div className="space-y-2">
-          <Input
-            type="text"
-            value={newCourseTitle}
-            onChange={(e) => setNewCourseTitle(e.target.value)}
-            placeholder="Entrez le titre du cours"
-          />
-          <Input
-            type="text"
-            value={newCourseDescription}
-            onChange={(e) => setNewCourseDescription(e.target.value)}
-            placeholder="Entrez la description du cours"
-          />
-          <Select value={newCourseClasse} onValueChange={setNewCourseClasse}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes && Array.isArray(classes) ? (
-                [...classes]
-                  .sort((a, b) => naturalSort(a.name, b.name))
-                  .map((classe) => (
-                    <SelectItem key={classe.id} value={classe.name}>
-                      {classe.name}
-                    </SelectItem>
-                  ))
-              ) : (
-                <SelectItem value="loading" disabled>
-                  Chargement des classes...
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-        {warningAddCourse && <WarningMessage message={warningAddCourse} />}
-        {errorAddCourse && <ErrorMessage message={errorAddCourse} />}
-        {successMessageAddCourse && <SuccessMessage message={successMessageAddCourse} />}
-        <Button type="submit" className="w-full">
-          Ajouter le cours
-        </Button>
-      </form>
-      </Card>
-      <Card className="p-6 mt-4" defaultExpanded={false}  title='Ajouter une nouvelle classe'>
-      <form onSubmit={handleAddClasse} className="space-y-6 mt-8">
-        <div className="space-y-2">
-          <Input
-            type="text"
-            value={newClasse}
-            onChange={(e) => setNewClasse(e.target.value)}
-            placeholder="Entrez le nom de la nouvelle classe"
-          />
-        </div>
-        {warningAddClasse && <WarningMessage message={warningAddClasse} />}
-        {successMessageAddClasse && <SuccessMessage message={successMessageAddClasse} />}
-        {errorAddClasse && <ErrorMessage message={errorAddClasse} />}
-        <Button type="submit" className="w-full">
-          Ajouter la classe
-        </Button>
-      </form>
-    </Card>
+          {warningAddFile && <WarningMessage message={warningAddFile} />}
+          {errorAddFile && <ErrorMessage message={errorAddFile} />}
+          {successMessageAddFile && <SuccessMessage message={successMessageAddFile} />}
+
+          <Button type="submit" variant="contained" fullWidth>
+            Télécharger
+          </Button>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h6" fontWeight="bold">Ajouter un nouveau cours</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box component="form" onSubmit={handleAddCourse} sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Titre du cours"
+              value={newCourseTitle}
+              onChange={(e) => setNewCourseTitle(e.target.value)}
+              placeholder="Entrez le titre du cours"
+            slotProps={{
+            inputLabel: {
+              sx: {
+              fontSize: 'small',
+              textTransform: 'uppercase',
+              },
+            },
+            input: {
+              sx: {
+              '&::placeholder': {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              },
+              },
+            },
+            }}
+            />
+
+            <TextField
+              fullWidth
+              label="Description du cours"
+              value={newCourseDescription}
+              onChange={(e) => setNewCourseDescription(e.target.value)}
+              placeholder="Entrez la description du cours"
+            slotProps={{
+            inputLabel: {
+              sx: {
+              fontSize: 'small',
+              textTransform: 'uppercase',
+              },
+            },
+            input: {
+              sx: {
+              '&::placeholder': {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              },
+              },
+            },
+            }}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+                Sélectionner une classe
+              </InputLabel>
+              <MuiSelect
+                value={newCourseClasse}
+                onChange={(e) => setNewCourseClasse(e.target.value)}
+                label="Sélectionner une classe"
+              >
+                {classes && Array.isArray(classes) ? (
+                  [...classes]
+                    .sort((a, b) => naturalSort(a.name, b.name))
+                    .map((classe) => (
+                      <MenuItem key={classe.id} value={classe.name}>
+                        {classe.name}
+                      </MenuItem>
+                    ))
+                ) : (
+                  <MenuItem value="loading" disabled>
+                    Chargement des classes...
+                  </MenuItem>
+                )}
+              </MuiSelect>
+            </FormControl>
+
+            {warningAddCourse && <WarningMessage message={warningAddCourse} />}
+            {errorAddCourse && <ErrorMessage message={errorAddCourse} />}
+            {successMessageAddCourse && <SuccessMessage message={successMessageAddCourse} />}
+
+            <Button type="submit" variant="contained" fullWidth>
+              Ajouter le cours
+            </Button>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+            <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h6" fontWeight="bold">Ajouter une nouvelle classe</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box component="form" onSubmit={handleAddClasse} sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Nom de la classe"
+              value={newClasse}
+              onChange={(e) => setNewClasse(e.target.value)}
+              placeholder="Entrez le nom de la classe"
+            slotProps={{
+            inputLabel: {
+              sx: {
+              fontSize: 'small',
+              textTransform: 'uppercase',
+              },
+            },
+            input: {
+              sx: {
+              '&::placeholder': {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              },
+              },
+            },
+            }}
+            />
+
+            {warningAddClasse && <WarningMessage message={warningAddClasse} />}
+            {errorAddClasse && <ErrorMessage message={errorAddClasse} />}
+            {successMessageAddClasse && <SuccessMessage message={successMessageAddClasse} />}
+
+            <Button type="submit" variant="contained" fullWidth>
+              Ajouter la classe
+            </Button>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Box, Tabs, Tab } from '@mui/material';
 import { ConnectionsList } from './ConnectionsList';
 import { UploadForm } from './upload-form';
 import { Classe, Course } from '@/lib/data';
@@ -6,7 +7,7 @@ import { Classe, Course } from '@/lib/data';
 
 
 export const AdminTabs: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'connections' | 'upload'>('upload');
+  const [activeTab, setActiveTab] = useState<number>(0);
   const [classes, setClasses] = useState<Classe[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
 
@@ -26,39 +27,32 @@ export const AdminTabs: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full">
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'upload'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-            `}
-          >
-            Gestion
-          </button>
-          <button
-            onClick={() => setActiveTab('connections')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'connections'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-            `}
-          >
-            Connexions
-          </button>
-        </nav>
-      </div>
+    <Box sx={{ width: '100%' }}>
+      <Tabs
+        value={activeTab}
+        onChange={(_, newValue) => setActiveTab(newValue)}
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+          '& .MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '0.875rem',
+            minHeight: 48,
+            paddingX: 1,
+            paddingY: 3,
+          },
+        }}
+      >
+        <Tab label="Gestion" />
+        <Tab label="Connexions" />
+      </Tabs>
 
-      <div className="mt-4">
-        {activeTab === 'upload' && <UploadForm courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />}
-        {activeTab === 'connections' && <ConnectionsList />}
-      </div>
-    </div>
+      <Box sx={{ mt: 2 }}>
+        {activeTab === 0 && <UploadForm courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />}
+        {activeTab === 1 && <ConnectionsList />}
+      </Box>
+    </Box>
   );
 };
 

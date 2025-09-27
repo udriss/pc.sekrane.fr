@@ -1,17 +1,14 @@
 // /components/admin/admin-corruption/CourseModificationCard.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import React, { useState, useEffect } from 'react';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import { Course, Classe, THEMES } from '@/lib/dataTemplate';
 import { SortableFile } from '@/components/admin/SortableFile';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Box, Typography, FormLabel } from '@mui/material';
+import { Box, Typography, FormLabel, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { BaseCardProps } from './types';
 
@@ -243,7 +240,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     }
   };
 
-  const handleCourseDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleCourseDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCourseDetails((prevDetails) => ({
       ...prevDetails,
@@ -346,50 +343,61 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   };
 
   return (
-    <Card className="p-4 mt-4" defaultExpanded={true} title="Modifier un cours">
-      <Box sx={{ '& > * + *': { mt: 3 } }}>
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant="h6" fontWeight="bold">
+          Modifier un cours
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Box sx={{ '& > * + *': { mt: 3 } }}>
         <Box>
-            <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une classe" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes && Array.isArray(classes) ? (
-              [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
-                <SelectItem key={classe.id} value={classe.id}>
-                {classe.name}
-                </SelectItem>
-              ))
-              ) : null}
-            </SelectContent>
-            </Select>
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>Sélectionner une classe</InputLabel>
+              <MuiSelect
+                value={selectedClassFilter}
+                onChange={(e) => setSelectedClassFilter(e.target.value)}
+                label="Sélectionner une classe"
+              >
+                {classes && Array.isArray(classes) ? (
+                  [...classes].sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
+                    <MenuItem key={classe.id} value={classe.id}>
+                      {classe.name}
+                    </MenuItem>
+                  ))
+                ) : null}
+              </MuiSelect>
+            </FormControl>
         </Box>
         <Box>
-            <Select value={selectedCourse} onValueChange={(value) => {
-            handleCourseChange(value);
-            setCourseToDelete(value);
-            }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un cours" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses && courses
-              .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
-              .sort((a, b) => naturalSort(a.title, b.title))
-              .map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.title}
-              </SelectItem>
-              ))}
-            </SelectContent>
-            </Select>
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>Sélectionner un cours</InputLabel>
+              <MuiSelect
+                value={selectedCourse}
+                onChange={(e) => {
+                  handleCourseChange(e.target.value);
+                  setCourseToDelete(e.target.value);
+                }}
+                label="Sélectionner un cours"
+              >
+                {courses && courses
+                  .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+                  .sort((a, b) => naturalSort(a.title, b.title))
+                  .map((course) => (
+                    <MenuItem key={course.id} value={course.id}>
+                      {course.title}
+                    </MenuItem>
+                  ))}
+              </MuiSelect>
+            </FormControl>
         </Box>
         {selectedCourse && (
         <form onSubmit={handleSaveCourseDetails} style={{ marginTop: '2rem' }}>
           <Box sx={{ '& > * + *': { mt: 3 } }}>
             <Box>
               <FormLabel component="legend">Titre du cours</FormLabel>
-              <Input
+              <TextField
+                fullWidth
                 type="text"
                 name="title"
                 value={courseDetails.title}
@@ -399,7 +407,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
             </Box>
             <Box>
               <FormLabel component="legend">Description du cours</FormLabel>
-              <Input
+              <TextField
+                fullWidth
                 type="text"
                 name="description"
                 value={courseDetails.description}
@@ -407,34 +416,38 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
               />
             </Box>
             <Box>
-              <FormLabel component="legend">Classe</FormLabel>
-              <Select name="classe" value={newClasseId} onValueChange={(value) => setNewClasseId(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={courseDetails.classe || "Sélectionner une classe"} />
-                </SelectTrigger>
-                <SelectContent>
+              <FormControl fullWidth>
+                <InputLabel sx={{ textTransform: 'uppercase' }}>Classe</InputLabel>
+                <MuiSelect
+                  name="classe"
+                  value={newClasseId}
+                  onChange={(e) => setNewClasseId(e.target.value)}
+                  label="Classe"
+                >
                   {classes.map((classe) => (
-                    <SelectItem key={classe.id} value={classe.id}>
+                    <MenuItem key={classe.id} value={classe.id}>
                       {classe.name}
-                    </SelectItem>
+                    </MenuItem>
                   ))}
-                </SelectContent>
-              </Select>
+                </MuiSelect>
+              </FormControl>
             </Box>
             <Box>
-              <FormLabel component="legend">Thème</FormLabel>
-              <Select name="theme" value={courseDetails.themeChoice?.toString() || '0'} onValueChange={handleThemeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un thème" />
-                </SelectTrigger>
-                <SelectContent>
+              <FormControl fullWidth>
+                <InputLabel sx={{ textTransform: 'uppercase' }}>Thème</InputLabel>
+                <MuiSelect
+                  name="theme"
+                  value={courseDetails.themeChoice?.toString() || '0'}
+                  onChange={(e) => handleThemeChange(e.target.value)}
+                  label="Thème"
+                >
                   {THEMES.map((theme) => (
-                    <SelectItem key={theme.id} value={theme.id.toString()}>
+                    <MenuItem key={theme.id} value={theme.id.toString()}>
                       {theme.name}
-                    </SelectItem>
+                    </MenuItem>
                   ))}
-                </SelectContent>
-              </Select>
+                </MuiSelect>
+              </FormControl>
             </Box>
             {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
             {warningUpdateCourse && <WarningMessage message={warningUpdateCourse} />}
@@ -479,9 +492,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
       <form onSubmit={handleDeleteCourse} style={{ marginTop: '2rem' }}>
         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', my: 2 }}>
           <FormLabel component="legend" className="checkboxSwitch">
-            <Input
+            <Checkbox
               className="col-span-1"
-              type="checkbox"
               checked={deleteFiles}
               onChange={(e) => setDeleteFiles(e.target.checked)}
             />
@@ -489,7 +501,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
           </FormLabel>
           <Typography sx={{ ml: 2 }}>Supprimer les fichiers associés</Typography>
         </Box>
-        <Button variant='destructive' type="submit" disabled={!courseToDelete} className="w-full">
+        <Button color='error' type="submit" disabled={!courseToDelete} className="w-full">
           Supprimer le cours
         </Button>
         <div className='mt-2'>
@@ -497,6 +509,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
           {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
         </div>
       </form>
-    </Card>
+    </AccordionDetails>
+    </Accordion>
   );
 };

@@ -5,7 +5,7 @@ import { MainNav } from '@/components/main-nav';
 import { ToastContainer } from 'react-toastify';
 import { Toaster } from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
-import Head from 'next/head';
+import { Box, Container } from '@mui/material';
 import ClientRequestHeaders from '@/components/ClientRequestHeaders';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -40,6 +40,7 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false
   },
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   metadataBase: new URL(deploymentDomain),
 };
 
@@ -51,39 +52,46 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <Head>
-        <link rel="icon" href="/images/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-      </Head>
       <body className={`${inter.className} min-h-screen w-full`}>
-            <div className="max-w-[800px] mx-auto w-full">
-              <MainNav />
-            </div>
-          <main className="container mt-32 min-h-screen flex flex-col w-full md:max-w-[750px] 
-          lg:max-w-[960px] xl:max-w-[1300px] mx-auto px-4 md:px-0">
-            <ClientRequestHeaders />
-            {children}
-            <Toaster 
-              position="top-center" 
-              reverseOrder={false} 
-              gutter={8}
-              toastOptions={{
-                duration: 1500,
-                style: {
-                  background: '#333',
-                  color: '#fff',
-                },
-              }}
-            />
-            <ToastContainer
-              position="top-center"
-              autoClose={false}
-              closeOnClick
-              pauseOnHover
-              limit={3}
-              theme="dark"
+        <Container maxWidth="sm" sx={{ width: '100%' }}>
+          <MainNav />
+        </Container>
+        <Box
+          component="main"
+          sx={{
+            mt: 16, // équivalent à mt-32 (32 * 0.25rem = 8rem = 128px, mais ajusté pour Material UI)
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            maxWidth: { xs: '100%', md: 750, lg: 960, xl: 1300 },
+            mx: 'auto',
+            px: { xs: 2, md: 0 }
+          }}
+        >
+          <ClientRequestHeaders />
+          {children}
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            gutter={8}
+            toastOptions={{
+              duration: 1500,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
           />
-          </main>
+          <ToastContainer
+            position="top-center"
+            autoClose={false}
+            closeOnClick
+            pauseOnHover
+            limit={3}
+            theme="dark"
+          />
+        </Box>
       </body>
     </html>
   );

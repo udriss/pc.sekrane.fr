@@ -2,14 +2,11 @@
 
 import React, { useState } from 'react';
 import { BaseCardProps } from './types';
-import { Card } from '@/components/ui/card';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Typography, Box, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 /**
  * ActivityModificationCard
@@ -164,117 +161,161 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
   );
 
   return (
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une activité">
-      <div className="space-y-6">
-        {/* Classe */}
-        <Select value={selectedClassForActivity} onValueChange={(v) => { setSelectedClassForActivity(v); setSelectedCourseForActivity(''); setSelectedActivity(''); }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner une classe" />
-          </SelectTrigger>
-          <SelectContent>
-            {classes.sort((a, b) => naturalSort(a.name, b.name)).map(classe => (
-              <SelectItem key={classe.id} value={classe.id}>{classe.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Cours */}
-        <Select value={selectedCourseForActivity} onValueChange={(v) => { setSelectedCourseForActivity(v); setSelectedActivity(''); }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un cours" />
-          </SelectTrigger>
-          <SelectContent>
-            {courses
-              .filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity)
-              .sort((a, b) => naturalSort(a.title, b.title))
-              .map(course => (
-          <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant="h6" fontWeight="bold">
+          Modifier une activité
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {/* Classe */}
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+              Sélectionner une classe
+            </InputLabel>
+            <MuiSelect
+              value={selectedClassForActivity}
+              onChange={(e) => {
+                setSelectedClassForActivity(e.target.value);
+                setSelectedCourseForActivity('');
+                setSelectedActivity('');
+              }}
+              label="Sélectionner une classe"
+            >
+              {classes.sort((a, b) => naturalSort(a.name, b.name)).map(classe => (
+                <MenuItem key={classe.id} value={classe.id}>{classe.name}</MenuItem>
               ))}
-          </SelectContent>
-        </Select>
+            </MuiSelect>
+          </FormControl>
 
-        {/* Activité */}
-        <Select value={selectedActivity} onValueChange={setSelectedActivity}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner une activité" />
-          </SelectTrigger>
-          <SelectContent>
-            {(() => {
-              const filteredCourses = courses.filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity);
-              if (selectedCourseForActivity) {
-          const chosenCourse = filteredCourses.find(c => c.id === selectedCourseForActivity);
-          return chosenCourse?.activities
-            .filter(a => a && a.id && a.id.trim() !== '')
-            .sort((a, b) => naturalSort(a.title || '', b.title || ''))
-            .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
-              }
-              return filteredCourses
-          .flatMap(c => c.activities || [])
-          .filter(a => a && a.id && a.id.trim() !== '')
-          .sort((a, b) => naturalSort(a.title || '', b.title || ''))
-          .map(a => <SelectItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</SelectItem>);
-            })()}
-          </SelectContent>
-        </Select>
+          {/* Cours */}
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+              Sélectionner un cours
+            </InputLabel>
+            <MuiSelect
+              value={selectedCourseForActivity}
+              onChange={(e) => {
+                setSelectedCourseForActivity(e.target.value);
+                setSelectedActivity('');
+              }}
+              label="Sélectionner un cours"
+            >
+              {courses
+                .filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity)
+                .sort((a, b) => naturalSort(a.title, b.title))
+                .map(course => (
+                  <MenuItem key={course.id} value={course.id}>{course.title}</MenuItem>
+                ))}
+            </MuiSelect>
+          </FormControl>
 
-        {/* Nouveau titre */}
-        <Input
-          type="text"
-          placeholder="Nouveau titre de l'activité"
-          value={newActivityTitle}
-          onChange={(e) => setNewActivityTitle(e.target.value)}
-        />
-        {selectedActivity && !newActivityTitle && currentActivityTitle && (() => {
-          const selectedActivityObj = courses.flatMap(c => c.activities || []).find(a => a && a.id === selectedActivity);
-          const fileUrl = selectedActivityObj?.fileUrl ? `/api/files${selectedActivityObj.fileUrl}` : null;
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Titre actuel : {currentActivityTitle}
-              </Typography>
-              {fileUrl && (
-                <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
-                  <IconButton
-                    size="small"
-                    onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
-                  >
-                    <OpenInNewIcon fontSize="inherit" />
-                  </IconButton>
-                </Tooltip>
+          {/* Activité */}
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+              Sélectionner une activité
+            </InputLabel>
+            <MuiSelect
+              value={selectedActivity}
+              onChange={(e) => setSelectedActivity(e.target.value)}
+              label="Sélectionner une activité"
+            >
+              {(() => {
+                const filteredCourses = courses.filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity);
+                if (selectedCourseForActivity) {
+                  const chosenCourse = filteredCourses.find(c => c.id === selectedCourseForActivity);
+                  return chosenCourse?.activities
+                    .filter(a => a && a.id && a.id.trim() !== '')
+                    .sort((a, b) => naturalSort(a.title || '', b.title || ''))
+                    .map(a => <MenuItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</MenuItem>);
+                }
+                return filteredCourses
+                  .flatMap(c => c.activities || [])
+                  .filter(a => a && a.id && a.id.trim() !== '')
+                  .sort((a, b) => naturalSort(a.title || '', b.title || ''))
+                  .map(a => <MenuItem key={a.id} value={a.id}>{a.title || 'Sans titre'}</MenuItem>);
+              })()}
+            </MuiSelect>
+          </FormControl>
+
+          {/* Nouveau titre */}
+            <TextField
+              fullWidth
+              label="Nouveau titre de l'activité"
+              value={newActivityTitle}
+              onChange={(e) => setNewActivityTitle(e.target.value)}
+              placeholder="Nouveau titre de l'activité"
+              slotProps={{
+              inputLabel: {
+                sx: {
+                fontSize: 'small',
+                textTransform: 'uppercase',
+                
+                },
+              },
+              input: {
+                sx: {
+                '&::placeholder': {
+                  fontSize: 'small',
+                  textTransform: 'uppercase',
+                },
+                },
+              },
+              }}
+            />
+          {selectedActivity && !newActivityTitle && currentActivityTitle && (() => {
+            const selectedActivityObj = courses.flatMap(c => c.activities || []).find(a => a && a.id === selectedActivity);
+            const fileUrl = selectedActivityObj?.fileUrl ? `/api/files${selectedActivityObj.fileUrl}` : null;
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Titre actuel : {currentActivityTitle}
+                </Typography>
+                {fileUrl && (
+                  <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+                    <IconButton
+                      size="small"
+                      onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+                    >
+                      <OpenInNewIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            );
+          })()}
+
+          {/* Fichier - Drag & Drop */}
+          <FileUploader
+            fileType="all"
+            onFileSelect={(file) => setNewFile(file)}
+            onFileRemove={() => setNewFile(null)}
+            selectedFile={newFile}
+            maxFileSize={50 * 1024 * 1024}
+            rejectedFile={rejectedFile}
+            onFileReject={(file, errors) => setRejectedFile(file)}
+            onRejectedFileRemove={() => setRejectedFile(null)}
+          />
+
+          <Button variant="contained" fullWidth onClick={handleUpdate}>
+            Mettre à jour
+          </Button>
+        </Box>
+        <Box sx={{ mt: 1 }}>
+          {errorUpdateActivity && <ErrorMessage message={errorUpdateActivity} />}
+          {warningUpdateActivity && <WarningMessage message={warningUpdateActivity} />}
+          {successMessageUpdateActivity && (
+            <>
+              <SuccessMessage message={successMessageUpdateActivity} />{' '}
+              {successMessageUploadFileName && (
+                <Typography component="span" color="warning.main">{successMessageUploadFileName}</Typography>
               )}
-            </Box>
-          );
-        })()}
-
-        {/* Fichier - Drag & Drop */}
-        <FileUploader
-          fileType="all"
-          onFileSelect={(file) => setNewFile(file)}
-          onFileRemove={() => setNewFile(null)}
-          selectedFile={newFile}
-          maxFileSize={50 * 1024 * 1024}
-          rejectedFile={rejectedFile}
-          onFileReject={(file, errors) => setRejectedFile(file)}
-          onRejectedFileRemove={() => setRejectedFile(null)}
-        />
-
-        <Button className="w-full" onClick={handleUpdate}>
-          Mettre à jour
-        </Button>
-      </div>
-      <Box sx={{ mt: 1 }}>
-        {errorUpdateActivity && <ErrorMessage message={errorUpdateActivity} />}
-        {warningUpdateActivity && <WarningMessage message={warningUpdateActivity} />}
-        {successMessageUpdateActivity && (
-          <>
-            <SuccessMessage message={successMessageUpdateActivity} />{' '}
-            {successMessageUploadFileName && (
-              <Typography component="span" color="warning.main">{successMessageUploadFileName}</Typography>
-            )}
-          </>
-        )}
-      </Box>
-    </Card>
+            </>
+          )}
+        </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };
  

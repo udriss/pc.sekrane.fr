@@ -2,26 +2,8 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UploadForm } from '@/components/admin/upload-form';
+import { Typography, Box, Container } from '@mui/material';
 import { useState, useEffect } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { SortableFile } from '@/components/admin/SortableFile';
-import { 
-  FileUpload as Upload, 
-  KeyboardReturn as ArrowLeft, 
-  Warning as AlertCircle 
-} from '@mui/icons-material';
 import { Header } from "@/components/admin/admin-header";
 import { courses as initialCourses, classes as initialClasses, Course, Classe } from "@/lib/data";
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -69,16 +51,22 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center m-8">
-      <br></br>
-      <div className="w-full max-w-[400px]">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        m: 2
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 400 }}>
         <Header onLogout={handleLogout} />
-      </div>
-      <br></br>
-      <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Administration</h1>
-      <AdminTabs />
-    </div>
-    </div>
+      </Box>
+      <Container maxWidth="lg" sx={{ mt: 2, p: 3 }}>
+        <AdminTabs />
+      </Container>
+    </Box>
   );
 }

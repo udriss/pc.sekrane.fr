@@ -1,10 +1,6 @@
 // /components/admin/admin-corruption/ProgressionModificationCard.tsx
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { SuccessMessage, ErrorMessage } from '@/components/message-display';
 import { Course, Classe } from '@/lib/dataTemplate';
 import { SortableProgression } from '@/components/admin/SortableProgression';
@@ -12,7 +8,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Switch from '@mui/material/Switch';
-import { Box, Typography, FormLabel, List, ListItem, IconButton, Tooltip, Button } from '@mui/material';
+import { Box, Typography, FormLabel, List, ListItem, IconButton, Tooltip, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, LinearProgress } from '@mui/material';
 import { Calendar } from '@/components/ui/calendar';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { IconPicker } from '@/components/ui/icon-picker';
@@ -26,6 +22,8 @@ import { ImagePreview } from '@/components/ui/image-preview';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { ProgressionContent } from './types';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
 interface Progression {
@@ -409,30 +407,37 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
   };
 
   return (
-    <Card className="p-4 mt-4" defaultExpanded={false} title="Modifier une progression">
-    <Box sx={{ '& > * + *': { mt: 3 }, position: 'relative' }}>
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant="h6" fontWeight="bold">
+          Modifier une progression
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Box sx={{ '& > * + *': { mt: 3 }, position: 'relative' }}>
 
       {/* Sélection de la classe */}
-      <Select 
-        value={selectedClasseForProgression} 
-        onValueChange={(value) => {
-        setSelectedClasseForProgression(value);
-        loadProgressions(value);
-        }}
-      >
-        <SelectTrigger>
-        <SelectValue placeholder="Sélectionner une classe" />
-        </SelectTrigger>
-        <SelectContent>
-        {classes && Array.isArray(classes) ? (
-          classes.sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
-            <SelectItem key={classe.id} value={classe.id}>
-            {classe.name}
-            </SelectItem>
-          ))
-        ) : null}
-        </SelectContent>
-      </Select>
+      <FormControl fullWidth>
+        <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+          Sélectionner une classe
+        </InputLabel>
+        <MuiSelect
+          value={selectedClasseForProgression}
+          onChange={(e) => {
+            setSelectedClasseForProgression(e.target.value);
+            loadProgressions(e.target.value);
+          }}
+          label="Sélectionner une classe"
+        >
+          {classes && Array.isArray(classes) ? (
+            classes.sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
+              <MenuItem key={classe.id} value={classe.id}>
+                {classe.name}
+              </MenuItem>
+            ))
+          ) : null}
+        </MuiSelect>
+      </FormControl>
 
       {/* Activer/Désactiver la progression pour cette classe */}
       {selectedClasseForProgression && (
@@ -664,11 +669,12 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
         </Box>
 
         {/* Titre */}
-        <Input
-          type="text"
-          placeholder="Titre"
+        <TextField
+          fullWidth
+          label="Titre"
           value={progressionContent.title}
-          onChange={(e) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+          placeholder="Titre"
         />
 
         {/* Gestion des fichiers pour image et PDF */}
@@ -711,7 +717,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
               existingFileUrl={progressionContent.resourceUrl}
             />
             )}
-            {uploadingFile && <Progress value={uploadProgress} />}
+            {uploadingFile && <LinearProgress variant="determinate" value={uploadProgress} />}
             {selectedFile && (
             <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
               {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
@@ -756,7 +762,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
               existingFileUrl={progressionContent.resourceUrl}
             />
             )}
-            {uploadingFile && <Progress value={uploadProgress} />}
+            {uploadingFile && <LinearProgress variant="determinate" value={uploadProgress} />}
             {selectedFile && (
             <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
               {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
@@ -776,18 +782,27 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
               Ou utilisez une URL externe :
             </FormLabel>
             )}
-            <Input
-            type="url"
-            placeholder={
-              `URL ${
-                contentPreset === 'video' ? 'de la vidéo' :
-                contentPreset === 'image' ? 'de l\'image' :
-                contentPreset === 'pdf' ? 'du PDF' :
-                'externe'
-              }`
-            }
-            value={progressionContent.resourceUrl}
-            onChange={(e) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+            <TextField
+              fullWidth
+              type="url"
+              label={
+                `URL ${
+                  contentPreset === 'video' ? 'de la vidéo' :
+                  contentPreset === 'image' ? 'de l\'image' :
+                  contentPreset === 'pdf' ? 'du PDF' :
+                  'externe'
+                }`
+              }
+              value={progressionContent.resourceUrl}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+              placeholder={
+                `URL ${
+                  contentPreset === 'video' ? 'de la vidéo' :
+                  contentPreset === 'image' ? 'de l\'image' :
+                  contentPreset === 'pdf' ? 'du PDF' :
+                  'externe'
+                }`
+              }
             />
           </Box>
         )}
@@ -809,62 +824,64 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             {/* Sélection du cours */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Cours</FormLabel>
-            <Select
-              value={selectedCourseForProgression}
-              onValueChange={(value) => {
-                setSelectedCourseForProgression(value);
-                setSelectedActivityForProgression('none');
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un cours" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les cours</SelectItem>
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+                Sélectionner un cours
+              </InputLabel>
+              <MuiSelect
+                value={selectedCourseForProgression}
+                onChange={(e) => {
+                  setSelectedCourseForProgression(e.target.value);
+                  setSelectedActivityForProgression('none');
+                }}
+                label="Sélectionner un cours"
+              >
+                <MenuItem value="all">Tous les cours</MenuItem>
                 {courses
                 .filter(course => course.theClasseId === selectedClasseForProgression)
                 .sort((a, b) => naturalSort(a.title, b.title))
                 .map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
+                  <MenuItem key={course.id} value={course.id}>
                     {course.title}
-                  </SelectItem>
+                  </MenuItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </MuiSelect>
+            </FormControl>
             </Box>
 
             {/* Sélection de l'activité */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Activité</FormLabel>
-            <Select
-              value={selectedActivityForProgression}
-              onValueChange={(value) => {
-                setSelectedActivityForProgression(value);
-                if (value === 'none') {
-                setProgressionContent(prev => ({
-                  ...prev,
-                  title: prev.title,
-                }));
-                return;
-                }
-                const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
-                ? courses.filter(c => c.id === selectedCourseForProgression)
-                : courses.filter(c => c.theClasseId === selectedClasseForProgression);
-                const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
-                const found = withCourse.find(x => x.a && x.a.id === value);
-                if (found) {
-                setProgressionContent(prev => ({
-                  ...prev,
-                  title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
-                }));
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une activité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Aucune activité</SelectItem>
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+                Sélectionner une activité
+              </InputLabel>
+              <MuiSelect
+                value={selectedActivityForProgression}
+                onChange={(e) => {
+                  setSelectedActivityForProgression(e.target.value);
+                  if (e.target.value === 'none') {
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    title: prev.title,
+                  }));
+                  return;
+                  }
+                  const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
+                  ? courses.filter(c => c.id === selectedCourseForProgression)
+                  : courses.filter(c => c.theClasseId === selectedClasseForProgression);
+                  const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
+                  const found = withCourse.find(x => x.a && x.a.id === e.target.value);
+                  if (found) {
+                  setProgressionContent(prev => ({
+                    ...prev,
+                    title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
+                  }));
+                  }
+                }}
+                label="Sélectionner une activité"
+              >
+                <MenuItem value="none">Aucune activité</MenuItem>
                 {(() => {
                 const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
                   ? courses.filter(c => c.id === selectedCourseForProgression)
@@ -877,13 +894,13 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
                   .filter(activity => activity && activity.id && activity.id.trim() !== '')
                   .sort((a, b) => naturalSort(a.title || '', b.title || ''))
                   .map((activity) => (
-                    <SelectItem key={activity.id} value={activity.id}>
+                    <MenuItem key={activity.id} value={activity.id}>
                     {activity.title} {(selectedCourseForProgression === 'all') && `(${activity.courseName})`}
-                    </SelectItem>
+                    </MenuItem>
                   ));
                 })()}
-              </SelectContent>
-            </Select>
+              </MuiSelect>
+            </FormControl>
             </Box>
 
             <Button
@@ -1029,7 +1046,8 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
 
       {errorProgression && <ErrorMessage message={errorProgression} />}
       {successMessageProgression && <SuccessMessage message={successMessageProgression} />}
-    </Box>
-    </Card>
+            </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };
