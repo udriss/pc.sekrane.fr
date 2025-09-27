@@ -448,7 +448,9 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
             <CalendarMonth className="mr-2 h-5 w-5" />
-            Classe de <Typography component="span" fontWeight="bold">{classeName}</Typography>
+
+            <Typography component="span" variant='body2'>Classe de&nbsp;</Typography>
+            <Typography component="span" variant='body2' fontWeight="bold" color='primary'>{classeName}</Typography>
           </Typography>
           <Chip label={`${daysWithProgressionCount} progression${daysWithProgressionCount > 1 ? 's' : ''}`} variant="outlined" />
         </Box>
@@ -583,9 +585,9 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                 </Box>
               </>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, textAlign: 'center', color: 'text.secondary' }}>
-                Cliquez sur une date en surbrillance pour voir les progressions
-              </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, textAlign: 'center', color: 'text.secondary' }}>
+                <Typography variant="overline">Cliquez sur une date en surbrillance pour voir les progressions</Typography>
+                </Box>
             )}
           </Grid>
         </Grid>

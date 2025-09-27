@@ -7,11 +7,7 @@ import { ModificationsAdminProps } from './types';
 import { ActivityModificationCard } from './ActivityModificationCard';
 import { CourseModificationCard } from './CourseModificationCard';
 import { ClassModificationCard } from './ClassModificationCard';
-import { ProgressionModificationCard } from './ProgressionModificationCard';
-import { useProgressionState } from './hooks/useProgressionState';
 import { useSnackbarState } from './hooks/useSnackbarState';
-import { ProgressionEditDialog } from './ProgressionEditDialog';
-import { ProgressionDeleteDialog } from './ProgressionDeleteDialog';
 import { SnackbarProvider } from './SnackbarProvider';
 
 /**
@@ -61,7 +57,6 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
     })
   );
 
-  const progressionState = useProgressionState();
   const snackbarState = useSnackbarState();
 
   useEffect(() => {
@@ -103,26 +98,7 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
           setClasses={setClasses}
           showSnackbar={snackbarState.showSnackbar}
         />
-
-        <ProgressionModificationCard
-          courses={courses}
-          classes={classes}
-          setClasses={setClasses}
-          showSnackbar={snackbarState.showSnackbar}
-          progressionState={progressionState}
-        />
       </DndContext>
-
-      <ProgressionEditDialog
-        courses={courses}
-        progressionState={progressionState}
-        showSnackbar={snackbarState.showSnackbar}
-      />
-
-      <ProgressionDeleteDialog
-        progressionState={progressionState}
-        showSnackbar={snackbarState.showSnackbar}
-      />
 
       <SnackbarProvider snackbarState={snackbarState} />
     </>

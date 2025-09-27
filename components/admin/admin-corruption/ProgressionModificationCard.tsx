@@ -1,30 +1,62 @@
 // /components/admin/admin-corruption/ProgressionModificationCard.tsx
 
-import React from 'react';
-import { SuccessMessage, ErrorMessage } from '@/components/message-display';
-import { Course, Classe } from '@/lib/dataTemplate';
-import { SortableProgression } from '@/components/admin/SortableProgression';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import Switch from '@mui/material/Switch';
-import { Box, Typography, FormLabel, List, ListItem, IconButton, Tooltip, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, LinearProgress } from '@mui/material';
-import { Calendar } from '@/components/ui/calendar';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { IconPicker } from '@/components/ui/icon-picker';
-import { ColorPicker } from '@/components/ui/color-picker';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Description, PictureAsPdf, VideoLibrary, PhotoCamera } from '@mui/icons-material';
-import LinkIcon from '@mui/icons-material/Link';
-import { SmartFileUploader } from '@/components/ui/smart-file-uploader';
-import { ImagePreview } from '@/components/ui/image-preview';
-import { PDFViewer } from '@/components/ui/pdf-viewer';
-import { ProgressionContent } from './types';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import EditIcon from '@mui/icons-material/Edit';
+import React from "react";
+import { SuccessMessage, ErrorMessage } from "@/components/message-display";
+import { Course, Classe } from "@/lib/dataTemplate";
+import { SortableProgression } from "@/components/admin/SortableProgression";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { DragEndEvent } from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import Switch from "@mui/material/Switch";
+import {
+  Box,
+  Typography,
+  FormLabel,
+  List,
+  ListItem,
+  IconButton,
+  Tooltip,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select as MuiSelect,
+  MenuItem,
+  LinearProgress,
+  Stack,
+} from "@mui/material";
+import { Calendar } from "@/components/ui/calendar";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  Description,
+  PictureAsPdf,
+  VideoLibrary,
+  PhotoCamera,
+} from "@mui/icons-material";
+import LinkIcon from "@mui/icons-material/Link";
+import { SmartFileUploader } from "@/components/ui/smart-file-uploader";
+import { ImagePreview } from "@/components/ui/image-preview";
+import { PDFViewer } from "@/components/ui/pdf-viewer";
+import { ProgressionContent } from "./types";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import EditIcon from "@mui/icons-material/Edit";
 
 interface Progression {
   id: string;
@@ -43,20 +75,31 @@ interface ProgressionModificationCardProps {
   courses: Course[];
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
-  showSnackbar: (message: React.ReactNode, severity?: 'success' | 'error' | 'info' | 'warning') => void;
+  showSnackbar: (
+    message: React.ReactNode,
+    severity?: "success" | "error" | "info" | "warning"
+  ) => void;
   progressionState: {
     selectedClasseForProgression: string;
-    setSelectedClasseForProgression: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedClasseForProgression: React.Dispatch<
+      React.SetStateAction<string>
+    >;
     selectedDate: Date | undefined;
     setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
     showAllProgressions: boolean;
     setShowAllProgressions: React.Dispatch<React.SetStateAction<boolean>>;
     progressionContent: ProgressionContent;
-    setProgressionContent: React.Dispatch<React.SetStateAction<ProgressionContent>>;
+    setProgressionContent: React.Dispatch<
+      React.SetStateAction<ProgressionContent>
+    >;
     selectedCourseForProgression: string;
-    setSelectedCourseForProgression: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedCourseForProgression: React.Dispatch<
+      React.SetStateAction<string>
+    >;
     selectedActivityForProgression: string;
-    setSelectedActivityForProgression: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedActivityForProgression: React.Dispatch<
+      React.SetStateAction<string>
+    >;
     contentPreset: string;
     setContentPreset: React.Dispatch<React.SetStateAction<string>>;
     progressions: Progression[];
@@ -66,14 +109,26 @@ interface ProgressionModificationCardProps {
     errorProgression: string;
     setErrorProgression: React.Dispatch<React.SetStateAction<string>>;
     setIsDeleteAllModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setProgressionsToDelete: React.Dispatch<React.SetStateAction<Progression[]>>;
-    setEditingProgression: React.Dispatch<React.SetStateAction<Progression | null>>;
+    setProgressionsToDelete: React.Dispatch<
+      React.SetStateAction<Progression[]>
+    >;
+    setEditingProgression: React.Dispatch<
+      React.SetStateAction<Progression | null>
+    >;
     setIsEditDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setEditProgressionContent: React.Dispatch<React.SetStateAction<ProgressionContent>>;
+    setEditProgressionContent: React.Dispatch<
+      React.SetStateAction<ProgressionContent>
+    >;
     setEditContentPreset: (value: string) => void;
-    setEditSelectedCourseForProgression: React.Dispatch<React.SetStateAction<string>>;
-    setEditSelectedActivityForProgression: React.Dispatch<React.SetStateAction<string>>;
-    setEditPresetCache: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+    setEditSelectedCourseForProgression: React.Dispatch<
+      React.SetStateAction<string>
+    >;
+    setEditSelectedActivityForProgression: React.Dispatch<
+      React.SetStateAction<string>
+    >;
+    setEditPresetCache: React.Dispatch<
+      React.SetStateAction<Record<string, any>>
+    >;
     selectedFile: File | null;
     setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
     filePreview: string | null;
@@ -87,13 +142,9 @@ interface ProgressionModificationCardProps {
   };
 }
 
-export const ProgressionModificationCard: React.FC<ProgressionModificationCardProps> = ({
-  courses,
-  classes,
-  setClasses,
-  showSnackbar,
-  progressionState
-}) => {
+export const ProgressionModificationCard: React.FC<
+  ProgressionModificationCardProps
+> = ({ courses, classes, setClasses, showSnackbar, progressionState }) => {
   const {
     selectedClasseForProgression,
     setSelectedClasseForProgression,
@@ -133,7 +184,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     rejectedFile,
     setRejectedFile,
     uploadProgress,
-    setUploadProgress
+    setUploadProgress,
   } = progressionState;
 
   const naturalSort = (a: string, b: string) => {
@@ -171,63 +222,68 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
         setProgressions(data.progressions);
       }
     } catch (error) {
-      console.error('Error loading progressions:', error);
+      console.error("Error loading progressions:", error);
     }
   };
 
   const getDatesWithProgression = () => {
-    return progressions.map(p => new Date(p.date));
+    return progressions.map((p) => new Date(p.date));
   };
 
   const handleSaveProgression = async () => {
-    if (!selectedClasseForProgression || !selectedDate || !progressionContent.title) {
-      setErrorProgression('Veuillez remplir tous les champs obligatoires');
+    if (
+      !selectedClasseForProgression ||
+      !selectedDate ||
+      !progressionContent.title
+    ) {
+      setErrorProgression("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
     try {
-      const response = await fetch('/api/progressions', {
-        method: 'POST',
+      const response = await fetch("/api/progressions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           classeId: selectedClasseForProgression,
           date: selectedDate.toISOString(),
           ...progressionContent,
-          ...(contentPreset === 'existing-activity' && selectedActivityForProgression !== 'none'
+          ...(contentPreset === "existing-activity" &&
+          selectedActivityForProgression !== "none"
             ? { activityId: selectedActivityForProgression }
-            : {})
+            : {}),
         }),
       });
 
       if (response.ok) {
-        setSuccessMessageProgression('Progression ajoutée avec succès');
-        setErrorProgression('');
+        setSuccessMessageProgression("Progression ajoutée avec succès");
+        setErrorProgression("");
         // Recharger les progressions
         loadProgressions(selectedClasseForProgression);
         // Réinitialiser le formulaire
         setProgressionContent({
-          title: '',
-          content: '',
-          icon: 'none',
-          iconColor: '#3f51b5',
-          contentType: 'text',
-          resourceUrl: '',
+          title: "",
+          content: "",
+          icon: "none",
+          iconColor: "#3f51b5",
+          contentType: "text",
+          resourceUrl: "",
           imageSize: 60,
-          linkedActivityId: '',
-          linkedCourseId: ''
+          linkedActivityId: "",
+          linkedCourseId: "",
         });
         setSelectedFile(null);
         setFilePreview(null);
-        setContentPreset('text');
-        setSelectedCourseForProgression('all');
-        setSelectedActivityForProgression('none');
+        setContentPreset("text");
+        setSelectedCourseForProgression("all");
+        setSelectedActivityForProgression("none");
       } else {
-        setErrorProgression('Erreur lors de l\'ajout de la progression');
+        setErrorProgression("Erreur lors de l'ajout de la progression");
       }
     } catch (error) {
-      setErrorProgression('Erreur serveur');
+      setErrorProgression("Erreur serveur");
     }
   };
 
@@ -236,8 +292,8 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = progressions.findIndex(p => p.id === active.id);
-      const newIndex = progressions.findIndex(p => p.id === over?.id);
+      const oldIndex = progressions.findIndex((p) => p.id === active.id);
+      const newIndex = progressions.findIndex((p) => p.id === over?.id);
 
       const newProgressions = [...progressions];
       const [movedItem] = newProgressions.splice(oldIndex, 1);
@@ -246,22 +302,22 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
 
       // Mise à jour de l'ordre en base de données
       try {
-        const response = await fetch('/api/progressions/reorder', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            progressions: newProgressions.map((p, index) => ({ 
-              id: p.id, 
-              order: index 
-            })) 
-          })
+        const response = await fetch("/api/progressions/reorder", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            progressions: newProgressions.map((p, index) => ({
+              id: p.id,
+              order: index,
+            })),
+          }),
         });
 
         if (response.ok) {
-          showSnackbar('Ordre des progressions mis à jour', 'success');
+          showSnackbar("Ordre des progressions mis à jour", "success");
         }
       } catch (error) {
-        console.error('Error reordering progressions:', error);
+        console.error("Error reordering progressions:", error);
         // Revenir à l'ordre précédent en cas d'erreur
         loadProgressions(selectedClasseForProgression);
       }
@@ -273,36 +329,41 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     setEditingProgression(progression);
     // Isoler l'état du dialog
     // Try to preselect the course containing this activity (for linkedCourseId)
-    const foundCourse = courses.find((c) => (c.activities || []).some((a) => a && a.id === progression.activityId));
+    const foundCourse = courses.find((c) =>
+      (c.activities || []).some((a) => a && a.id === progression.activityId)
+    );
     setEditProgressionContent({
       title: progression.title,
       content: progression.content,
       icon: progression.icon, // Keep null if no icon
-      iconColor: progression.iconColor || '#3f51b5',
+      iconColor: progression.iconColor || "#3f51b5",
       contentType: progression.contentType,
-      resourceUrl: progression.resourceUrl || '',
+      resourceUrl: progression.resourceUrl || "",
       imageSize: progression.imageSize || 60,
-      linkedActivityId: progression.activityId || '',
-      linkedCourseId: foundCourse?.id || ''
+      linkedActivityId: progression.activityId || "",
+      linkedCourseId: foundCourse?.id || "",
     });
     // If this progression is linked to an activity, switch edit preset accordingly
     if (progression.activityId) {
-      setEditContentPreset('existing-activity');
+      setEditContentPreset("existing-activity");
       setEditSelectedActivityForProgression(progression.activityId);
       // Try to preselect the course containing this activity
-      setEditSelectedCourseForProgression(foundCourse?.id || 'all');
+      setEditSelectedCourseForProgression(foundCourse?.id || "all");
     } else {
       setEditContentPreset(progression.contentType);
-      setEditSelectedActivityForProgression('none');
-      setEditSelectedCourseForProgression('all');
+      setEditSelectedActivityForProgression("none");
+      setEditSelectedCourseForProgression("all");
     }
     setIsEditDialogOpen(true);
 
     // Initialize cache for current progression types
-    setEditPresetCache(prev => ({
+    setEditPresetCache((prev) => ({
       ...prev,
-      [progression.contentType as 'text'|'video'|'image'|'pdf']:
-        { resourceUrl: progression.resourceUrl || '', title: progression.title, content: progression.content }
+      [progression.contentType as "text" | "video" | "image" | "pdf"]: {
+        resourceUrl: progression.resourceUrl || "",
+        title: progression.title,
+        content: progression.content,
+      },
     }));
   };
 
@@ -310,8 +371,8 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setRejectedFile(null); // Réinitialiser le fichier rejeté
-    
-    if (file.type.startsWith('image/')) {
+
+    if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setFilePreview(e.target?.result as string);
@@ -336,7 +397,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     setSelectedFile(null);
     setFilePreview(null);
     setRejectedFile(null);
-    setProgressionContent(prev => ({ ...prev, resourceUrl: '' }));
+    setProgressionContent((prev) => ({ ...prev, resourceUrl: "" }));
   };
 
   const handleFileUpload = async () => {
@@ -346,13 +407,13 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     setUploadProgress(0);
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('classeId', selectedClasseForProgression);
-      formData.append('fileType', contentPreset);
+      formData.append("file", selectedFile);
+      formData.append("classeId", selectedClasseForProgression);
+      formData.append("fileType", contentPreset);
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/progressions/upload');
+        xhr.open("POST", "/api/progressions/upload");
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const percent = Math.round((e.loaded / e.total) * 100);
@@ -363,8 +424,11 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
-              setProgressionContent(prev => ({ ...prev, resourceUrl: data.fileUrl }));
-              setSuccessMessageProgression('Fichier uploadé avec succès');
+              setProgressionContent((prev) => ({
+                ...prev,
+                resourceUrl: data.fileUrl,
+              }));
+              setSuccessMessageProgression("Fichier uploadé avec succès");
               // Nettoyage
               setSelectedFile(null);
               setFilePreview(null);
@@ -377,11 +441,11 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             reject(new Error(`HTTP ${xhr.status}`));
           }
         };
-        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.onerror = () => reject(new Error("Network error"));
         xhr.send(formData);
       });
     } catch (error) {
-      setErrorProgression('Erreur serveur lors de l\'upload');
+      setErrorProgression("Erreur serveur lors de l'upload");
     } finally {
       setUploadingFile(false);
     }
@@ -392,657 +456,957 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
     setSelectedFile(null);
     setFilePreview(null);
     setRejectedFile(null);
-    setContentPreset('text');
+    setContentPreset("text");
     setProgressionContent({
-      title: '',
-      content: '',
-      icon: 'none',
-      iconColor: '#3f51b5',
-      contentType: 'text',
-      resourceUrl: '',
+      title: "",
+      content: "",
+      icon: "none",
+      iconColor: "#3f51b5",
+      contentType: "text",
+      resourceUrl: "",
       imageSize: 60,
-      linkedActivityId: '',
-      linkedCourseId: ''
+      linkedActivityId: "",
+      linkedCourseId: "",
     });
   };
 
   return (
-    <Accordion>
+    <Accordion
+    sx = {{
+      width: "100%",
+    }}
+    >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> progression
+        <Typography
+          variant="body2"
+          fontWeight="bold"
+          fontSize={23}
+          sx={{ fontVariant: "small-caps" }}
+        >
+          <EditIcon color="warning" /> progression
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Box sx={{ '& > * + *': { mt: 3 }, position: 'relative' }}>
+        <Box sx={{ "& > * + *": { mt: 3 }, position: "relative" }}>
+          {/* Sélection de la classe */}
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontSize: "small", textTransform: "uppercase" }}>
+              Sélectionner une classe
+            </InputLabel>
+            <MuiSelect
+              value={selectedClasseForProgression}
+              onChange={(e) => {
+                setSelectedClasseForProgression(e.target.value);
+                loadProgressions(e.target.value);
+              }}
+              label="Sélectionner une classe"
+            >
+              {classes && Array.isArray(classes)
+                ? classes
+                    .sort((a, b) => naturalSort(a.name, b.name))
+                    .map((classe) => (
+                      <MenuItem key={classe.id} value={classe.id}>
+                        {classe.name}
+                      </MenuItem>
+                    ))
+                : null}
+            </MuiSelect>
+          </FormControl>
 
-      {/* Sélection de la classe */}
-      <FormControl fullWidth>
-        <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-          Sélectionner une classe
-        </InputLabel>
-        <MuiSelect
-          value={selectedClasseForProgression}
-          onChange={(e) => {
-            setSelectedClasseForProgression(e.target.value);
-            loadProgressions(e.target.value);
-          }}
-          label="Sélectionner une classe"
-        >
-          {classes && Array.isArray(classes) ? (
-            classes.sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
-              <MenuItem key={classe.id} value={classe.id}>
-                {classe.name}
-              </MenuItem>
-            ))
-          ) : null}
-        </MuiSelect>
-      </FormControl>
+          {/* Activer/Désactiver la progression pour cette classe */}
+          {selectedClasseForProgression && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                position: "relative",
+              }}
+            >
+              <Switch
+                checked={
+                  classes.find((c) => c.id === selectedClasseForProgression)
+                    ?.hasProgression || false
+                }
+                onChange={async (e) => {
+                  console.log("Switch clicked, new value:", e.target.checked);
+                  console.log("Selected class:", selectedClasseForProgression);
+                  console.log("Current classes:", classes);
+                  console.log(
+                    "Current class hasProgression:",
+                    classes.find((c) => c.id === selectedClasseForProgression)
+                      ?.hasProgression
+                  );
 
-      {/* Activer/Désactiver la progression pour cette classe */}
-      {selectedClasseForProgression && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
-        <Switch
-          checked={classes.find(c => c.id === selectedClasseForProgression)?.hasProgression || false}
-          onChange={async (e) => {
-            console.log('Switch clicked, new value:', e.target.checked);
-            console.log('Selected class:', selectedClasseForProgression);
-            console.log('Current classes:', classes);
-            console.log('Current class hasProgression:', classes.find(c => c.id === selectedClasseForProgression)?.hasProgression);
-            
-            try {
-            const response = await fetch(`/api/classes/${selectedClasseForProgression}/progression`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ hasProgression: e.target.checked })
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              console.log('API response data:', data);
-              setClasses(data.classes);
-              
-              // Force refresh des données
-              const fetchRes = await fetch('/api/courses');
-              const freshData = await fetchRes.json();
-              console.log('Fresh data from /api/courses:', freshData);
-              setClasses(freshData.classes);
-              
-              showSnackbar('Statut de progression mis à jour', 'success');
-            } else {
-              console.error('API response error:', response.status, response.statusText);
-              showSnackbar('Erreur lors de la mise à jour', 'error');
-            }
-            } catch (error) {
-            console.error('Error:', error);
-            showSnackbar('Erreur serveur', 'error');
-            }
-          }}
-        />
-        <FormLabel>Activer la progression pour cette classe</FormLabel>
-      {/* Icon button for redirect */}
-    <Tooltip title="Page de la classe">
-      <IconButton
-        sx={{ position: 'absolute', top: 0, right: 0 }}
-        onClick={() => {
-        if (selectedClasseForProgression) {
-        window.open(`/classes/${selectedClasseForProgression}`, '_blank');
-        }
-        }}
-        disabled={!selectedClasseForProgression}
-      >
-        <OpenInNewIcon color='primary' />
-      </IconButton>
-    </Tooltip>
-        </Box>
-      )}
+                  try {
+                    const response = await fetch(
+                      `/api/classes/${selectedClasseForProgression}/progression`,
+                      {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          hasProgression: e.target.checked,
+                        }),
+                      }
+                    );
 
-      {/* Calendrier */}
-      {selectedClasseForProgression && (
-        <Box sx={{ border: 1, borderRadius: 2, p: 2 }}>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => {
-            setSelectedDate(date);
-            // Activer automatiquement le filtrage par date si une date est sélectionnée
-            if (date) {
-            setShowAllProgressions(false);
-            }
-          }}
-          locale={fr}
-          className="rounded-md border"
-          modifiers={{
-            hasProgression: getDatesWithProgression(),
-            selectedHasProgression: selectedDate ? getDatesWithProgression().filter(d => d.toDateString() === selectedDate.toDateString()) : [],
-          }}
-          modifiersStyles={{
-            hasProgression: {
-              backgroundColor: '#9fcbf8ff',
-              color: '#111827',
-              fontWeight: 'bold',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            selectedHasProgression: {
-              border: '2px solid #1e40af',
-              borderRadius: '4px',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          }}
-        />
-        </Box>
-      )}
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log("API response data:", data);
+                      setClasses(data.classes);
 
-      {/* Formulaire de contenu si une date est sélectionnée */}
-      {selectedDate && (
-        <Box sx={{ '& > * + *': { mt: 2 }, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-        <Typography variant="body2" fontWeight={600}>
-          Ajouter du contenu pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
-        </Typography>
+                      // Force refresh des données
+                      const fetchRes = await fetch("/api/courses");
+                      const freshData = await fetchRes.json();
+                      console.log("Fresh data from /api/courses:", freshData);
+                      setClasses(freshData.classes);
 
-        {/* Presets de type de contenu */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 1, mb: 2 }}>
-          <Button
-            type="button"
-            variant={contentPreset === 'text' ? 'contained' : 'outlined'}
-            size='medium'
-            onClick={() => {
-            setContentPreset('text');
-            setProgressionContent(prev => ({
-              ...prev,
-              contentType: 'text',
-              title: 'Note du jour'
-            }));
-            handleFileRemove();
-            }}
-            sx={{ width: '100%' }}
-          >
-            <Description className="mr-2 h-4 w-4" />
-            Texte
-          </Button>
-          <Button
-            type="button"
-            variant={contentPreset === 'video' ? 'contained' : 'outlined'}
-            size="medium"
-            onClick={() => {
-            setContentPreset('video');
-            setProgressionContent(prev => ({
-              ...prev,
-              contentType: 'video',
-              title: 'Vidéo du jour'
-            }));
-            handleFileRemove();
-            }}
-            sx={{ width: '100%' }}
-          >
-            <VideoLibrary className="mr-2 h-4 w-4" />
-            Vidéo
-          </Button>
-          <Button
-            type="button"
-            variant={contentPreset === 'image' ? 'contained' : 'outlined'}
-            size="medium"
-            onClick={() => {
-            setContentPreset('image');
-            setProgressionContent(prev => ({
-              ...prev,
-              contentType: 'image',
-              title: 'Image du jour',
-              resourceUrl: ''
-            }));
-            setSelectedFile(null);
-            setFilePreview(null);
-            }}
-            sx={{ width: '100%' }}
-          >
-            <PhotoCamera className="mr-2 h-4 w-4" />
-            Image
-          </Button>
-          <Button
-            type="button"
-            variant={contentPreset === 'pdf' ? 'contained' : 'outlined'}
-            size="medium"
-            onClick={() => {
-            setContentPreset('pdf');
-            setProgressionContent(prev => ({
-              ...prev,
-              contentType: 'pdf',
-              title: 'Document PDF',
-              resourceUrl: ''
-            }));
-            setSelectedFile(null);
-            setFilePreview(null);
-            }}
-            sx={{ width: '100%' }}
-          >
-            <PictureAsPdf className="mr-2 h-4 w-4" />
-            PDF
-          </Button>
-          <Button
-            type="button"
-            variant={contentPreset === 'existing-activity' ? 'contained' : 'outlined'}
-            size="medium"
-            onClick={() => {
-            setContentPreset('existing-activity' as any);
-            setSelectedActivityForProgression('none');
-            setSelectedCourseForProgression('all');
-            // Clear file/url fields when switching to existing activity
-            setSelectedFile(null);
-            setFilePreview(null);
-            setProgressionContent(prev => ({
-              ...prev,
-              contentType: 'activity',
-              resourceUrl: ''
-            }));
-            }}
-            sx={{ width: '100%' }}
-          >
-            Activité existante
-          </Button>
-          <Button
-            type="button"
-            variant={contentPreset === 'url' ? 'contained' : 'outlined'}
-            size="medium"
-            onClick={() => {
-              setContentPreset('url');
-              setProgressionContent(prev => ({
-          ...prev,
-          contentType: 'url',
-          title: 'Lien externe',
-          resourceUrl: ''
-              }));
-              setSelectedFile(null);
-              setFilePreview(null);
-            }}
-            sx={{ width: '100%' }}
-          >
-            <LinkIcon className="mr-2 h-4 w-4" /> URL
-          </Button>
-        </Box>
-
-        {/* Titre */}
-        <TextField
-          fullWidth
-          label="Titre"
-          value={progressionContent.title}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProgressionContent(prev => ({ ...prev, title: e.target.value }))}
-          placeholder="Titre"
-        />
-
-        {/* Gestion des fichiers pour image et PDF */}
-        {contentPreset === 'image' && (
-          <Box sx={{ '& > * + *': { mt: 2 } }}>
-            <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Image</FormLabel>
-            {selectedFile && filePreview ? (
-            <ImagePreview
-              src={filePreview}
-              alt="Preview"
-              filename={selectedFile.name}
-              onRemove={handleFileRemove}
-              initialImageSize={progressionContent.imageSize}
-              onImageSizeChange={(size) => setProgressionContent(prev => ({ ...prev, imageSize: size }))}
-            />
-            ) : progressionContent.resourceUrl ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <ImagePreview
-                src={progressionContent.resourceUrl}
-                alt="Current image"
-                onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
-                initialImageSize={progressionContent.imageSize}
-                onImageSizeChange={(size) => setProgressionContent(prev => ({ ...prev, imageSize: size }))}
-              />
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ou ajoutez une nouvelle image :</Typography>
-              <SmartFileUploader
-                onFileSelect={handleFileSelect}
-                onFileReject={handleFileReject}
-                fileType="image"
-                className="border-blue-200 bg-blue-50"
-                existingFileUrl={progressionContent.resourceUrl}
-              />
-            </Box>
-            ) : (
-            <SmartFileUploader
-              onFileSelect={handleFileSelect}
-              onFileReject={handleFileReject}
-              fileType="image"
-              className="border-blue-200 bg-blue-50"
-              existingFileUrl={progressionContent.resourceUrl}
-            />
-            )}
-            {uploadingFile && <LinearProgress variant="determinate" value={uploadProgress} />}
-            {selectedFile && (
-            <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
-              {uploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
-            </Button>
-            )}
-          </Box>
-        )}
-
-        {contentPreset === 'pdf' && (
-          <Box sx={{ '& > * + *': { mt: 2 } }}>
-            <FormLabel component="legend">Document PDF</FormLabel>
-            {selectedFile ? (
-            <PDFViewer
-              src={URL.createObjectURL(selectedFile)}
-              filename={selectedFile.name}
-              onRemove={handleFileRemove}
-              showControls={false}
-            />
-            ) : progressionContent.resourceUrl ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <PDFViewer
-                src={progressionContent.resourceUrl}
-                filename="Document actuel"
-                onRemove={() => setProgressionContent(prev => ({ ...prev, resourceUrl: '' }))}
-                isEmbedded={true}
-              />
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ou ajoutez un nouveau PDF :</Typography>
-              <SmartFileUploader
-                onFileSelect={handleFileSelect}
-                onFileReject={handleFileReject}
-                fileType="pdf"
-                className="border-red-200 bg-red-50"
-                existingFileUrl={progressionContent.resourceUrl}
-              />
-            </Box>
-            ) : (
-            <SmartFileUploader
-              onFileSelect={handleFileSelect}
-              onFileReject={handleFileReject}
-              fileType="pdf"
-              className="border-red-200 bg-red-50"
-              existingFileUrl={progressionContent.resourceUrl}
-            />
-            )}
-            {uploadingFile && <LinearProgress variant="determinate" value={uploadProgress} />}
-            {selectedFile && (
-            <Button onClick={handleFileUpload} disabled={uploadingFile} className="w-full">
-              {uploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
-            </Button>
-            )}
-          </Box>
-        )}
-
-        {/* URL de ressource pour vidéo ou comme alternative pour image/PDF */}
-        {(contentPreset === 'video' || 
-          contentPreset === 'url' ||
-          ((contentPreset === 'image' || contentPreset === 'pdf') && !selectedFile)
-        ) && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {contentPreset !== 'video' && (
-            <FormLabel sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-              Ou utilisez une URL externe :
-            </FormLabel>
-            )}
-            <TextField
-              fullWidth
-              type="url"
-              label={
-                `URL ${
-                  contentPreset === 'video' ? 'de la vidéo' :
-                  contentPreset === 'image' ? 'de l\'image' :
-                  contentPreset === 'pdf' ? 'du PDF' :
-                  'externe'
-                }`
-              }
-              value={progressionContent.resourceUrl}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
-              placeholder={
-                `URL ${
-                  contentPreset === 'video' ? 'de la vidéo' :
-                  contentPreset === 'image' ? 'de l\'image' :
-                  contentPreset === 'pdf' ? 'du PDF' :
-                  'externe'
-                }`
-              }
-            />
-          </Box>
-        )}
-
-        {/* Éditeur de texte enrichi */}
-        <Box sx={{ border: 1, borderRadius: 1, p: 1 }}>
-          <RichTextEditor
-            value={progressionContent.content}
-            onChange={(value) => setProgressionContent(prev => ({ ...prev, content: value }))}
-            placeholder="Contenu de la progression..."
-          />
-        </Box>
-
-        {/* Activité existante - crée une progression dédiée */}
-        {contentPreset === 'existing-activity' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: 1, borderColor: 'divider', pt: 2 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>Associer une activité existante</Typography>
-          
-            {/* Sélection du cours */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <FormControl fullWidth>
-              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-                Sélectionner un cours
-              </InputLabel>
-              <MuiSelect
-                value={selectedCourseForProgression}
-                onChange={(e) => {
-                  setSelectedCourseForProgression(e.target.value);
-                  setSelectedActivityForProgression('none');
-                }}
-                label="Sélectionner un cours"
-              >
-                <MenuItem value="all">Tous les cours</MenuItem>
-                {courses
-                .filter(course => course.theClasseId === selectedClasseForProgression)
-                .sort((a, b) => naturalSort(a.title, b.title))
-                .map((course) => (
-                  <MenuItem key={course.id} value={course.id}>
-                    {course.title}
-                  </MenuItem>
-                ))}
-              </MuiSelect>
-            </FormControl>
-            </Box>
-
-            {/* Sélection de l'activité */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <FormControl fullWidth>
-              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-                Sélectionner une activité
-              </InputLabel>
-              <MuiSelect
-                value={selectedActivityForProgression}
-                onChange={(e) => {
-                  setSelectedActivityForProgression(e.target.value);
-                  if (e.target.value === 'none') {
-                  setProgressionContent(prev => ({
-                    ...prev,
-                    title: prev.title,
-                  }));
-                  return;
-                  }
-                  const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
-                  ? courses.filter(c => c.id === selectedCourseForProgression)
-                  : courses.filter(c => c.theClasseId === selectedClasseForProgression);
-                  const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
-                  const found = withCourse.find(x => x.a && x.a.id === e.target.value);
-                  if (found) {
-                  setProgressionContent(prev => ({
-                    ...prev,
-                    title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
-                  }));
+                      showSnackbar(
+                        "Statut de progression mis à jour",
+                        "success"
+                      );
+                    } else {
+                      console.error(
+                        "API response error:",
+                        response.status,
+                        response.statusText
+                      );
+                      showSnackbar("Erreur lors de la mise à jour", "error");
+                    }
+                  } catch (error) {
+                    console.error("Error:", error);
+                    showSnackbar("Erreur serveur", "error");
                   }
                 }}
-                label="Sélectionner une activité"
-              >
-                <MenuItem value="none">Aucune activité</MenuItem>
-                {(() => {
-                const filteredCourses = (selectedCourseForProgression && selectedCourseForProgression !== 'all')
-                  ? courses.filter(c => c.id === selectedCourseForProgression)
-                  : courses.filter(c => c.theClasseId === selectedClasseForProgression);
-                return filteredCourses
-                  .flatMap(course => (course.activities || []).map(activity => ({
-                    ...activity,
-                    courseName: course.title
-                  })))
-                  .filter(activity => activity && activity.id && activity.id.trim() !== '')
-                  .sort((a, b) => naturalSort(a.title || '', b.title || ''))
-                  .map((activity) => (
-                    <MenuItem key={activity.id} value={activity.id}>
-                    {activity.title} {(selectedCourseForProgression === 'all') && `(${activity.courseName})`}
-                    </MenuItem>
-                  ));
-                })()}
-              </MuiSelect>
-            </FormControl>
+              />
+              <FormLabel>Activer la progression pour cette classe</FormLabel>
+              {/* Icon button for redirect */}
+              <Tooltip title="Page de la classe">
+                <IconButton
+                  sx={{ position: "absolute", top: 0, right: 0 }}
+                  onClick={() => {
+                    if (selectedClasseForProgression) {
+                      window.open(
+                        `/classes/${selectedClasseForProgression}`,
+                        "_blank"
+                      );
+                    }
+                  }}
+                  disabled={!selectedClasseForProgression}
+                >
+                  <OpenInNewIcon color="primary" />
+                </IconButton>
+              </Tooltip>
             </Box>
+          )}
 
-            {/* <Button
+          {/* Calendrier */}
+          {selectedClasseForProgression && (
+            <Box sx={{ border: 1, borderRadius: 2, p: 2 }}>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  // Activer automatiquement le filtrage par date si une date est sélectionnée
+                  if (date) {
+                    setShowAllProgressions(false);
+                  }
+                }}
+                locale={fr}
+                className="rounded-md border"
+                modifiers={{
+                  hasProgression: getDatesWithProgression(),
+                  selectedHasProgression: selectedDate
+                    ? getDatesWithProgression().filter(
+                        (d) => d.toDateString() === selectedDate.toDateString()
+                      )
+                    : [],
+                }}
+                modifiersStyles={{
+                  hasProgression: {
+                    backgroundColor: "#9fcbf8ff",
+                    color: "#111827",
+                    fontWeight: "bold",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  selectedHasProgression: {
+                    border: "2px solid #1e40af",
+                    borderRadius: "4px",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Formulaire de contenu si une date est sélectionnée */}
+          {selectedDate && (
+            <Box
+              sx={{
+                "& > * + *": { mt: 2 },
+                borderTop: "1px solid",
+                borderColor: "divider",
+                pt: 2,
+              }}
+            >
+              <Typography variant="body2" fontWeight={600}>
+                Ajouter du contenu pour le{" "}
+                {format(selectedDate, "dd MMMM yyyy", { locale: fr })}
+              </Typography>
+
+              {/* Presets de type de contenu */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gridTemplateRows: "repeat(3, auto)",
+                  gap: 1,
+                  mb: 2,
+                }}
+              >
+                <Button
+                  type="button"
+                  variant={contentPreset === "text" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("text");
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "text",
+                      title: "Note du jour",
+                    }));
+                    handleFileRemove();
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  <Description className="mr-2 h-4 w-4" />
+                  Texte
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === "video" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("video");
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "video",
+                      title: "Vidéo du jour",
+                    }));
+                    handleFileRemove();
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  <VideoLibrary className="mr-2 h-4 w-4" />
+                  Vidéo
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === "image" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("image");
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "image",
+                      title: "Image du jour",
+                      resourceUrl: "",
+                    }));
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  <PhotoCamera className="mr-2 h-4 w-4" />
+                  Image
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === "pdf" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("pdf");
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "pdf",
+                      title: "Document PDF",
+                      resourceUrl: "",
+                    }));
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  <PictureAsPdf className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    contentPreset === "existing-activity"
+                      ? "contained"
+                      : "outlined"
+                  }
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("existing-activity" as any);
+                    setSelectedActivityForProgression("none");
+                    setSelectedCourseForProgression("all");
+                    // Clear file/url fields when switching to existing activity
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "activity",
+                      resourceUrl: "",
+                    }));
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  Activité existante
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === "url" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("url");
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "url",
+                      title: "Lien externe",
+                      resourceUrl: "",
+                    }));
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  <LinkIcon className="mr-2 h-4 w-4" /> URL
+                </Button>
+              </Box>
+
+              {/* Titre */}
+              <TextField
+                fullWidth
+                label="Titre"
+                value={progressionContent.title}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setProgressionContent((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+                placeholder="Titre"
+              />
+
+              {/* Gestion des fichiers pour image et PDF */}
+              {contentPreset === "image" && (
+                <Box sx={{ "& > * + *": { mt: 2 } }}>
+                  <FormLabel sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                    Image
+                  </FormLabel>
+                  {selectedFile && filePreview ? (
+                    <ImagePreview
+                      src={filePreview}
+                      alt="Preview"
+                      filename={selectedFile.name}
+                      onRemove={handleFileRemove}
+                      initialImageSize={progressionContent.imageSize}
+                      onImageSizeChange={(size) =>
+                        setProgressionContent((prev) => ({
+                          ...prev,
+                          imageSize: size,
+                        }))
+                      }
+                    />
+                  ) : progressionContent.resourceUrl ? (
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                    >
+                      <ImagePreview
+                        src={progressionContent.resourceUrl}
+                        alt="Current image"
+                        onRemove={() =>
+                          setProgressionContent((prev) => ({
+                            ...prev,
+                            resourceUrl: "",
+                          }))
+                        }
+                        initialImageSize={progressionContent.imageSize}
+                        onImageSizeChange={(size) =>
+                          setProgressionContent((prev) => ({
+                            ...prev,
+                            imageSize: size,
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        Ou ajoutez une nouvelle image :
+                      </Typography>
+                      <SmartFileUploader
+                        onFileSelect={handleFileSelect}
+                        onFileReject={handleFileReject}
+                        fileType="image"
+                        className="border-blue-200 bg-blue-50"
+                        existingFileUrl={progressionContent.resourceUrl}
+                      />
+                    </Box>
+                  ) : (
+                    <SmartFileUploader
+                      onFileSelect={handleFileSelect}
+                      onFileReject={handleFileReject}
+                      fileType="image"
+                      className="border-blue-200 bg-blue-50"
+                      existingFileUrl={progressionContent.resourceUrl}
+                    />
+                  )}
+                  {uploadingFile && (
+                    <LinearProgress
+                      variant="determinate"
+                      value={uploadProgress}
+                    />
+                  )}
+                  {selectedFile && (
+                    <Button
+                      onClick={handleFileUpload}
+                      disabled={uploadingFile}
+                      className="w-full"
+                    >
+                      {uploadingFile
+                        ? "Upload en cours..."
+                        : "Uploader l'image"}
+                    </Button>
+                  )}
+                </Box>
+              )}
+
+              {contentPreset === "pdf" && (
+                <Box sx={{ "& > * + *": { mt: 2 } }}>
+                  <FormLabel component="legend">Document PDF</FormLabel>
+                  {selectedFile ? (
+                    <PDFViewer
+                      src={URL.createObjectURL(selectedFile)}
+                      filename={selectedFile.name}
+                      onRemove={handleFileRemove}
+                      showControls={false}
+                    />
+                  ) : progressionContent.resourceUrl ? (
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                    >
+                      <PDFViewer
+                        src={progressionContent.resourceUrl}
+                        filename="Document actuel"
+                        onRemove={() =>
+                          setProgressionContent((prev) => ({
+                            ...prev,
+                            resourceUrl: "",
+                          }))
+                        }
+                        isEmbedded={true}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        Ou ajoutez un nouveau PDF :
+                      </Typography>
+                      <SmartFileUploader
+                        onFileSelect={handleFileSelect}
+                        onFileReject={handleFileReject}
+                        fileType="pdf"
+                        className="border-red-200 bg-red-50"
+                        existingFileUrl={progressionContent.resourceUrl}
+                      />
+                    </Box>
+                  ) : (
+                    <SmartFileUploader
+                      onFileSelect={handleFileSelect}
+                      onFileReject={handleFileReject}
+                      fileType="pdf"
+                      className="border-red-200 bg-red-50"
+                      existingFileUrl={progressionContent.resourceUrl}
+                    />
+                  )}
+                  {uploadingFile && (
+                    <LinearProgress
+                      variant="determinate"
+                      value={uploadProgress}
+                    />
+                  )}
+                  {selectedFile && (
+                    <Button
+                      onClick={handleFileUpload}
+                      disabled={uploadingFile}
+                      className="w-full"
+                    >
+                      {uploadingFile ? "Upload en cours..." : "Uploader le PDF"}
+                    </Button>
+                  )}
+                </Box>
+              )}
+
+              {/* URL de ressource pour vidéo ou comme alternative pour image/PDF */}
+              {(contentPreset === "video" ||
+                contentPreset === "url" ||
+                ((contentPreset === "image" || contentPreset === "pdf") &&
+                  !selectedFile)) && (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  {contentPreset !== "video" && (
+                    <FormLabel
+                      sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+                    >
+                      Ou utilisez une URL externe :
+                    </FormLabel>
+                  )}
+                  <TextField
+                    fullWidth
+                    type="url"
+                    label={`URL ${
+                      contentPreset === "video"
+                        ? "de la vidéo"
+                        : contentPreset === "image"
+                        ? "de l'image"
+                        : contentPreset === "pdf"
+                        ? "du PDF"
+                        : "externe"
+                    }`}
+                    value={progressionContent.resourceUrl}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setProgressionContent((prev) => ({
+                        ...prev,
+                        resourceUrl: e.target.value,
+                      }))
+                    }
+                    placeholder={`URL ${
+                      contentPreset === "video"
+                        ? "de la vidéo"
+                        : contentPreset === "image"
+                        ? "de l'image"
+                        : contentPreset === "pdf"
+                        ? "du PDF"
+                        : "externe"
+                    }`}
+                  />
+                </Box>
+              )}
+
+              {/* Éditeur de texte enrichi */}
+              <Box sx={{ border: 1, borderRadius: 1, p: 1 }}>
+                <RichTextEditor
+                  value={progressionContent.content}
+                  onChange={(value) =>
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      content: value,
+                    }))
+                  }
+                  placeholder="Contenu de la progression..."
+                />
+              </Box>
+
+              {/* Activité existante - crée une progression dédiée */}
+              {contentPreset === "existing-activity" && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                    borderTop: 1,
+                    borderColor: "divider",
+                    pt: 2,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    Associer une activité existante
+                  </Typography>
+
+                  {/* Sélection du cours */}
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel
+                        sx={{ fontSize: "small", textTransform: "uppercase" }}
+                      >
+                        Sélectionner un cours
+                      </InputLabel>
+                      <MuiSelect
+                        value={selectedCourseForProgression}
+                        onChange={(e) => {
+                          setSelectedCourseForProgression(e.target.value);
+                          setSelectedActivityForProgression("none");
+                        }}
+                        label="Sélectionner un cours"
+                      >
+                        <MenuItem value="all">Tous les cours</MenuItem>
+                        {courses
+                          .filter(
+                            (course) =>
+                              course.theClasseId ===
+                              selectedClasseForProgression
+                          )
+                          .sort((a, b) => naturalSort(a.title, b.title))
+                          .map((course) => (
+                            <MenuItem key={course.id} value={course.id}>
+                              {course.title}
+                            </MenuItem>
+                          ))}
+                      </MuiSelect>
+                    </FormControl>
+                  </Box>
+
+                  {/* Sélection de l'activité */}
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel
+                        sx={{ fontSize: "small", textTransform: "uppercase" }}
+                      >
+                        Sélectionner une activité
+                      </InputLabel>
+                      <MuiSelect
+                        value={selectedActivityForProgression}
+                        onChange={(e) => {
+                          setSelectedActivityForProgression(e.target.value);
+                          if (e.target.value === "none") {
+                            setProgressionContent((prev) => ({
+                              ...prev,
+                              title: prev.title,
+                            }));
+                            return;
+                          }
+                          const filteredCourses =
+                            selectedCourseForProgression &&
+                            selectedCourseForProgression !== "all"
+                              ? courses.filter(
+                                  (c) => c.id === selectedCourseForProgression
+                                )
+                              : courses.filter(
+                                  (c) =>
+                                    c.theClasseId ===
+                                    selectedClasseForProgression
+                                );
+                          const withCourse = filteredCourses.flatMap((course) =>
+                            (course.activities || []).map((a) => ({
+                              a,
+                              course,
+                            }))
+                          );
+                          const found = withCourse.find(
+                            (x) => x.a && x.a.id === e.target.value
+                          );
+                          if (found) {
+                            setProgressionContent((prev) => ({
+                              ...prev,
+                              title: found.a.title || prev.title,
+                            }));
+                          }
+                        }}
+                        label="Sélectionner une activité"
+                      >
+                        <MenuItem value="none">Aucune activité</MenuItem>
+                        {(() => {
+                          const filteredCourses =
+                            selectedCourseForProgression &&
+                            selectedCourseForProgression !== "all"
+                              ? courses.filter(
+                                  (c) => c.id === selectedCourseForProgression
+                                )
+                              : courses.filter(
+                                  (c) =>
+                                    c.theClasseId ===
+                                    selectedClasseForProgression
+                                );
+                          return filteredCourses
+                            .flatMap((course) =>
+                              (course.activities || []).map((activity) => ({
+                                ...activity,
+                                courseName: course.title,
+                              }))
+                            )
+                            .filter(
+                              (activity) =>
+                                activity &&
+                                activity.id &&
+                                activity.id.trim() !== ""
+                            )
+                            .sort((a, b) =>
+                              naturalSort(a.title || "", b.title || "")
+                            )
+                            .map((activity) => (
+                              <MenuItem key={activity.id} value={activity.id}>
+                                {activity.title}{" "}
+                                {selectedCourseForProgression === "all" &&
+                                  `(${activity.courseName})`}
+                              </MenuItem>
+                            ));
+                        })()}
+                      </MuiSelect>
+                    </FormControl>
+                  </Box>
+
+                  {/* <Button
             onClick={handleSaveProgression}
             className="w-full"
             disabled={selectedActivityForProgression === 'none'}
             >
             Ajouter la progression avec l&apos;activité sélectionnée
             </Button> */}
-          </Box>
-        )}
+                </Box>
+              )}
 
-        {/* Sélection d'icône et couleur */}
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
-          <Box sx={{ flex: 1 }}>
-            <IconPicker
-            value={progressionContent.icon}
-            onChange={(icon) => {
-              setProgressionContent(prev => ({ ...prev, icon }));
-            }}
-            />
-          </Box>
-          <Box>
-            <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Couleur de l&apos;icône</FormLabel>
-            <ColorPicker
-            value={progressionContent.iconColor}
-            onChange={(color) => setProgressionContent(prev => ({ ...prev, iconColor: color }))}
-            />
-          </Box>
-        </Box>
+              {/* Sélection d'icône et couleur */}
+              <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end" }}>
+                <Box sx={{ flex: 1 }}>
+                  <IconPicker
+                    value={progressionContent.icon}
+                    onChange={(icon) => {
+                      setProgressionContent((prev) => ({ ...prev, icon }));
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <FormLabel sx={{ fontSize: "0.75rem", fontWeight: 500, textTransform: 'uppercase' }}>
+                    Couleur de l&apos;icône
+                  </FormLabel>
+                  <ColorPicker
+                    value={progressionContent.iconColor}
+                    onChange={(color) =>
+                      setProgressionContent((prev) => ({
+                        ...prev,
+                        iconColor: color,
+                      }))
+                    }
+                  />
+                </Box>
+              </Box>
 
-        <Button onClick={handleSaveProgression} className="w-full" variant='outlined' sx = {{ fontWeight: 700, mt: 2 }}>
-          Ajouter la progression
-        </Button>
-        </Box>
-      )}
-
-      {/* Liste des progressions existantes */}
-      {progressions.length > 0 && (
-        <Box sx={{ '& > * + *': { mt: 1 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-        {/* <Typography variant="h5" sx={{ fontWeight: 600 }}>Progressions existantes</Typography> */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, width: '100%' }}>
-            {selectedDate && !showAllProgressions && (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Filtré par : {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
-            </Typography>
-            )}
-            {selectedDate && !showAllProgressions && (() => {
-            const filteredProgressions = progressions.filter(p => {
-              const progressionDate = new Date(p.date);
-              const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-              const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
-              return selectedDateOnly.getTime() === progressionDateOnly.getTime();
-            });
-            return filteredProgressions.length > 0 ? (
               <Button
-                size='medium'
+                onClick={handleSaveProgression}
+                className="w-full"
                 variant="outlined"
-                color="error"
-                onClick={() => {
-                setProgressionsToDelete(filteredProgressions);
-                setIsDeleteAllModalOpen(true);
+                sx={{ fontWeight: 700, mt: 2 }}
+              >
+                Ajouter la progression
+              </Button>
+            </Box>
+          )}
+
+          {/* Liste des progressions existantes */}
+          {progressions.length > 0 && (
+            <Box sx={{ "& > * + *": { mt: 1 } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
                 }}
               >
-                Supprimer tout ({filteredProgressions.length})
-              </Button>
-            ) : null;
-            })()}
-            <Button
-            size='medium'
-            variant={showAllProgressions ? 'contained' : 'outlined'}
-            color='secondary'
-            onClick={() => setShowAllProgressions(!showAllProgressions)}
-            >
-            {showAllProgressions ? 'Filtrer par date' : 'Tout afficher'}
-            </Button>
-          </Box>
-        </Box>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEndProgression}
-        >
-          <SortableContext
-            items={
-            (showAllProgressions || !selectedDate
-              ? progressions
-              : progressions.filter(p => {
-                const progressionDate = new Date(p.date);
-                const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-                const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
-                return selectedDateOnly.getTime() === progressionDateOnly.getTime();
-                })
-            ).map(p => p.id)
-            }
-            strategy={verticalListSortingStrategy}
-          >
-            <List sx={{ maxHeight: 384, overflowY: 'auto', gap: 1 }}>
-            {(() => {
-              const filteredProgressions = showAllProgressions || !selectedDate
-                ? progressions
-                : progressions.filter(p => {
-                  const progressionDate = new Date(p.date);
-                  const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-                  const progressionDateOnly = new Date(progressionDate.getFullYear(), progressionDate.getMonth(), progressionDate.getDate());
-                  return selectedDateOnly.getTime() === progressionDateOnly.getTime();
-                });
+                {/* <Typography variant="h5" sx={{ fontWeight: 600 }}>Progressions existantes</Typography> */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexDirection: 'column',
+                    justifyContent: "space-between",
+                    gap: 1,
+                    width: "100%",
+                  }}
+                >
+                  {selectedDate && !showAllProgressions && (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "text.secondary" }}
+                    >
+                      Filtré par :{" "}
+                      {format(selectedDate, "dd MMMM yyyy", { locale: fr })}
+                    </Typography>
+                  )}
+                  <Stack
+                  sx = {{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    mb: 1,
+                    width: '100%',
+                  }}
+                  >
+                  {selectedDate &&
+                    !showAllProgressions &&
+                    (() => {
+                      const filteredProgressions = progressions.filter((p) => {
+                        const progressionDate = new Date(p.date);
+                        const selectedDateOnly = new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth(),
+                          selectedDate.getDate()
+                        );
+                        const progressionDateOnly = new Date(
+                          progressionDate.getFullYear(),
+                          progressionDate.getMonth(),
+                          progressionDate.getDate()
+                        );
+                        return (
+                          selectedDateOnly.getTime() ===
+                          progressionDateOnly.getTime()
+                        );
+                      });
+                      return filteredProgressions.length > 0 ? (
+                        <Button
+                        fullWidth
+                          size="medium"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => {
+                            setProgressionsToDelete(filteredProgressions);
+                            setIsDeleteAllModalOpen(true);
+                          }}
+                        >
+                          Supprimer tout ({filteredProgressions.length})
+                        </Button>
+                      ) : null;
+                    })()}
+                  <Button
+                  fullWidth
+                    size="medium"
+                    variant={showAllProgressions ? "contained" : "outlined"}
+                    color="secondary"
+                    onClick={() => setShowAllProgressions(!showAllProgressions)}
+                  >
+                    {showAllProgressions ? "Filtrer par date" : "Tout afficher"}
+                  </Button>
+                  </Stack>
+                </Box>
+              </Box>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEndProgression}
+              >
+                <SortableContext
+                  items={(showAllProgressions || !selectedDate
+                    ? progressions
+                    : progressions.filter((p) => {
+                        const progressionDate = new Date(p.date);
+                        const selectedDateOnly = new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth(),
+                          selectedDate.getDate()
+                        );
+                        const progressionDateOnly = new Date(
+                          progressionDate.getFullYear(),
+                          progressionDate.getMonth(),
+                          progressionDate.getDate()
+                        );
+                        return (
+                          selectedDateOnly.getTime() ===
+                          progressionDateOnly.getTime()
+                        );
+                      })
+                  ).map((p) => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <List sx={{ maxHeight: 384, overflowY: "auto", gap: 1 }}>
+                    {(() => {
+                      const filteredProgressions =
+                        showAllProgressions || !selectedDate
+                          ? progressions
+                          : progressions.filter((p) => {
+                              const progressionDate = new Date(p.date);
+                              const selectedDateOnly = new Date(
+                                selectedDate.getFullYear(),
+                                selectedDate.getMonth(),
+                                selectedDate.getDate()
+                              );
+                              const progressionDateOnly = new Date(
+                                progressionDate.getFullYear(),
+                                progressionDate.getMonth(),
+                                progressionDate.getDate()
+                              );
+                              return (
+                                selectedDateOnly.getTime() ===
+                                progressionDateOnly.getTime()
+                              );
+                            });
 
-              if (filteredProgressions.length === 0 && !showAllProgressions && selectedDate) {
-                return (
-                <ListItem sx={{ justifyContent: 'center', bgcolor: 'grey.50', borderRadius: 1 }}>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-                    Aucune progression trouvée pour le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
-                  </Typography>
-                </ListItem>
-                );
-              }
+                      if (
+                        filteredProgressions.length === 0 &&
+                        !showAllProgressions &&
+                        selectedDate
+                      ) {
+                        return (
+                          <ListItem
+                            sx={{
+                              justifyContent: "center",
+                              bgcolor: "grey.50",
+                              borderRadius: 1,
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "text.secondary",
+                                textAlign: "center",
+                              }}
+                            >
+                              Aucune progression trouvée pour le{" "}
+                              {format(selectedDate, "dd MMMM yyyy", {
+                                locale: fr,
+                              })}
+                            </Typography>
+                          </ListItem>
+                        );
+                      }
 
-              return filteredProgressions.map((progression) => (
-              <SortableProgression
-                key={progression.id}
-                progression={progression}
-                onEdit={handleEditProgression}
-                onDelete={async (id) => {
-                const response = await fetch(`/api/progressions/${id}`, {
-                  method: 'DELETE'
-                });
-                if (response.ok) {
-                  loadProgressions(selectedClasseForProgression);
-                  showSnackbar('Progression supprimée', 'success');
-                }
-                }}
-              />
-              ));
-            })()}
-            </List>
-          </SortableContext>
-        </DndContext>
-        </Box>
-      )}
-
-      {errorProgression && <ErrorMessage message={errorProgression} />}
-      {successMessageProgression && <SuccessMessage message={successMessageProgression} />}
+                      return filteredProgressions.map((progression) => (
+                        <SortableProgression
+                          key={progression.id}
+                          progression={progression}
+                          onEdit={handleEditProgression}
+                          onDelete={async (id) => {
+                            const response = await fetch(
+                              `/api/progressions/${id}`,
+                              {
+                                method: "DELETE",
+                              }
+                            );
+                            if (response.ok) {
+                              loadProgressions(selectedClasseForProgression);
+                              showSnackbar("Progression supprimée", "success");
+                            }
+                          }}
+                        />
+                      ));
+                    })()}
+                  </List>
+                </SortableContext>
+              </DndContext>
             </Box>
+          )}
+
+          {errorProgression && <ErrorMessage message={errorProgression} />}
+          {successMessageProgression && (
+            <SuccessMessage message={successMessageProgression} />
+          )}
+        </Box>
       </AccordionDetails>
     </Accordion>
   );

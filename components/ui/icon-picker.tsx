@@ -28,6 +28,7 @@ import {
   VideoLibrary,
   Description
 } from '@mui/icons-material';
+import { Typography } from '@mui/material';
 
 const icons = [
   { icon: Edit, name: 'edit' },
@@ -89,7 +90,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
         <span ref={triggerRef} className="inline-block w-full">
           <Button type="button" variant="outline" className="w-full justify-start">
             {CurrentIcon ? <CurrentIcon className="mr-2 h-5 w-5" /> : <div className="w-5 h-5 mr-2"></div>}
-            <span>Choisir une icône</span>
+            <Typography variant='overline'>Choisir une icône</Typography>
           </Button>
         </span>
       </PopoverPrimitive.Trigger>
