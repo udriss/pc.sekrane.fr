@@ -4,7 +4,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { 
   DragIndicator, 
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
+import { Tooltip, IconButton } from '@mui/material';
 
 interface PropsSortableFile {
   fileId: string;
@@ -25,7 +27,7 @@ export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortab
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-9 justify-between p-2 bg-white rounded-md">
+    <li ref={setNodeRef} style={style} className="grid grid-cols-9 items-center justify-between p-2 bg-white rounded-md">
       {/* Drag handle section */}
       <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
       <DragIndicator fontSize='medium' />
@@ -37,6 +39,16 @@ export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortab
       {fileUrl && <h4 className="truncate text-sm text-gray-500">{fileUrl}</h4>}
       </div>
       <div className="flex col-span-2 justify-around space-x-2 ml-2">
+        {fileUrl && (
+          <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+            <IconButton
+              size="small"
+              onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+            >
+              <OpenInNewIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+        )}
         {confirmDelete ? (
           <>
             <Button

@@ -292,7 +292,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
         <div className="space-y-6">
           <div className="space-y-2">
             <FormControl fullWidth>
-              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase', transform: 'translate(14px, 20px) scale(1)' }}>
+              <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase', }}>
                 Sélectionner une classe
               </InputLabel>
               <MuiSelect
@@ -317,7 +317,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
             fullWidth
             type="text"
             label="Nouveau nom de la classe"
-            placeholder="Nouveau nom de la classe"
+            placeholder="Entrez un nouveau nom"
             value={editedClasseName}
             onChange={(e) => setEditedClasseName(e.target.value)}
             slotProps={{

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';import { Visibility } from '@mui/icons-material';
 import Switch from '@mui/material/Switch';
 import { TbEyeClosed } from "react-icons/tb";
+import { Tooltip, IconButton } from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 interface PropsSortableCourse {
   courseId: string;
@@ -32,7 +34,7 @@ export function SortableCourse({
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="flex items-center grid grid-cols-12 justify-between p-2 bg-white rounded-md">
+    <li ref={setNodeRef} style={style} className="grid grid-cols-12 items-center justify-between p-2 bg-white rounded-md">
       <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
         <DragIndicatorIcon fontSize='medium' />
       </div>
@@ -56,6 +58,14 @@ export function SortableCourse({
       </div>
 
       <div className="flex col-span-3 justify-end space-x-2">
+        <Tooltip title="Ouvrir la page du cours">
+          <IconButton
+            size="small"
+            onClick={() => window.open(`/courses/${courseId}`, '_blank', 'noopener,noreferrer')}
+          >
+            <OpenInNewIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
         {confirmDelete ? (
           <>
             <Button
