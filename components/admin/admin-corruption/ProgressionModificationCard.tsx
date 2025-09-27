@@ -818,11 +818,10 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
         {/* Activité existante - crée une progression dédiée */}
         {contentPreset === 'existing-activity' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: 1, borderColor: 'divider', pt: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 500 }}>Associer une activité existante</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>Associer une activité existante</Typography>
           
             {/* Sélection du cours */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Cours</FormLabel>
             <FormControl fullWidth>
               <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
                 Sélectionner un cours
@@ -850,7 +849,6 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
 
             {/* Sélection de l'activité */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Activité</FormLabel>
             <FormControl fullWidth>
               <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
                 Sélectionner une activité
@@ -902,20 +900,19 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
             </FormControl>
             </Box>
 
-            <Button
+            {/* <Button
             onClick={handleSaveProgression}
             className="w-full"
             disabled={selectedActivityForProgression === 'none'}
             >
             Ajouter la progression avec l&apos;activité sélectionnée
-            </Button>
+            </Button> */}
           </Box>
         )}
 
         {/* Sélection d'icône et couleur */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
           <Box sx={{ flex: 1 }}>
-            <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 500 }}>Icône</FormLabel>
             <IconPicker
             value={progressionContent.icon}
             onChange={(icon) => {
@@ -932,7 +929,7 @@ export const ProgressionModificationCard: React.FC<ProgressionModificationCardPr
           </Box>
         </Box>
 
-        <Button onClick={handleSaveProgression} className="w-full" variant='outlined' sx = {{ fontWeight: 700 }}>
+        <Button onClick={handleSaveProgression} className="w-full" variant='outlined' sx = {{ fontWeight: 700, mt: 2 }}>
           Ajouter la progression
         </Button>
         </Box>

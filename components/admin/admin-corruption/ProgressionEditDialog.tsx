@@ -1,12 +1,8 @@
 // /components/admin/admin-corruption/ProgressionEditDialog.tsx
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Box, Typography, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Dialog, DialogContent, DialogTitle, LinearProgress } from '@mui/material';
 import { Course } from '@/lib/dataTemplate';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { IconPicker } from '@/components/ui/icon-picker';
 import { ColorPicker } from '@/components/ui/color-picker';
@@ -262,51 +258,49 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
   };
 
   return (
-    <Dialog modal={false} open={isEditDialogOpen} onOpenChange={(open) => {
-      setIsEditDialogOpen(open);
-      if (!open) {
+    <Dialog 
+      open={isEditDialogOpen} 
+      onClose={() => {
+        setIsEditDialogOpen(false);
         resetDialog();
-      }
-    }}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Modifier la progression</DialogTitle>
-          <DialogDescription>
-            Modifiez les détails de votre progression de cours
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6 mt-4">
-          {/* Presets de type de contenu */}
-          <div className="flex gap-2 mb-4">
+      }}
+      maxWidth="lg"
+      fullWidth
+    >
+      <DialogTitle>Modifier la progression</DialogTitle>
+      <DialogContent sx={{ maxHeight: '95vh', overflowY: 'auto' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Modifiez les détails de votre progression de cours
+        </Typography>
+        <Box className="space-y-6 mt-4">
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <Button
+            variant={editContentPreset === 'text' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => {
+              // cache current preset values
+              setEditPresetCache(prev => ({
+                ...prev,
+                [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
+              }));
+              setEditContentPreset('text');
+              setEditProgressionContent(prev => ({
+                ...prev,
+                contentType: 'text',
+                // restore cached values if any
+                resourceUrl: editPresetCache.text.resourceUrl || '',
+                title: editPresetCache.text.title || prev.title,
+                content: editPresetCache.text.content || prev.content
+              }));
+              handleEditFileRemove();
+            }}
+            startIcon={<Description />}
+          >
+            Texte
+          </Button>
             <Button
-              type="button"
-              variant={editContentPreset === 'text' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                // cache current preset values
-                setEditPresetCache(prev => ({
-                  ...prev,
-                  [editContentPreset]: { resourceUrl: editProgressionContent.resourceUrl, title: editProgressionContent.title, content: editProgressionContent.content }
-                }));
-                setEditContentPreset('text');
-                setEditProgressionContent(prev => ({
-                  ...prev,
-                  contentType: 'text',
-                  // restore cached values if any
-                  resourceUrl: editPresetCache.text.resourceUrl || '',
-                  title: editPresetCache.text.title || prev.title,
-                  content: editPresetCache.text.content || prev.content
-                }));
-                handleEditFileRemove();
-              }}
-            >
-              <Description className="mr-2 h-4 w-4" />
-              Texte
-            </Button>
-            <Button
-              type="button"
-              variant={editContentPreset === 'video' ? 'default' : 'outline'}
-              size="sm"
+              variant={editContentPreset === 'video' ? 'contained' : 'outlined'}
+              size="small"
               onClick={() => {
                 setEditPresetCache(prev => ({
                   ...prev,
@@ -325,14 +319,13 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                 }));
                 handleEditFileRemove();
               }}
+              startIcon={<VideoLibrary />}
             >
-              <VideoLibrary className="mr-2 h-4 w-4" />
               Vidéo
             </Button>
             <Button
-              type="button"
-              variant={editContentPreset === 'image' ? 'default' : 'outline'}
-              size="sm"
+              variant={editContentPreset === 'image' ? 'contained' : 'outlined'}
+              size="small"
               onClick={() => {
                 setEditPresetCache(prev => ({
                   ...prev,
@@ -350,14 +343,13 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                 setEditSelectedFile(null);
                 setEditFilePreview(null);
               }}
+              startIcon={<PhotoCamera />}
             >
-              <PhotoCamera className="mr-2 h-4 w-4" />
               Image
             </Button>
             <Button
-              type="button"
-              variant={editContentPreset === 'pdf' ? 'default' : 'outline'}
-              size="sm"
+              variant={editContentPreset === 'pdf' ? 'contained' : 'outlined'}
+              size="small"
               onClick={() => {
                 setEditPresetCache(prev => ({
                   ...prev,
@@ -372,14 +364,13 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                 setEditSelectedFile(null);
                 setEditFilePreview(null);
               }}
+              startIcon={<PictureAsPdf />}
             >
-              <PictureAsPdf className="mr-2 h-4 w-4" />
               PDF
             </Button>
             <Button
-              type="button"
-              variant={editContentPreset === 'existing-activity' ? 'default' : 'outline'}
-              size="sm"
+              variant={editContentPreset === 'existing-activity' ? 'contained' : 'outlined'}
+              size="small"
               onClick={() => {
                 setEditPresetCache(prev => ({
                   ...prev,
@@ -398,20 +389,21 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
             >
               Activité existante
             </Button>
-          </div>
+          </Box>
 
           {/* Titre */}
-          <Input
-            type="text"
-            placeholder="Titre"
+          <TextField
+            fullWidth
+            label="Titre"
             value={editProgressionContent.title}
-            onChange={(e) => setEditProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditProgressionContent(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="Titre"
           />
 
           {/* Gestion des fichiers pour image et PDF */}
           {editContentPreset === 'image' && (
-            <div className="space-y-4">
-              <label className="text-sm font-medium">Image</label>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="body2" fontWeight={500}>Image</Typography>
               {editSelectedFile && editFilePreview ? (
                 <ImagePreview
                   src={editFilePreview}
@@ -438,7 +430,7 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                   existingFileUrl={editProgressionContent.resourceUrl}
                 />
               )}
-              {editUploadingFile && <Progress value={editUploadProgress} />}
+              {editUploadingFile && <LinearProgress variant="determinate" value={editUploadProgress} />}
               {editSelectedFile && !editProgressionContent.resourceUrl && (
                 <Button 
                   onClick={handleEditFileUpload} 
@@ -448,12 +440,12 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                   {editUploadingFile ? 'Upload en cours...' : 'Uploader l\'image'}
                 </Button>
               )}
-            </div>
+            </Box>
           )}
 
           {editContentPreset === 'pdf' && (
-            <div className="space-y-4">
-              <label className="text-sm font-medium">Document PDF</label>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="body2" fontWeight={500}>Document PDF</Typography>
               {editSelectedFile ? (
                 <PDFViewer
                   src={URL.createObjectURL(editSelectedFile)}
@@ -477,7 +469,7 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                   existingFileUrl={editProgressionContent.resourceUrl}
                 />
               )}
-              {editUploadingFile && <Progress value={editUploadProgress} />}
+              {editUploadingFile && <LinearProgress variant="determinate" value={editUploadProgress} />}
               {editSelectedFile && !editProgressionContent.resourceUrl && (
                 <Button 
                   onClick={handleEditFileUpload} 
@@ -487,142 +479,142 @@ export const ProgressionEditDialog: React.FC<ProgressionEditDialogProps> = ({
                   {editUploadingFile ? 'Upload en cours...' : 'Uploader le PDF'}
                 </Button>
               )}
-            </div>
+            </Box>
           )}
 
           {/* URL de ressource pour vidéo ou si pas de fichier uploadé */}
           {(editContentPreset === 'video' || 
             ((editContentPreset === 'image' || editContentPreset === 'pdf') && !editSelectedFile && !editProgressionContent.resourceUrl)
           ) && (
-            <Input
+            <TextField
+              fullWidth
               type="url"
-              placeholder={`URL ${editContentPreset === 'video' ? 'de la vidéo' : editContentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
+              label={`URL ${editContentPreset === 'video' ? 'de la vidéo' : editContentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
               value={editProgressionContent.resourceUrl}
-              onChange={(e) => setEditProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditProgressionContent(prev => ({ ...prev, resourceUrl: e.target.value }))}
+              placeholder={`URL ${editContentPreset === 'video' ? 'de la vidéo' : editContentPreset === 'image' ? 'de l\'image' : 'du PDF'}`}
             />
           )}
 
           {/* Activité existante - attacher/détacher une activité à cette progression */}
           {editContentPreset === 'existing-activity' && (
-            <div className="space-y-4 border-t pt-4">
-              <h5 className="text-sm font-medium">Associer une activité existante</h5>
+            <Box className="space-y-4 border-t pt-4">
+              <Typography variant="h6" className="text-sm font-medium">Associer une activité existante</Typography>
 
               {/* Sélection du cours */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Cours</label>
-                <Select
-                  value={editSelectedCourseForProgression}
-                  onValueChange={(value) => {
-                    setEditSelectedCourseForProgression(value);
-                    setEditSelectedActivityForProgression('none');
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un cours" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les cours</SelectItem>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body2" fontWeight={500}>Cours</Typography>
+                <FormControl fullWidth>
+                  <InputLabel>Sélectionner un cours</InputLabel>
+                  <MuiSelect
+                    value={editSelectedCourseForProgression}
+                    onChange={(e) => {
+                      setEditSelectedCourseForProgression(e.target.value);
+                      setEditSelectedActivityForProgression('none');
+                    }}
+                    label="Sélectionner un cours"
+                  >
+                    <MenuItem value="all">Tous les cours</MenuItem>
                     {courses
-                      .filter(course => course.theClasseId === (editingProgression?.classeId || selectedClasseForProgression))
-                      .map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
+                      .filter((course: Course) => course.theClasseId === (editingProgression?.classeId || selectedClasseForProgression))
+                      .map((course: Course) => (
+                        <MenuItem key={course.id} value={course.id}>
                           {course.title}
-                        </SelectItem>
+                        </MenuItem>
                       ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  </MuiSelect>
+                </FormControl>
+              </Box>
 
               {/* Sélection de l'activité */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Activité</label>
-                <Select
-                  value={editSelectedActivityForProgression}
-                  onValueChange={(value) => {
-                    setEditSelectedActivityForProgression(value);
-                    if (value === 'none') return;
-                    const filteredCourses = (editSelectedCourseForProgression && editSelectedCourseForProgression !== 'all')
-                      ? courses.filter(c => c.id === editSelectedCourseForProgression)
-                      : courses.filter(c => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
-                    const withCourse = filteredCourses.flatMap(course => (course.activities || []).map(a => ({ a, course })));
-                    const found = withCourse.find(x => x.a && x.a.id === value);
-                    if (found) {
-                      setEditProgressionContent(prev => ({
-                        ...prev,
-                        title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
-                      }));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une activité" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucune activité</SelectItem>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body2" fontWeight={500}>Activité</Typography>
+                <FormControl fullWidth>
+                  <InputLabel>Sélectionner une activité</InputLabel>
+                  <MuiSelect
+                    value={editSelectedActivityForProgression}
+                    onChange={(e) => {
+                      setEditSelectedActivityForProgression(e.target.value);
+                      if (e.target.value === 'none') return;
+                      const filteredCourses = (editSelectedCourseForProgression && editSelectedCourseForProgression !== 'all')
+                        ? courses.filter((c: Course) => c.id === editSelectedCourseForProgression)
+                        : courses.filter((c: Course) => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
+                      const withCourse = filteredCourses.flatMap((course: Course) => (course.activities || []).map((a: any) => ({ a, course })));
+                      const found = withCourse.find((x: any) => x.a && x.a.id === e.target.value);
+                      if (found) {
+                        setEditProgressionContent((prev: EditProgressionContent) => ({
+                          ...prev,
+                          title: (prev.title && prev.title.trim().length > 0) ? prev.title : (found.a.title || prev.title)
+                        }));
+                      }
+                    }}
+                    label="Sélectionner une activité"
+                  >
+                    <MenuItem value="none">Aucune activité</MenuItem>
                     {(() => {
                       const filteredCourses = (editSelectedCourseForProgression && editSelectedCourseForProgression !== 'all')
-                        ? courses.filter(c => c.id === editSelectedCourseForProgression)
-                        : courses.filter(c => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
+                        ? courses.filter((c: Course) => c.id === editSelectedCourseForProgression)
+                        : courses.filter((c: Course) => c.theClasseId === (editingProgression?.classeId || selectedClasseForProgression));
                       return filteredCourses
-                        .flatMap(course => (course.activities || []).map(activity => ({
+                        .flatMap((course: Course) => (course.activities || []).map((activity: any) => ({
                           ...activity,
                           courseName: course.title
                         })))
-                        .filter(activity => activity && activity.id && activity.id.trim() !== '')
-                        .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
-                        .map((activity) => (
-                          <SelectItem key={activity.id} value={activity.id}>
+                        .filter((activity: any) => activity && activity.id && activity.id.trim() !== '')
+                        .sort((a: any, b: any) => (a.title || '').localeCompare(b.title || ''))
+                        .map((activity: any) => (
+                          <MenuItem key={activity.id} value={activity.id}>
                             {activity.title}
-                          </SelectItem>
+                          </MenuItem>
                         ));
                     })()}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                  </MuiSelect>
+                </FormControl>
+              </Box>
+            </Box>
           )}
 
           {/* Éditeur de texte enrichi */}
-          <div className="border rounded-lg p-2">
+          <Box className="border rounded-lg p-2">
             <RichTextEditor
               value={editProgressionContent.content}
               onChange={(value) => setEditProgressionContent(prev => ({ ...prev, content: value }))}
               placeholder="Contenu de la progression..."
             />
-          </div>
+          </Box>
 
           {/* Sélection d'icône et couleur */}
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium">Icône</label>
+          <Box className="flex space-x-4">
+            <Box className="flex-1">
+              <Typography className="text-sm font-medium">Icône</Typography>
               <IconPicker
                 value={editProgressionContent.icon}
                 onChange={(icon) => {
                   setEditProgressionContent(prev => ({ ...prev, icon }));
                 }}
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Couleur de l&apos;icône</label>
+            </Box>
+            <Box>
+              <Typography className="text-sm font-medium">Couleur de l&apos;icône</Typography>
               <ColorPicker
                 value={editProgressionContent.iconColor}
                 onChange={(color) => setEditProgressionContent(prev => ({ ...prev, iconColor: color }))}
               />
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          <div className="flex gap-2 pt-4">
+          <Box className="flex gap-2 pt-4">
             <Button onClick={handleUpdateProgression} className="flex-1">
               Mettre à jour la progression
             </Button>
             <Button 
-              variant="outline" 
+              variant="outlined" 
               onClick={() => setIsEditDialogOpen(false)}
             >
               Annuler
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </DialogContent>
     </Dialog>
   );
