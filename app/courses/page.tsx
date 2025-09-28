@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { CourseCard } from "@/components/courses/course-card";
 import { ProgressionCard } from "@/components/courses/progression-card";
 import { Course, Classe } from "@/lib/dataTemplate";
@@ -27,11 +28,26 @@ export const dynamic = "force-dynamic";
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 
+function parseJJMMYYYY(input?: string | null): Date | undefined {
+  if (!input) return undefined;
+  if (!/^\d{8}$/.test(input)) return undefined;
+  const jj = Number(input.slice(0, 2));
+  const mm = Number(input.slice(2, 4)) - 1; // 0-indexed
+  const yyyy = Number(input.slice(4, 8));
+  const d = new Date(yyyy, mm, jj);
+  // Validate date correctness (e.g. 31/02 -> invalid)
+  return d.getFullYear() === yyyy && d.getMonth() === mm && d.getDate() === jj ? d : undefined;
+}
+
 export default function CoursesPage() {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
   const theme = useTheme();
+  const search = useSearchParams();
+
+  const dateParam = search?.get('date'); // JJMMYYYY
+  const initialDate = useMemo(() => parseJJMMYYYY(dateParam), [dateParam]);
 
   useEffect(() => {
     // Load saved classes from cookie
@@ -306,11 +322,31 @@ export default function CoursesPage() {
           >
             Progression
           </Typography>
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            {initialDate && (
+              <Chip label={`Date: ${initialDate.toLocaleDateString('fr-FR')}`} sx={{ ml: 1 }} />
+            )}
+          </Box>
           <Grid container spacing={3} sx={{ mb: 6 }}>
             <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12 }} key={`prog-${singleSelectedClasse.id}`}>
               <ProgressionCard
                 classeId={singleSelectedClasse.id}
                 classeName={singleSelectedClasse.name}
+                initialDate={initialDate}
+                onDateChange={(d) => {
+                  const current = new URLSearchParams(Array.from(search?.entries?.() || []));
+                  if (d) {
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const yyyy = d.getFullYear();
+                    current.set('date', `${dd}${mm}${yyyy}`);
+                  } else {
+                    current.delete('date');
+                  }
+                  const qs = current.toString();
+                  // Shallow replace without reload
+                  window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
+                }}
               />
             </Grid>
           </Grid>
