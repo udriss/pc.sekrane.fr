@@ -263,12 +263,13 @@ export const ProgressionModificationCard: React.FC<
         // Recharger les progressions
         loadProgressions(selectedClasseForProgression);
         // Réinitialiser le formulaire
+        const newContentType = contentPreset === "existing-activity" ? "activity" : "text";
         setProgressionContent({
           title: "",
           content: "",
           icon: "none",
           iconColor: "#3f51b5",
-          contentType: "text",
+          contentType: newContentType,
           resourceUrl: "",
           imageSize: 60,
           linkedActivityId: "",
@@ -276,9 +277,13 @@ export const ProgressionModificationCard: React.FC<
         });
         setSelectedFile(null);
         setFilePreview(null);
-        setContentPreset("text");
-        setSelectedCourseForProgression("all");
-        setSelectedActivityForProgression("none");
+        if (contentPreset === "existing-activity") {
+          setSelectedActivityForProgression("none");
+        } else {
+          setContentPreset("text");
+          setSelectedCourseForProgression("all");
+          setSelectedActivityForProgression("none");
+        }
       } else {
         setErrorProgression("Erreur lors de l'ajout de la progression");
       }

@@ -8,7 +8,6 @@ import {
   CalendarToday,
   School,
   MenuBook,
-  Create,
   TravelExplore,
   Lightbulb,
   Notifications,
@@ -31,6 +30,7 @@ import {
   Engineering,
   Colorize,
   Handyman,
+  ImportantDevices,
 } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 
@@ -40,10 +40,10 @@ const icons = [
   { icon: Engineering, name: 'engineering' },
   { icon: Colorize, name: 'colorize' },
   { icon: Handyman, name: 'handyman' },
+  { icon: ImportantDevices, name: 'devices' },
   { icon: CalendarToday, name: 'calendar' },
   { icon: School, name: 'school' },
   { icon: MenuBook, name: 'book' },
-  { icon: Create, name: 'create' },
   { icon: TravelExplore, name: 'explore' },
   { icon: Lightbulb, name: 'lightbulb' },
   { icon: Notifications, name: 'notifications' },

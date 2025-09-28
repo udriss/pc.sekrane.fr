@@ -4,7 +4,6 @@ import {
   CalendarToday,
   School,
   MenuBook,
-  Create,
   TravelExplore,
   Lightbulb,
   Notifications,
@@ -27,6 +26,7 @@ import {
   Engineering,
   Colorize,
   Handyman,
+  ImportantDevices,
 } from '@mui/icons-material';
  
 const iconMap: Record<string, React.ComponentType<any>> = {
@@ -35,10 +35,10 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'engineering': Engineering,
   'science': Science,
   'edit': Edit,
+  'devices': ImportantDevices,
   'calendar': CalendarToday,
   'school': School,
   'book': MenuBook,
-  'create': Create,
   'explore': TravelExplore,
   'lightbulb': Lightbulb,
   'notifications': Notifications,
