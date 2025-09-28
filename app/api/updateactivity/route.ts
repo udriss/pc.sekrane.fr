@@ -4,9 +4,9 @@ import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function PUT(req: NextRequest) {
   try {
-    const { courseId, activityId, newTitle } = await req.json();
+    const { courseId, activityId, newTitle, newFileUrl } = await req.json();
 
-    if (!courseId || !activityId || !newTitle) {
+    if (!courseId || !activityId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -22,10 +22,21 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
+    // Préparer les mises à jour
+    const updates: any = {};
+    if (newTitle !== undefined) {
+      updates.title = newTitle;
+    }
+    if (newFileUrl !== undefined) {
+      updates.fileUrl = newFileUrl;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No updates provided' }, { status: 400 });
+    }
+
     // Mettre à jour l'activité dans la base de données
-    await updateActivity(activityId, {
-      title: newTitle
-    });
+    await updateActivity(activityId, updates);
 
     // Récupérer les données mises à jour
     const updatedClassesData = await getAllClasses();

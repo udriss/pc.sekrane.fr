@@ -302,8 +302,17 @@ input:checked + .checkboxSliderAdmin:before  {
 
 .ProseMirror ul,
 .ProseMirror ol {
-  padding-left: 1.5rem;
-  margin-bottom: 0.5rem;
+  padding-left: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+  list-style-type: disc !important;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal !important;
+}
+
+.ProseMirror li {
+  margin: 0.5rem 0 !important;
 }
 
 .ProseMirror blockquote {
@@ -372,14 +381,19 @@ input:checked + .checkboxSliderAdmin:before  {
 
 .prose ul,
 .prose ol {
-  margin-top: 0.75em;
-  margin-bottom: 0.75em;
-  padding-left: 1.5em;
+  margin-top: 0.75em !important;
+  margin-bottom: 0.75em !important;
+  padding-left: 1.5em !important;
+  list-style-type: disc !important;
+}
+
+.prose ol {
+  list-style-type: decimal !important;
 }
 
 .prose li {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
+  margin-top: 0.25em !important;
+  margin-bottom: 0.25em !important;
 }
 
 .prose a {

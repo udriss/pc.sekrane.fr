@@ -31,7 +31,8 @@ export async function GET(request: Request) {
           id: activity.id,
           name: activity.name,
           title: activity.title,
-          fileUrl: activity.fileUrl
+          fileUrl: activity.fileUrl,
+          order: activity.order
         })),
         toggleVisibilityCourse: courseData.toggleVisibilityCourse || false,
         themeChoice: courseData.themeChoice || 0

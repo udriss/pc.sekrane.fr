@@ -85,7 +85,9 @@ export async function getCourseById(id: string) {
   return await prisma.course.findUnique({
     where: { id },
     include: {
-      activities: true,
+      activities: {
+        orderBy: { order: 'asc' }
+      },
       classeRelation: true
     }
   });
@@ -95,7 +97,9 @@ export async function getCoursesByClasseId(classeId: string) {
   return await prisma.course.findMany({
     where: { theClasseId: classeId },
     include: {
-      activities: true
+      activities: {
+        orderBy: { order: 'asc' }
+      }
     }
   });
 }
@@ -125,7 +129,9 @@ export async function createCourse(data: {
       } : undefined
     },
     include: {
-      activities: true
+      activities: {
+        orderBy: { order: 'asc' }
+      }
     }
   });
 }
@@ -142,7 +148,9 @@ export async function updateCourse(id: string, data: {
     where: { id },
     data,
     include: {
-      activities: true
+      activities: {
+        orderBy: { order: 'asc' }
+      }
     }
   });
 }
@@ -187,8 +195,15 @@ export async function createActivity(data: {
   fileUrl: string;
   courseId: string;
 }) {
+  // Get the current max order for the course
+  const maxOrder = await prisma.activity.aggregate({
+    where: { courseId: data.courseId },
+    _max: { order: true }
+  });
+  const order = (maxOrder._max.order ?? -1) + 1;
+
   return await prisma.activity.create({
-    data,
+    data: { ...data, order },
     include: {
       course: true
     }
@@ -200,6 +215,7 @@ export async function updateActivity(id: string, data: {
   title?: string;
   fileUrl?: string;
   courseId?: string;
+  order?: number;
 }) {
   return await prisma.activity.update({
     where: { id },
@@ -227,7 +243,9 @@ export async function searchCourses(query: string) {
       ]
     },
     include: {
-      activities: true,
+      activities: {
+        orderBy: { order: 'asc' }
+      },
       classeRelation: true
     }
   });

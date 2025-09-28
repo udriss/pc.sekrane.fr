@@ -3,6 +3,7 @@ export interface Activity {
   name: string;
   title: string;
   fileUrl: string;
+  order?: number;
 }
 
 export interface Course {

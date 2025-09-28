@@ -196,9 +196,15 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     if (res.ok) {
       const data = await res.json();
       setErrorDeleteFile('');
-      setSuccessMessageDeleteFile(
-        <>Fichier <Typography component="span" color="error">{data.fileUrl}</Typography> supprimé avec succès.</>
-      );
+      if (data.fileNotFound) {
+        setSuccessMessageDeleteFile(
+          <>Fichier <Typography component="span" color="warning.main">{data.fileName}</Typography> était introuvable sur le serveur, mais supprimé de la base.</>
+        );
+      } else {
+        setSuccessMessageDeleteFile(
+          <>Fichier <Typography component="span" color="error">{data.fileName}</Typography> supprimé avec succès.</>
+        );
+      }
       setCourses(data.courses);
       setConfirmDelete(null);
     } else {

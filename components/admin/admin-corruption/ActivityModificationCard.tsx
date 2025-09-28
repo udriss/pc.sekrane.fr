@@ -79,18 +79,6 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
     }
   };
 
-  const updateActivityTitle = async (courseId: string, activityId: string, newTitle: string) => {
-    const res = await fetch('/api/updateactivity', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId, activityId, newTitle })
-    });
-    if (!res.ok) throw new Error('Erreur lors de la mise à jour du titre');
-    const data = await res.json();
-    setCourses(data.courses);
-    setClasses(data.classes);
-  };
-
   const handleUpdate = async () => {
     resetMessages();
 
@@ -116,30 +104,59 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
     }
 
     try {
-      // Remplacement fichier si demandé
-      if (fileChanged && newFile) {
-        // Supprimer l'ancien fichier
-        const deleteRes = await fetch('/api/deletefile', {
-          method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileId: activity.id, courseId: course.id })
-        });
-        if (!deleteRes.ok) throw new Error('Erreur lors de la suppression du fichier');
+      let newFileUrl: string | undefined;
+      let fileNotFound = false;
 
-        // Upload du nouveau fichier avec éventuellement le nouveau titre (ou ancien si pas de changement titre)
+      // Si fichier changé, supprimer l'ancien et uploader le nouveau
+      if (fileChanged && newFile) {
+        // Supprimer l'ancien fichier si existe
+        if (activity.fileUrl) {
+          const deleteFileRes = await fetch('/api/deletefile', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: activity.id, courseId: course.id, deleteActivity: false })
+          });
+          if (!deleteFileRes.ok) throw new Error('Erreur lors de la suppression du fichier');
+          const deleteFileData = await deleteFileRes.json();
+          if (deleteFileData.fileNotFound) {
+            fileNotFound = true;
+          }
+        }
+
+        // Uploader le nouveau fichier
         const formData = new FormData();
         formData.append('file', newFile);
         formData.append('courseId', course.id);
-        formData.append('ActivityTitle', (titleChanged ? newActivityTitle : activity.title));
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        const uploadRes = await fetch('/api/upload-for-update', { method: 'POST', body: formData });
         if (!uploadRes.ok) throw new Error('Erreur lors de l\'upload');
         const uploadData = await uploadRes.json();
+        newFileUrl = uploadData.fileUrl;
         setSuccessMessageUploadFileName(uploadData.fileName || '');
-        await refreshData();
-      } else if (titleChanged) {
-        // Uniquement titre
-        await updateActivityTitle(course.id, activity.id, newActivityTitle.trim());
       }
+
+      // Mettre à jour l'activité
+      const updateData: any = { courseId: course.id, activityId: activity.id };
+      if (titleChanged) {
+        updateData.newTitle = newActivityTitle.trim();
+      }
+      if (newFileUrl) {
+        updateData.newFileUrl = newFileUrl;
+      }
+
+      if (Object.keys(updateData).length > 2) { // more than courseId and activityId
+        const updateRes = await fetch('/api/updateactivity', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updateData)
+        });
+        if (!updateRes.ok) throw new Error('Erreur lors de la mise à jour');
+      }
+
+      if (fileNotFound) {
+        setWarningUpdateActivity('Le fichier ancien était introuvable sur le serveur, mais la mise à jour continue.');
+      }
+
+      await refreshData();
 
       setSuccessMessageUpdateActivity(
         `Mise à jour réussie ${titleChanged ? 'du titre' : ''}${titleChanged && fileChanged ? ' et ' : ''}${fileChanged ? 'du fichier' : ''}`
