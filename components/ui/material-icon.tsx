@@ -22,10 +22,18 @@ import {
   Chat,
   PictureAsPdf,
   VideoLibrary,
-  Description
+  Description,
+  Science,
+  Engineering,
+  Colorize,
+  Handyman,
 } from '@mui/icons-material';
-
+ 
 const iconMap: Record<string, React.ComponentType<any>> = {
+  'handyman': Handyman,
+  'colorize': Colorize,
+  'engineering': Engineering,
+  'science': Science,
   'edit': Edit,
   'calendar': CalendarToday,
   'school': School,

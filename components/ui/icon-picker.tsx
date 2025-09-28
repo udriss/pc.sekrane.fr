@@ -26,12 +26,20 @@ import {
   Chat,
   PictureAsPdf,
   VideoLibrary,
-  Description
+  Description,
+  Science,
+  Engineering,
+  Colorize,
+  Handyman,
 } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 
 const icons = [
   { icon: Edit, name: 'edit' },
+  { icon: Science, name: 'science' },
+  { icon: Engineering, name: 'engineering' },
+  { icon: Colorize, name: 'colorize' },
+  { icon: Handyman, name: 'handyman' },
   { icon: CalendarToday, name: 'calendar' },
   { icon: School, name: 'school' },
   { icon: MenuBook, name: 'book' },
