@@ -57,8 +57,9 @@ export default function AdminPage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        m: 2
+        justifyContent: 'flex-start',
+        m: 2,
+        mt: 6,
       }}
     >
       <Box sx={{ width: '100%', maxWidth: 400 }}>

@@ -27,7 +27,7 @@ export function Header({ onLogout }: HeaderProps) {
           justifyContent: 'center',
         }}
       >
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
           Panneau admin
         </Typography>
       </Box>
