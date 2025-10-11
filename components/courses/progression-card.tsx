@@ -21,7 +21,7 @@ interface Progression {
   linkedActivityId?: string;
   linkedCourseId?: string;
 }
-import { cn } from '@/lib/utils';
+import { cn, getApiFileUrl } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 interface ProgressionCardProps {
   classeId: string;
@@ -233,23 +233,45 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
               />
             )}
             {progression.resourceUrl && (
-              <Button
-                component="a"
-                href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="contained"
-                color="inherit"
-                disabled={!!isLinkedActivityDeleted}
-                sx={{ 
-                  bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.900', 
-                  color: isLinkedActivityDeleted ? 'grey.600' : 'common.white', 
-                  '&:hover': { bgcolor: isLinkedActivityDeleted ? 'grey.400' : 'grey.800' } 
-                }}
-                startIcon={<VideoLibrary className="h-4 w-4" />}
-              >
-                {isLinkedActivityDeleted ? 'Vidéo indisponible' : 'Regarder la vidéo'}
-              </Button>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ 
+                  position: 'relative', 
+                  width: '100%', 
+                  maxWidth: '800px',
+                  bgcolor: 'black',
+                  borderRadius: 1,
+                  overflow: 'hidden'
+                }}>
+                  {isLinkedActivityDeleted ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      width: '100%',
+                      height: '300px',
+                      bgcolor: 'grey.100',
+                      color: 'text.disabled'
+                    }}>
+                      <Typography variant="body1">
+                        Vidéo indisponible - activité supprimée
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <video
+                      src={getApiFileUrl(progression.resourceUrl)}
+                      controls
+                      style={{ 
+                        width: '100%', 
+                        height: 'auto',
+                        maxHeight: '500px'
+                      }}
+                      preload="metadata"
+                    >
+                      Votre navigateur ne prend pas en charge la lecture de vidéos.
+                    </video>
+                  )}
+                </Box>
+              </Box>
             )}
           </Box>
         );
@@ -315,13 +337,17 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                       </Typography>
                     </Box>
                   ) : (
-                    <Image
-                      src={progression.resourceUrl}
+                    <Box
+                      component="img"
+                      src={getApiFileUrl(progression.resourceUrl)}
                       alt={progression.title}
-                      fill
-                      className="rounded-lg shadow-md object-contain"
-                      sizes={`${currentWidth}px`}
-                      priority={false}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        borderRadius: 1,
+                        boxShadow: 2
+                      }}
                     />
                   )}
                 </Box>
@@ -357,7 +383,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
                       component="a"
-                      href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
+                      href={isLinkedActivityDeleted ? undefined : getApiFileUrl(progression.resourceUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       variant="contained"
@@ -383,7 +409,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                     </Button>
                     <Button
                       component="a"
-                      href={isLinkedActivityDeleted ? undefined : progression.resourceUrl}
+                      href={isLinkedActivityDeleted ? undefined : getApiFileUrl(progression.resourceUrl)}
                       download={isLinkedActivityDeleted ? false : true}
                       variant="outlined"
                       color="inherit"
@@ -421,7 +447,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                     ) : (
                       <Box
                         component="iframe"
-                        src={`${progression.resourceUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                        src={`${getApiFileUrl(progression.resourceUrl)}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
                         sx={{ width: '100%', height: 300, border: 0 }}
                         title="PDF Document"
                       />

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, ExternalLink, Download } from 'lucide-react';
 import { PictureAsPdf, OpenInNew, FileDownload } from '@mui/icons-material';
-import { cn } from '@/lib/utils';
+import { cn, getApiFileUrl } from '@/lib/utils';
 
 interface PDFViewerProps {
   src: string;
@@ -25,9 +25,7 @@ export function PDFViewer({
   showControls = true,
   isEmbedded = false
 }: PDFViewerProps) {
-  // Préfixer via l'API de fichiers si le chemin pointe vers /progressions
-  const isProgressionStored = src.startsWith('/progressions/');
-  const apiServedSrc = isProgressionStored ? `/api/files${src}` : src;
+  const apiServedSrc = getApiFileUrl(src);
 
   const openInNewTab = () => {
     window.open(apiServedSrc, '_blank');

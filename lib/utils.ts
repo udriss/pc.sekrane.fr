@@ -13,3 +13,10 @@ export function formatBytes(bytes: number, decimals = 2): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+export function getApiFileUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (url.startsWith('/api/files/')) return url;
+  if (url.startsWith('/')) return `/api/files${url}`;
+  return url;
+}

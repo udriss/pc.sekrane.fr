@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     await fs.writeFile(filePath, Buffer.from(fileBuffer));
 
     // Return the URL for accessing the file
-    const fileUrl = `/progressions/${classeId}/${fileType}/${fileName}`;
+    const fileUrl = `/api/files/progressions/${classeId}/${fileType}/${fileName}`;
 
     return NextResponse.json({
       success: true,

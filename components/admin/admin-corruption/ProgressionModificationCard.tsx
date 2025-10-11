@@ -4,6 +4,7 @@ import React from "react";
 import { SuccessMessage, ErrorMessage } from "@/components/message-display";
 import { Course, Classe } from "@/lib/dataTemplate";
 import { SortableProgression } from "@/components/admin/SortableProgression";
+import { getApiFileUrl } from "@/lib/utils";
 import {
   DndContext,
   closestCenter,
@@ -839,7 +840,7 @@ export const ProgressionModificationCard: React.FC<
                       sx={{ display: "flex", flexDirection: "column", gap: 1 }}
                     >
                       <ImagePreview
-                        src={progressionContent.resourceUrl}
+                        src={getApiFileUrl(progressionContent.resourceUrl)}
                         alt="Current image"
                         onRemove={() =>
                           setProgressionContent((prev) => ({
@@ -866,7 +867,7 @@ export const ProgressionModificationCard: React.FC<
                         onFileReject={handleFileReject}
                         fileType="image"
                         className="border-blue-200 bg-blue-50"
-                        existingFileUrl={progressionContent.resourceUrl}
+                        existingFileUrl={getApiFileUrl(progressionContent.resourceUrl)}
                       />
                     </Box>
                   ) : (
@@ -875,7 +876,7 @@ export const ProgressionModificationCard: React.FC<
                       onFileReject={handleFileReject}
                       fileType="image"
                       className="border-blue-200 bg-blue-50"
-                      existingFileUrl={progressionContent.resourceUrl}
+                      existingFileUrl={getApiFileUrl(progressionContent.resourceUrl)}
                     />
                   )}
                   {uploadingFile && (
@@ -913,7 +914,7 @@ export const ProgressionModificationCard: React.FC<
                       sx={{ display: "flex", flexDirection: "column", gap: 1 }}
                     >
                       <PDFViewer
-                        src={progressionContent.resourceUrl}
+                        src={getApiFileUrl(progressionContent.resourceUrl)}
                         filename="Document actuel"
                         onRemove={() =>
                           setProgressionContent((prev) => ({
@@ -934,7 +935,7 @@ export const ProgressionModificationCard: React.FC<
                         onFileReject={handleFileReject}
                         fileType="pdf"
                         className="border-red-200 bg-red-50"
-                        existingFileUrl={progressionContent.resourceUrl}
+                        existingFileUrl={getApiFileUrl(progressionContent.resourceUrl)}
                       />
                     </Box>
                   ) : (
@@ -943,7 +944,7 @@ export const ProgressionModificationCard: React.FC<
                       onFileReject={handleFileReject}
                       fileType="pdf"
                       className="border-red-200 bg-red-50"
-                      existingFileUrl={progressionContent.resourceUrl}
+                      existingFileUrl={getApiFileUrl(progressionContent.resourceUrl)}
                     />
                   )}
                   {uploadingFile && (

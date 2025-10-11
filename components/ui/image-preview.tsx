@@ -118,19 +118,16 @@ export function ImagePreview({
             borderRadius: 2, 
             boxShadow: 2,
             width: `${currentWidth}px`,
+            height: `${currentWidth * 0.75}px`, // Maintain 4:3 aspect ratio
             maxWidth: '100%'
           }}
         >
           <Image
             src={src}
             alt={alt}
-            width={currentWidth}
-            height={currentWidth * 0.75} // Ratio 4:3 par défaut
+            fill
             style={{ 
-              objectFit: 'contain',
-              width: '100%',
-              height: 'auto',
-              maxWidth: '100%'
+              objectFit: 'contain'
             }}
           />
         </Box>

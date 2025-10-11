@@ -1,8 +1,13 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import DOMPurify from 'dompurify';
 import ActivityHeader from "@/components/courses/activity-header";
 import { ActivityList } from "@/components/courses/activity-list";
@@ -16,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { toast, Id } from 'react-toastify';
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
 import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; 
 import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
 
@@ -343,6 +349,20 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
       }
     } 
   };
+
+  const handlePdfFullscreen = (containerId: string) => {
+    if (isFullscreen) {
+      document.exitFullscreen();
+      setShowFullscreenOverlay(false);
+    } else {
+      const container = document.getElementById(containerId);
+      if (container && container.requestFullscreen) {
+        container.requestFullscreen();
+        setShowFullscreenOverlay(true);
+      }
+    }
+  };
+
   const sanitizeContent = (content: string): string => {
     return DOMPurify.sanitize(content, {
       ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
@@ -489,19 +509,20 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
 
   // Add this component inside CoursePage
   const MobileOpenButton = ({ url }: { url: string }) => (
-    <div className="flex h-full items-start justify-center p-4">
+    <Box sx={{ display: 'flex', height: '100%', alignItems: 'flex-start', justifyContent: 'center', p: 2 }}>
       <Button 
         onClick={() => window.open(url, '_blank')}
-        className="flex items-center gap-2 text-lg"
+        variant="contained"
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.125rem' }}
       >
         <ExternalLink fontSize='medium' />
         Ouvrir dans un nouvel onglet
       </Button>
-    </div>
+    </Box>
   );
 
   
-  const DownloadButton = ({ fileUrl, title, fileType, activity }: { fileUrl: string, title: string, fileType?: string, activity?: Activity }) => {
+  const DownloadButton = ({ fileUrl, title, fileType, activity, inStack = false }: { fileUrl: string, title: string, fileType?: string, activity?: Activity, inStack?: boolean }) => {
     const handleDownload = async () => {
       try {
         // --- RATE LIMIT PAR FICHIER ---
@@ -609,10 +630,20 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     return (
       <Button 
         onClick={handleDownload}
-        className="absolute top-0 right-0 z-10 m-2 bg-blue-600 hover:bg-blue-700"
-        size="sm"
+        className={inStack ? "bg-blue-600 hover:bg-blue-700" : "absolute top-0 right-0 z-10 m-2 bg-blue-600 hover:bg-blue-700"}
+        size="small"
+        variant="contained"
+        sx={inStack ? { bgcolor: '#2563eb', '&:hover': { bgcolor: '#1d4ed8' } } : { 
+          position: 'absolute', 
+          top: 0, 
+          right: 0, 
+          zIndex: 10, 
+          m: 1,
+          bgcolor: '#2563eb', 
+          '&:hover': { bgcolor: '#1d4ed8' }
+        }}
       >
-        <Download className="mr-2 h-4 w-4" /> Télécharger
+        <Download sx={{ mr: 1, width: 16, height: 16 }} /> Télécharger
       </Button>
     );
   };
@@ -676,41 +707,44 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
   }, [activity.fileUrl]);
   
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">{activity.title}</h2>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: '#f9fafb' }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, maxWidth: 768, width: '100%' }}>
+        <Typography variant="h4" component="h2" sx={{ mb: 3, textAlign: 'center', fontWeight: 'bold', color: '#1f2937' }}>
+          {activity.title}
+        </Typography>
         
-        <div className="space-y-4">
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-500">Type de fichier</span>
-            <span className="text-base font-semibold uppercase">{fileExtension}</span>
-          </div>
+        <Stack spacing={2}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: '#6b7280' }}>Type de fichier</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>{fileExtension}</Typography>
+          </Box>
           
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-500">Taille</span>
-            <span className="text-base font-semibold">{fileSize}</span>
-          </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: '#6b7280' }}>Taille</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{fileSize}</Typography>
+          </Box>
           
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-500">Dernière modification</span>
-            <span className="text-base font-semibold">{lastModified}</span>
-          </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: '#6b7280' }}>Dernière modification</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{lastModified}</Typography>
+          </Box>
           
           {isAudioFile && (
-            <div className="mt-6">
-              <div className="w-full flex justify-center">
-                <div 
-                  className="w-full max-w-md"
-                  style={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
-                  backgroundColor: '#f8f9fa',
-                  padding: '10px',
-                  height: '80px',
-                  display: 'flex',
-                  alignContent: 'center',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
+            <Box sx={{ mt: 3 }}>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <Box 
+                  sx={{ 
+                    width: '100%',
+                    maxWidth: 512,
+                    borderRadius: 1,
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
+                    bgcolor: '#f8f9fa',
+                    p: 1.25,
+                    height: 80,
+                    display: 'flex',
+                    alignContent: 'center',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
                   }}
                 >
                   <audio 
@@ -726,19 +760,19 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   <source src={url} type={`audio/${fileExtension}`} />
                   Votre navigateur ne prend pas en charge la lecture audio.
                   </audio>
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           )}
           
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="body1" sx={{ color: '#4b5563', mb: 2 }}>
               Ce fichier peut être téléchargé en utilisant le bouton ci-dessus.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
+    </Box>
   );
 }
 
@@ -856,38 +890,66 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     }
                     
                     return (
-                      <div key={`${colIndex}-${groupName}`} className="break-inside-avoid">
+                      <Box key={`${colIndex}-${groupName}`} sx={{ breakInside: 'avoid' }}>
                         {shouldDisplayGroupName && (
-                          <h3 className="text-md font-medium text-gray-800 border-b border-gray-300 pb-1 mb-3">
+                          <Typography 
+                            variant="h6" 
+                            component="h3" 
+                            sx={{ 
+                              fontSize: '1rem',
+                              fontWeight: 500, 
+                              color: '#1f2937', 
+                              borderBottom: '1px solid #d1d5db', 
+                              pb: 0.5, 
+                              mb: 1.5 
+                            }}
+                          >
                             {groupName}
-                          </h3>
+                          </Typography>
                         )}
-                        <div className="space-y-2 flex flex-col">
+                        <Stack spacing={1}>
                           {activities.map((activity: Activity) => {
                             // Désactiver le bouton selon la logique single vs double vue
                             const isAlreadyDisplayed = shouldDisableActivity(activity);
                             return (
                               <Button
                                 key={activity.id}
-                                variant="outline"
-                                className="w-full text-left pl-2 py-1.5 h-auto mb-2 hover:bg-gray-50 flex items-center"
+                                variant="outlined"
                                 onClick={() => handleActivityClick(activity.fileUrl, activity)}
                                 disabled={isAlreadyDisplayed}
-                                style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+                                sx={{ 
+                                  width: '100%',
+                                  justifyContent: 'flex-start', 
+                                  textTransform: 'none',
+                                  textAlign: 'left',
+                                  pl: 1,
+                                  py: 0.75,
+                                  mb: 1,
+                                  '&:hover': { bgcolor: '#f9fafb' },
+                                  ...(isAlreadyDisplayed && { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' })
+                                }}
                               >
-                                <div className="flex items-center w-full">
-                                  <div className="flex-shrink-0 mr-2">
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                  <Box sx={{ flexShrink: 0, mr: 1 }}>
                                     {getFileIcon(activity.name)}
-                                  </div>
-                                  <span className="truncate block max-w-[calc(100%-24px)]" title={activity.title}>
+                                  </Box>
+                                  <Typography 
+                                    noWrap 
+                                    sx={{ 
+                                      maxWidth: 'calc(100% - 24px)',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis'
+                                    }}
+                                    title={activity.title}
+                                  >
                                     {activity.title}
-                                  </span>
-                                </div>
+                                  </Typography>
+                                </Box>
                               </Button>
                             );
                           })}
-                        </div>
-                      </div>
+                        </Stack>
+                      </Box>
                     );
                   })}
                 </div>
@@ -903,18 +965,54 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
 )}
         {/* Dans le mode accordéon ou si hasIpynb est vrai */}
         {(course.themeChoice !== 1 || hasIpynb) && (
-          <div className={`${course.themeChoice === 1 ? 'flex-1' : 'w-full'}`}>
+          <Box sx={{ flex: course.themeChoice === 1 ? 1 : 'auto', width: course.themeChoice === 1 ? 'auto' : '100%' }}>
             {hasIpynb && (
               <>
-                <Divider variant="middle" sx={{ mb: 2, borderBottomWidth: '1px' }}></Divider>
-                <div className="flex flex-col w-full md:flex-row justify-between items-center p-4">
-                  <div className="flex flex-col gap-4">
-                    <Input
-                      className="inputNameActivityList min-w-[200px]"
+                <Divider variant="middle" sx={{ mb: 2, borderBottomWidth: '1px' }} />
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', xl: 'row' }, 
+                    justifyContent: { xs: 'space-between', xl: 'space-between' }, 
+                    alignItems: { xs: 'stretch', xl: 'center' },
+                    p: 2,
+                    gap: 2
+                  }}
+                >
+                  <Box
+                  sx = {{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    flexGrow: 1,
+                    width: { xs: '100%', md: '100%' }
+                  }}
+                  >
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={showSideBySide}
+                          onChange={(e) => setShowSideBySide(e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Double vue"
+                      sx={{ justifyContent: 'flex-end', ml: 0, width: '100%' }}
+                    />
+                  </Box>
+
+                  <Stack sx={{ 
+                    gap: 2,
+                    flexDirection: { xs: 'row', md: 'row', xl: 'column' },
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: { xs: '100%', md: '100%' } }}>
+                    <TextField
+                      className="inputNameActivityList"
                       type="text"
                       placeholder="Entrez votre prénom"
                       value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserName(e.target.value)}
                       onFocus={() => {
                         if (toastId) {
                           toast.dismiss();
@@ -922,22 +1020,11 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                           setToastId(null);
                         }
                       }}
+                      size="small"
+                      variant="outlined"
+                      fullWidth
+                      sx={{ minWidth: { xs: 'auto', md: '200px' } }}
                     />
-                    <div className="flex flex-row items-center justify-around gap-4">
-                      <div className="">
-                        Double vue
-                      </div>
-                      <label className="checkboxSwitch">
-                        <input
-                          type="checkbox"
-                          checked={showSideBySide}
-                          onChange={(e) => setShowSideBySide(e.target.checked)}
-                        />
-                        <span className="checkboxSlider checkboxSliderEleve"></span>
-                      </label>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-4 md:mt-0 mt-4">
                     <OtpInput
                       value={currentUniqueId}
                       onChange={handleOTPChange}
@@ -955,21 +1042,42 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                         textAlign: 'center'
                       }}
                     />
+                  </Stack>
+                  <Stack
+                  sx = {{
+                    flexDirection: { lg: 'column', xl: 'column' },
+                    gap: 2,
+                    width: '100%'
+                  }}
+                  >
+                  <Stack spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
                     <Button 
                       onClick={handleVerifyNotebook}
                       disabled={isLoading || !currentUniqueId || currentUniqueId.length !== 6}
-                      className=""
+                      variant="contained"
+                      fullWidth
                     >
                       {isLoading ? 'Chargement...' : 'Charger un notebook'}
                     </Button>
-                  </div>
-                  <Button onClick={handleClearCookies} className="bg-red-300 text-white w-[auto] hover:bg-red-700 md:mt-0 mt-4">
+                  </Stack>
+                  <Button 
+                    onClick={handleClearCookies} 
+                    variant="contained"
+                    fullWidth
+                    sx={{ 
+                      width: { xs: '100%', md: 'auto' },
+                      bgcolor: '#fca5a5', 
+                      color: 'white', 
+                      '&:hover': { bgcolor: '#b91c1c' }
+                    }}
+                  >
                     Effacer vos données
                   </Button>
-                </div>
+                  </Stack>
+                </Box>
               </>
             )}
-          </div>
+          </Box>
         )}
       </div>
 
@@ -989,8 +1097,8 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
             direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
           >
             <div className="w-full h-full md:h-auto relative">
-              {/* Bouton de téléchargement */}
-              {selectedFileLeft && selectedActivity && leftFileType !== 'video' && 
+              {/* Bouton de téléchargement (sauf pour PDF et vidéo) */}
+              {selectedFileLeft && selectedActivity && leftFileType !== 'video' && leftFileType !== 'pdfType' && 
                   <DownloadButton 
                   fileUrl={selectedFileLeft} 
                   title={selectedActivity?.title || ''}
@@ -1008,14 +1116,61 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   fileName={selectedFileLeft.split('/').pop() || 'video'}
                 />
               )}
-              {leftFileType === 'pdfType' && selectedFileLeft && (
+              {leftFileType === 'pdfType' && selectedFileLeft && selectedActivity && (
                 <div className="w-full h-full relative">
-                  <iframe 
-                    key={iframeKeyLeft} 
-                    src={selectedFileLeft} 
-                    className="w-full h-full absolute inset-0"
-                    style={{border: 'none'}}
-                  />
+                  <Stack 
+                    direction="row" 
+                    spacing={1} 
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 8, 
+                      right: 8, 
+                      zIndex: 10 
+                    }}
+                  >
+                    <Button 
+                      onClick={() => handlePdfFullscreen('pdf-container-left')}
+                      variant="contained"
+                      size="small"
+                      sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
+                    >
+                      <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                    </Button>
+                    <DownloadButton 
+                      fileUrl={selectedFileLeft} 
+                      title={selectedActivity.title} 
+                      fileType="pdfType"
+                      activity={selectedActivity}
+                      inStack={true}
+                    />
+                  </Stack>
+                  <div id="pdf-container-left" className="w-full h-full relative">
+                    <iframe 
+                      key={iframeKeyLeft} 
+                      src={selectedFileLeft} 
+                      className="w-full h-full absolute inset-0"
+                      style={{border: 'none'}}
+                    />
+                    {/* Bouton pour quitter le plein écran visible en permanence */}
+                    {isFullscreen && (
+                      <Button 
+                        onClick={() => handlePdfFullscreen('pdf-container-left')}
+                        variant="contained"
+                        size="small"
+                        sx={{ 
+                          position: 'absolute', 
+                          top: 8, 
+                          right: 8, 
+                          zIndex: 10,
+                          bgcolor: '#dc2626', 
+                          '&:hover': { bgcolor: '#b91c1c' },
+                          color: 'white'
+                        }}
+                      >
+                        <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> Quitter le plein écran
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
               {leftFileType === 'html' && selectedFileLeft && (
@@ -1059,10 +1214,19 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   />
                   <Button 
                     onClick={handleFullscreen}
-                    className="absolute top-0 right-0 z-10 m-2 bg-green-600 hover:bg-green-700"
-                    size="sm"
+                    variant="contained"
+                    size="small"
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 0, 
+                      right: 0, 
+                      zIndex: 10, 
+                      m: 1,
+                      bgcolor: '#16a34a', 
+                      '&:hover': { bgcolor: '#15803d' }
+                    }}
                   >
-                    <FullscreenIcon className="mr-2 h-4 w-4" /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                    <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
                   </Button>
                   
                   {/* Overlay dans le conteneur */}
@@ -1070,10 +1234,20 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     <div className="absolute inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center pointer-events-none">
                       <Button 
                         onClick={handleFullscreen}
-                        className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white pointer-events-auto"
-                        size="sm"
+                        variant="contained"
+                        size="small"
+                        sx={{ 
+                          position: 'absolute', 
+                          top: 16, 
+                          right: 16, 
+                          zIndex: 10,
+                          bgcolor: '#dc2626', 
+                          '&:hover': { bgcolor: '#b91c1c' },
+                          color: 'white',
+                          pointerEvents: 'auto'
+                        }}
                       >
-                        <FullscreenIcon className="mr-2 h-4 w-4" /> Quitter le plein écran
+                        <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> Quitter le plein écran
                       </Button>
                     </div>
                   )}
@@ -1084,8 +1258,8 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         ) : (
           <>
             <div style={{ width: lastClickedType !== 'ipynb' && selectedFileLeft ? '100%' : '0%', height: '100%', display: selectedFileLeft && lastClickedType !== 'ipynb' ? 'block' : 'none' }} className="relative">
-              {/* Bouton de téléchargement */}
-              {selectedFileLeft && selectedActivity && leftFileType !== 'video' &&
+              {/* Bouton de téléchargement (sauf pour PDF et vidéo) */}
+              {selectedFileLeft && selectedActivity && leftFileType !== 'video' && leftFileType !== 'pdfType' &&
                   <DownloadButton 
                   fileUrl={selectedFileLeft} 
                   title={selectedActivity.title} 
@@ -1110,15 +1284,61 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                     sandbox="allow-scripts"
                     ></iframe>
               )}
-              {leftFileType === 'pdfType' && selectedFileLeft && (
-                // <SimplePDFViewer src={selectedFileLeft} className="w-full h-full" />
+              {leftFileType === 'pdfType' && selectedFileLeft && selectedActivity && (
                 <div className="w-full h-full relative">
-                  <iframe 
-                    key={iframeKeyLeft} 
-                    src={selectedFileLeft} 
-                    className="w-full h-full absolute inset-0"
-                    style={{border: 'none'}}
-                  />
+                  <Stack 
+                    direction="row" 
+                    spacing={1} 
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 8, 
+                      right: 8, 
+                      zIndex: 10 
+                    }}
+                  >
+                    <Button 
+                      onClick={() => handlePdfFullscreen('pdf-container-single')}
+                      variant="contained"
+                      size="small"
+                      sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
+                    >
+                      <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                    </Button>
+                    <DownloadButton 
+                      fileUrl={selectedFileLeft} 
+                      title={selectedActivity.title} 
+                      fileType="pdfType"
+                      activity={selectedActivity}
+                      inStack={true}
+                    />
+                  </Stack>
+                  <div id="pdf-container-single" className="w-full h-full relative">
+                    <iframe 
+                      key={iframeKeyLeft} 
+                      src={selectedFileLeft} 
+                      className="w-full h-full absolute inset-0"
+                      style={{border: 'none'}}
+                    />
+                    {/* Bouton pour quitter le plein écran visible en permanence */}
+                    {isFullscreen && (
+                      <Button 
+                        onClick={() => handlePdfFullscreen('pdf-container-single')}
+                        variant="contained"
+                        size="small"
+                        sx={{ 
+                          position: 'absolute', 
+                          top: 8, 
+                          right: 8, 
+                          zIndex: 10,
+                          bgcolor: '#dc2626', 
+                          '&:hover': { bgcolor: '#b91c1c' },
+                          color: 'white'
+                        }}
+                      >
+                        <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> Quitter le plein écran
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
               {leftFileType === 'html' && selectedFileLeft && (
@@ -1153,10 +1373,19 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                   <iframe  ref={iframeRightRef} src={selectedFileRight} className="w-full h-full absolute inset-0" style={{border: 'none'}}></iframe>
                   <Button 
                     onClick={handleFullscreen}
-                    className="absolute top-0 right-0 z-10 m-2 bg-green-600 hover:bg-green-700"
-                    size="sm"
+                    variant="contained"
+                    size="small"
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 0, 
+                      right: 0, 
+                      zIndex: 10, 
+                      m: 1,
+                      bgcolor: '#16a34a', 
+                      '&:hover': { bgcolor: '#15803d' }
+                    }}
                   >
-                    <FullscreenIcon className="mr-2 h-4 w-4" /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+                    <FullscreenIcon sx={{ mr: 1, width: 16, height: 16 }} /> {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
                   </Button>
                 </div>
               )}
