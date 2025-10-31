@@ -1,8 +1,7 @@
+"use client";
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Box,
   Typography,
   FormControl,
@@ -22,8 +21,6 @@ import {
   Stack,
   Chip
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -255,24 +252,17 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
   };
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-          <SettingsApplicationsIcon color='primary' /> gérer les dépôts
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-              Sélectionner une classe
-            </InputLabel>
-            <MuiSelect
-              value={selectedClasse}
-              onChange={(e) => {
-                setSelectedClasse(e.target.value);
-                setSelectedCourse('');
-                setSelectedDropId('');
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <FormControl fullWidth>
+        <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+          Sélectionner une classe
+        </InputLabel>
+        <MuiSelect
+          value={selectedClasse}
+          onChange={(e) => {
+            setSelectedClasse(e.target.value);
+            setSelectedCourse('');
+            setSelectedDropId('');
               }}
               label="Sélectionner une classe"
             >
@@ -396,7 +386,7 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
                   onChange={(e) => setStartAt(e.target.value)}
                   disabled={!timeRestricted}
                   sx={{ flex: 1 }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
                 <TextField
                   type="datetime-local"
@@ -405,7 +395,7 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
                   onChange={(e) => setEndAt(e.target.value)}
                   disabled={!timeRestricted}
                   sx={{ flex: 1 }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Stack>
 
@@ -488,7 +478,5 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
             </Typography>
           )}
         </Box>
-      </AccordionDetails>
-    </Accordion>
   );
 };

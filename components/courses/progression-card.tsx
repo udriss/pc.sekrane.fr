@@ -5,7 +5,8 @@ import { fr } from 'date-fns/locale';
 import { MaterialIcon } from '@/components/ui/material-icon';
 import Image from 'next/image';
 import { CalendarMonth, VideoLibrary, PictureAsPdf } from '@mui/icons-material';
-import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip } from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip, IconButton } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
 import { FileDropZone } from '@/components/courses/file-drop-zone';
 import type { Activity } from '@/lib/dataTemplate';
@@ -482,6 +483,15 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
 
             <Typography component="span" variant='body2'>Classe de&nbsp;</Typography>
             <Typography component="span" variant='body2' fontWeight="bold" color='primary'>{classeName}</Typography>
+            <Tooltip title="Ouvrir la page de la classe">
+              <IconButton 
+                size="small" 
+                onClick={() => window.open(`/classes/${classeId}`, '_blank')}
+                sx={{ ml: 1 }}
+              >
+                <OpenInNewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Typography>
           <Chip label={`${daysWithProgressionCount} progression${daysWithProgressionCount > 1 ? 's' : ''}`} variant="outlined" />
         </Box>

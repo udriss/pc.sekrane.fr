@@ -1,1 +1,0 @@
-export { ModificationsAdmin } from './admin-corruption/index';

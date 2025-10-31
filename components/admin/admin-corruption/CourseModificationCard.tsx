@@ -1,5 +1,8 @@
 // /components/admin/admin-corruption/CourseModificationCard.tsx
 
+"use client";
+
+// /components/admin/admin-corruption/CourseModificationCard.tsx
 import React, { useState, useEffect } from 'react';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import { Course, Classe, THEMES } from '@/lib/dataTemplate';
@@ -7,9 +10,7 @@ import { SortableFile } from '@/components/admin/SortableFile';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Box, Typography, FormLabel, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import EditIcon from '@mui/icons-material/Edit';
+import { Box, Typography, FormLabel, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch } from '@mui/material';
 
 interface CourseModificationCardProps {
   courses: Course[];
@@ -348,13 +349,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   };
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> cours
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box sx={{ '& > * + *': { mt: 3 } }}>
+    <>
+    <Box sx={{ '& > * + *': { mt: 3 } }}>
         <Box>
             <FormControl fullWidth>
               <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>Sélectionner une classe</InputLabel>
@@ -519,7 +515,6 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
           {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
         </div>
       </form>
-    </AccordionDetails>
-    </Accordion>
+    </>
   );
 };

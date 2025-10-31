@@ -1,8 +1,7 @@
+"use client";
+
 import React, { useMemo, useState } from 'react';
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Box,
   Typography,
   FormControl,
@@ -17,7 +16,6 @@ import {
   Button,
   Stack
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import type { Course, Classe } from '@/lib/dataTemplate';
 import { FILE_TYPE_GROUPS } from './file-drop-options';
@@ -178,175 +176,171 @@ export const FileDropCreationSection: React.FC<FileDropCreationSectionProps> = (
   };
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-          <AddCircleIcon color='success' /> dépôt de fichiers
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-              Sélectionner une classe
-            </InputLabel>
-            <MuiSelect
-              value={selectedClasse}
-              onChange={(e) => {
-                setSelectedClasse(e.target.value);
-                setSelectedCourse('');
-              }}
-              label="Sélectionner une classe"
-            >
-              {classes
-                .slice()
-                .sort((a, b) => naturalSort(a.name, b.name))
-                .map((classe) => (
-                  <MenuItem key={classe.id} value={classe.id}>
-                    {classe.name}
-                  </MenuItem>
-                ))}
-            </MuiSelect>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
-              Sélectionner un cours
-            </InputLabel>
-            <MuiSelect
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              label="Sélectionner un cours"
-            >
-              {filteredCourses.map((course) => (
-                <MenuItem key={course.id} value={course.id}>
-                  {course.title}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <AddCircleIcon color='success' /> dépôt de fichiers
+      </Typography>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+            Sélectionner une classe
+          </InputLabel>
+          <MuiSelect
+            value={selectedClasse}
+            onChange={(e) => {
+              setSelectedClasse(e.target.value);
+              setSelectedCourse('');
+            }}
+            label="Sélectionner une classe"
+          >
+            {classes
+              .slice()
+              .sort((a, b) => naturalSort(a.name, b.name))
+              .map((classe) => (
+                <MenuItem key={classe.id} value={classe.id}>
+                  {classe.name}
                 </MenuItem>
               ))}
-            </MuiSelect>
-          </FormControl>
+          </MuiSelect>
+        </FormControl>
 
-          <TextField
-            fullWidth
-            label="Nom du dépôt"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Entrez le nom du dépôt"
-            slotProps={{
-              inputLabel: {
-                sx: {
+        <FormControl fullWidth>
+          <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
+            Sélectionner un cours
+          </InputLabel>
+          <MuiSelect
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            label="Sélectionner un cours"
+          >
+            {filteredCourses.map((course) => (
+              <MenuItem key={course.id} value={course.id}>
+                {course.title}
+              </MenuItem>
+            ))}
+          </MuiSelect>
+        </FormControl>
+
+        <TextField
+          fullWidth
+          label="Nom du dépôt"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder="Entrez le nom du dépôt"
+          slotProps={{
+            inputLabel: {
+              sx: {
+                fontSize: 'small',
+                textTransform: 'uppercase'
+              }
+            },
+            input: {
+              sx: {
+                '&::placeholder': {
                   fontSize: 'small',
                   textTransform: 'uppercase'
                 }
-              },
-              input: {
-                sx: {
-                  '&::placeholder': {
-                    fontSize: 'small',
-                    textTransform: 'uppercase'
-                  }
-                }
               }
-            }}
-          />
+            }
+          }}
+        />
 
-          <FormControlLabel
-            control={<Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />}
-            label="Activer le dépôt"
-          />
+        <FormControlLabel
+          control={<Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />}
+          label="Activer le dépôt"
+        />
 
-                    <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              Types de fichiers acceptés
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: .5 }}>
-              {FILE_TYPE_GROUPS.map((group) => (
-                <Box key={group.name}>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'text.secondary' }}>
-                    {group.name}
-                  </Typography>
-                  <FormGroup row sx={{ mt: 0.5 }}>
-                    {group.options.map((option) => (
-                      <FormControlLabel
-                        key={option.value}
-                        control={
-                          <Checkbox
-                            checked={acceptedTypes.includes(option.value)}
-                            onChange={() => handleToggleType(option.value)}
-                          />
-                        }
-                        label={
-                          <Typography variant="body2" sx={{ fontWeight: 'normal' }}>
-                            {option.label}
-                          </Typography>
-                        }
-                      />
-                    ))}
-                  </FormGroup>
-                </Box>
-              ))}
-            </Box>
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Types de fichiers acceptés
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {FILE_TYPE_GROUPS.map((group) => (
+              <Box key={group.name}>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'text.secondary' }}>
+                  {group.name}
+                </Typography>
+                <FormGroup row sx={{ mt: 0.5 }}>
+                  {group.options.map((option) => (
+                    <FormControlLabel
+                      key={option.value}
+                      control={
+                        <Checkbox
+                          checked={acceptedTypes.includes(option.value)}
+                          onChange={() => handleToggleType(option.value)}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontWeight: 'normal' }}>
+                          {option.label}
+                        </Typography>
+                      }
+                    />
+                  ))}
+                </FormGroup>
+              </Box>
+            ))}
           </Box>
+        </Box>
 
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={timeRestricted}
-                  onChange={(e) => {
-                    setTimeRestricted(e.target.checked);
-                    if (!e.target.checked) {
-                      setStartAt('');
-                      setEndAt('');
-                    }
-                  }}
-                />
-              }
-              label="Limiter par dates"
-            />
-            <TextField
-              type="datetime-local"
-              label="Début"
-              value={startAt}
-              onChange={(e) => setStartAt(e.target.value)}
-              disabled={!timeRestricted}
-              sx={{ flex: 1 }}
-              slotProps={{
-                inputLabel: { shrink: true }
-              }}
-            />
-            <TextField
-              type="datetime-local"
-              label="Fin"
-              value={endAt}
-              onChange={(e) => setEndAt(e.target.value)}
-              disabled={!timeRestricted}
-              sx={{ flex: 1 }}
-              slotProps={{
-                inputLabel: { shrink: true }
-              }}
-            />
-          </Stack>
-
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={timeRestricted}
+                onChange={(e) => {
+                  setTimeRestricted(e.target.checked);
+                  if (!e.target.checked) {
+                    setStartAt('');
+                    setEndAt('');
+                  }
+                }}
+              />
+            }
+            label="Limiter par dates"
+          />
           <TextField
-            type="number"
-            label="Taille maximale (Mo)"
-            value={maxSizeMb}
-            onChange={(e) => setMaxSizeMb(Number(e.target.value) || 0)}
+            type="datetime-local"
+            label="Début"
+            value={startAt}
+            onChange={(e) => setStartAt(e.target.value)}
+            disabled={!timeRestricted}
+            sx={{ flex: 1 }}
             slotProps={{
-              htmlInput: { min: 1, max: 200 }
+              inputLabel: { shrink: true }
             }}
           />
+          <TextField
+            type="datetime-local"
+            label="Fin"
+            value={endAt}
+            onChange={(e) => setEndAt(e.target.value)}
+            disabled={!timeRestricted}
+            sx={{ flex: 1 }}
+            slotProps={{
+              inputLabel: { shrink: true }
+            }}
+          />
+        </Stack>
 
-          {warningMessage && <WarningMessage message={warningMessage} />}
-          {errorMessage && <ErrorMessage message={errorMessage} />}
-          {successMessage && <SuccessMessage message={successMessage} />}
+        <TextField
+          type="number"
+          label="Taille maximale (Mo)"
+          value={maxSizeMb}
+          onChange={(e) => setMaxSizeMb(Number(e.target.value) || 0)}
+          slotProps={{
+            htmlInput: { min: 1, max: 200 }
+          }}
+        />
 
-          <Button type="submit" variant="outlined" fullWidth sx={{ fontWeight: 700 }} disabled={isSubmitting}>
-            {isSubmitting ? 'Ajout...' : 'Ajouter la zone de dépôt'}
-          </Button>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+        {warningMessage && <WarningMessage message={warningMessage} />}
+        {errorMessage && <ErrorMessage message={errorMessage} />}
+        {successMessage && <SuccessMessage message={successMessage} />}
+
+        <Button type="submit" variant="outlined" fullWidth sx={{ fontWeight: 700 }} disabled={isSubmitting}>
+          {isSubmitting ? 'Ajout...' : 'Ajouter la zone de dépôt'}
+        </Button>
+      </Box>
+    </Box>
   );
 };

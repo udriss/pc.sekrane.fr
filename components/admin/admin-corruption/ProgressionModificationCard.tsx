@@ -1,3 +1,5 @@
+"use client";
+
 // /components/admin/admin-corruption/ProgressionModificationCard.tsx
 
 import React, { useState, useEffect } from "react";
@@ -61,9 +63,6 @@ import { ImagePreview } from "@/components/ui/image-preview";
 import { PDFViewer } from "@/components/ui/pdf-viewer";
 import { ProgressionContent } from "./types";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
 import { FileDropCreationSection } from "./FileDropCreationSection";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
@@ -612,26 +611,9 @@ export const ProgressionModificationCard: React.FC<
   };
 
   return (
-    <>
-      <Accordion
-    sx = {{
-      width: "100%",
-    }}
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography
-          variant="body2"
-          fontWeight="bold"
-          fontSize={23}
-          sx={{ fontVariant: "small-caps" }}
-        >
-          <EditIcon color="warning" /> progression
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box sx={{ "& > * + *": { mt: 3 }, position: "relative" }}>
-          {/* Sélection de la classe */}
-          <FormControl fullWidth>
+    <Box sx={{ "& > * + *": { mt: 3 }, position: "relative", width: "100%" }}>
+      {/* Sélection de la classe */}
+      <FormControl fullWidth>
             <InputLabel sx={{ fontSize: "small", textTransform: "uppercase" }}>
               Sélectionner une classe
             </InputLabel>
@@ -1768,26 +1750,23 @@ export const ProgressionModificationCard: React.FC<
           {successMessageProgression && (
             <SuccessMessage message={successMessageProgression} />
           )}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
 
-    {/* Modal de déplacement de progression */}
-    <Dialog
-      open={isMoveDialogOpen}
-      onClose={() => {
-        setIsMoveDialogOpen(false);
-        setSelectedProgressionsForMove([]);
-        setSelectedProgressionIds([]);
-        setMoveTargetDate(undefined);
-      }}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        Déplacer {selectedProgressionsForMove.length === 1 ? 'la progression' : 'les progressions'}
-      </DialogTitle>
-      <DialogContent>
+          {/* Modal de déplacement de progression */}
+          <Dialog
+            open={isMoveDialogOpen}
+            onClose={() => {
+              setIsMoveDialogOpen(false);
+              setSelectedProgressionsForMove([]);
+              setSelectedProgressionIds([]);
+              setMoveTargetDate(undefined);
+            }}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle>
+              Déplacer {selectedProgressionsForMove.length === 1 ? 'la progression' : 'les progressions'}
+            </DialogTitle>
+            <DialogContent>
         <Box sx={{ pt: 1 }}>
           {selectedProgressionsForMove.length === 1 ? (
             <Typography variant="body2" sx={{ mb: 2 }}>
@@ -1936,6 +1915,6 @@ export const ProgressionModificationCard: React.FC<
         </Button>
       </DialogActions>
     </Dialog>
-    </>
+    </Box>
   );
 };

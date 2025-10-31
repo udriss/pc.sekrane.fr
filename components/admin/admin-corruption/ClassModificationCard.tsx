@@ -1,4 +1,5 @@
 // /components/admin/admin-corruption/ClassModificationCard.tsx
+"use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
@@ -7,9 +8,7 @@ import { SortableCourse } from '@/components/admin/SortableCourse';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Switch from '@mui/material/Switch';
-import { Typography, Accordion, AccordionSummary, AccordionDetails, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import EditIcon from '@mui/icons-material/Edit';
+import { Typography, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem } from '@mui/material';
 
 interface ClassModificationCardProps {
   courses: Course[];
@@ -283,13 +282,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
   };
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> classe
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div className="space-y-6">
+    <div className="space-y-6">
           <div className="space-y-2">
             <FormControl fullWidth>
               <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase', }}>
@@ -389,7 +382,5 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
             {warningRenameClasse && <WarningMessage message={warningRenameClasse} />}
           </div>
         </div>
-      </AccordionDetails>
-    </Accordion>
   );
 };

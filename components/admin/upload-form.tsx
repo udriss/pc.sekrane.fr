@@ -1,7 +1,5 @@
 import React from 'react';
-import { ModificationsAdmin } from '@/components/admin/admin-corruption';
-import { GenerationsAdmin } from '@/components/admin/admin-generation';
-import { ProgressionModificationCard } from '@/components/admin/admin-corruption/ProgressionModificationCard';
+import { UnifiedAdminActions } from '@/components/admin/unified-admin-actions';
 import { ProgressionEditDialog } from '@/components/admin/admin-corruption/ProgressionEditDialog';
 import { ProgressionDeleteDialog } from '@/components/admin/admin-corruption/ProgressionDeleteDialog';
 import { Course, Classe } from '@/lib/data';
@@ -24,47 +22,32 @@ export function UploadForm({ courses, setCourses, classes, setClasses }: UploadF
   return (
     <>
       <Stack 
-        direction={{ xs: 'column', xl: 'row' }} 
         spacing={2} 
         sx={{ width: '100%' }}
       >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <ModificationsAdmin courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <GenerationsAdmin courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} showSnackbar={snackbarState.showSnackbar} />
-        </Box>
-      </Stack>
-      <Stack 
-        spacing={2} 
-        sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%',
-        mt:.5,
-       }}
-      >
-      <ProgressionModificationCard
-        courses={courses}
-        classes={classes}
-        setCourses={setCourses}
-        setClasses={setClasses}
-        showSnackbar={snackbarState.showSnackbar}
-        progressionState={progressionState}
-      />
+        <UnifiedAdminActions 
+          courses={courses} 
+          setCourses={setCourses} 
+          classes={classes} 
+          setClasses={setClasses}
+          showSnackbar={snackbarState.showSnackbar}
+          progressionState={progressionState}
+        />
       </Stack>
 
-      <ProgressionEditDialog
-        courses={courses}
-        progressionState={progressionState}
-        showSnackbar={snackbarState.showSnackbar}
-      />
+      {/* Dialogs - hidden from layout */}
+      <Box sx={{ display: 'none' }}>
+        <ProgressionEditDialog
+          courses={courses}
+          progressionState={progressionState}
+          showSnackbar={snackbarState.showSnackbar}
+        />
 
-      <ProgressionDeleteDialog
-        progressionState={progressionState}
-        showSnackbar={snackbarState.showSnackbar}
-      />
+        <ProgressionDeleteDialog
+          progressionState={progressionState}
+          showSnackbar={snackbarState.showSnackbar}
+        />
+      </Box>
 
       <SnackbarProvider snackbarState={snackbarState} />
     </>

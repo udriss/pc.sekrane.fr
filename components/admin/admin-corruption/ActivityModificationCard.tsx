@@ -1,13 +1,13 @@
+"use client";
+
 // /components/admin/admin-corruption/ActivityModificationCard.tsx
 
 import React, { useState } from 'react';
 import { BaseCardProps } from './types';
-import { Typography, Box, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Typography, Box, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, IconButton, Tooltip } from '@mui/material';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import EditIcon from '@mui/icons-material/Edit';
 
 /**
  * ActivityModificationCard
@@ -179,13 +179,8 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
   );
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}><EditIcon color='warning' /> activité
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Classe */}
           <FormControl fullWidth>
             <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>
@@ -318,8 +313,7 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
           <Button variant="contained" fullWidth onClick={handleUpdate}>
             Mettre à jour
           </Button>
-        </Box>
-        <Box sx={{ mt: 1 }}>
+
           {errorUpdateActivity && <ErrorMessage message={errorUpdateActivity} />}
           {warningUpdateActivity && <WarningMessage message={warningUpdateActivity} />}
           {successMessageUpdateActivity && (
@@ -330,9 +324,8 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
               )}
             </>
           )}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+      </Box>
+    </>
   );
 };
  
