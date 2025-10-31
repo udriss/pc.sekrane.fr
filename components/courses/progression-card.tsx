@@ -6,8 +6,10 @@ import { MaterialIcon } from '@/components/ui/material-icon';
 import Image from 'next/image';
 import { CalendarMonth, VideoLibrary, PictureAsPdf } from '@mui/icons-material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip, IconButton } from '@mui/material';
+import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip, IconButton, Stack, Collapse } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { FileDropZone } from '@/components/courses/file-drop-zone';
 import type { Activity } from '@/lib/dataTemplate';
 interface Progression {
@@ -33,6 +35,132 @@ interface ProgressionCardProps {
   onDateChange?: (date: Date | undefined) => void;
 }
 
+// Modifier le composant FileMetadata pour intégrer le lecteur audio
+const FileMetadata = ({ fileUrl, title, content }: { fileUrl: string, title: string, content?: string }) => {
+  const [fileSize, setFileSize] = useState<string>("Chargement...");
+  const [lastModified, setLastModified] = useState<string>("Chargement...");
+  const fileExtension = fileUrl.split('.').pop()?.toLowerCase() || 'inconnu';
+  const isAudioFile = ['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(fileExtension);
+  
+  useEffect(() => {
+    async function fetchFileMetadata() {
+      try {
+        // Extraire le chemin relatif du fichier à partir de l'URL
+        const filePath = fileUrl.replace('/api/files', ''); // Remove /api/files prefix if present
+        
+        // Appeler l'API pour obtenir les métadonnées
+        const response = await fetch(`/api/file-metadata?filePath=${encodeURIComponent(filePath)}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Formater la taille du fichier
+          const size = data.size;
+          let formattedSize = "";
+          if (size < 1024) {
+            formattedSize = `${size} octets`;
+          } else if (size < 1024 * 1024) {
+            formattedSize = `${(size / 1024).toFixed(2)} Ko`;
+          } else {
+            formattedSize = `${(size / (1024 * 1024)).toFixed(2)} Mo`;
+          }
+          setFileSize(formattedSize);
+          
+          // Formater la date en français
+          const date = new Date(data.lastModified);
+          const options: Intl.DateTimeFormatOptions = {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          };
+          const formattedDate = new Intl.DateTimeFormat('fr-FR', options).format(date);
+          setLastModified(formattedDate);
+        } else {
+          setFileSize("Information non disponible");
+          setLastModified("Information non disponible");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des métadonnées:", error);
+        setFileSize("Erreur de chargement");
+        setLastModified("Erreur de chargement");
+      }
+    }
+    
+    fetchFileMetadata();
+  }, [fileUrl]);
+  
+  return (
+    <Box sx={{ width: '100%', p: 2, bgcolor: '#f9fafb', borderRadius: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="h6" component="h3" sx={{ fontWeight: 'bold', color: '#1f2937' }}>
+          {title}
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#6b7280', textTransform: 'uppercase', fontWeight: 500 }}>
+          .{fileExtension}
+        </Typography>
+      </Box>
+      
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <Typography variant="body2" sx={{ color: '#6b7280' }}>
+          Taille: <span style={{ fontWeight: 600, color: '#374151' }}>{fileSize}</span>
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#6b7280' }}>
+          Modifié: <span style={{ fontWeight: 600, color: '#374151' }}>{lastModified}</span>
+        </Typography>
+      </Box>
+      
+      {isAudioFile && (
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ 
+            width: '100%',
+            maxWidth: 400,
+            borderRadius: 1,
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            bgcolor: '#f8f9fa',
+            p: 1,
+            height: 60,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <audio 
+              controls
+              className="w-full"
+              controlsList="nodownload"
+              preload="metadata"
+              style={{
+                backgroundColor: 'transparent',
+                borderRadius: '4px',
+                height: '40px'
+              }}
+            >
+              <source src={fileUrl} type={`audio/${fileExtension}`} />
+              Votre navigateur ne prend pas en charge la lecture audio.
+            </audio>
+          </Box>
+        </Box>
+      )}
+      
+      <Box sx={{ textAlign: 'center' }}>
+        <Button component="a" href={fileUrl} download variant="contained" color="primary" sx={{ fontWeight: 700 }}>
+          Télécharger le fichier
+        </Button>
+      </Box>
+      
+      {content && (
+        <Box sx={{ mt: 2 }}>
+          <Box
+            className="prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 export function ProgressionCard({ classeId, classeName, initialDate, onDateChange }: ProgressionCardProps) {
   const [progressions, setProgressions] = useState<Progression[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate ?? new Date());
@@ -41,6 +169,8 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
   const [courses, setCourses] = useState<any[]>([]);
   // IDs des progressions dont le PDF est actuellement pré-visualisé
   const [openPdfIds, setOpenPdfIds] = useState<Set<string>>(new Set());
+  // État pour contrôler l'expansion des zones de dépôt
+  const [dropzoneExpanded, setDropzoneExpanded] = useState(false);
 
   const togglePdfPreview = (id: string) => {
     setOpenPdfIds(prev => {
@@ -218,7 +348,37 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
             <Button component="a" href={`/courses/${linkedCourse.id}`} variant="contained" color="primary">Ouvrir l&apos;activité (Notebook)</Button>
           )}
           {linkedActivity.dropzoneConfig && linkedCourse && (
-            <FileDropZone activity={linkedActivity} courseId={linkedCourse.id} />
+            <Box sx={{ width: '100%' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
+                <IconButton
+                  onClick={() => setDropzoneExpanded(!dropzoneExpanded)}
+                  sx={{
+                    color: 'text.secondary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    },
+                  }}
+                >
+                  {dropzoneExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+                <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                  Zone de dépôt
+                </Typography>
+              </Box>
+              <Collapse in={dropzoneExpanded}>
+                <FileDropZone activity={linkedActivity} courseId={linkedCourse.id} />
+              </Collapse>
+            </Box>
+          )}
+          {!isImage && !isPdf && !isVideo && !isAudio && !isHtml && !isTxt && !isIpynb && !linkedActivity.dropzoneConfig && (
+            <FileMetadata fileUrl={apiUrl} title={linkedActivity.title} content={progression.content} />
           )}
         </Box>
       );
@@ -361,7 +521,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
             )}
           </Box>
         );
-  case 'pdf':
+      case 'pdf':
         return (
           <Box sx={{ '& > * + *': { mt: 2 } }}>
             {progression.content && (
@@ -465,7 +625,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
           </Box>
         );
       default:
-        return (
+        return progression.resourceUrl ? <FileMetadata fileUrl={getApiFileUrl(progression.resourceUrl)} title={progression.title} content={progression.content} /> : (
           <Box
             className="prose prose-sm max-w-none"
             dangerouslySetInnerHTML={{ __html: progression.content }}

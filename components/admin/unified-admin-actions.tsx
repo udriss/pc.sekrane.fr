@@ -42,6 +42,22 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
   const [classMode, setClassMode] = useState<ActionMode>('edit');
   const [depotMode, setDepotMode] = useState<ActionMode>('edit');
 
+  // États partagés pour les sélections d'activité
+  const [selectedClassForActivity, setSelectedClassForActivity] = useState<string>('');
+  const [selectedCourseForActivity, setSelectedCourseForActivity] = useState<string>('');
+  const [selectedActivity, setSelectedActivity] = useState<string>('');
+
+  // États partagés pour les sélections de cours
+  const [selectedClassForCourse, setSelectedClassForCourse] = useState<string>('');
+  const [selectedCourseForCourse, setSelectedCourseForCourse] = useState<string>('');
+
+  // États partagés pour les sélections de classe
+  const [selectedClassForClass, setSelectedClassForClass] = useState<string>('');
+
+  // États partagés pour les sélections de dépôt
+  const [selectedClassForDepot, setSelectedClassForDepot] = useState<string>('');
+  const [selectedCourseForDepot, setSelectedCourseForDepot] = useState<string>('');
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -102,6 +118,12 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForActivity}
+                setSelectedClass={setSelectedClassForActivity}
+                selectedCourse={selectedCourseForActivity}
+                setSelectedCourse={setSelectedCourseForActivity}
+                selectedActivity={selectedActivity}
+                setSelectedActivity={setSelectedActivity}
               />
             ) : (
               <ActivityGenerationSection
@@ -110,6 +132,10 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForActivity}
+                setSelectedClass={setSelectedClassForActivity}
+                selectedCourse={selectedCourseForActivity}
+                setSelectedCourse={setSelectedCourseForActivity}
               />
             )}
           </AccordionDetails>
@@ -154,6 +180,10 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForCourse}
+                setSelectedClass={setSelectedClassForCourse}
+                selectedCourse={selectedCourseForCourse}
+                setSelectedCourse={setSelectedCourseForCourse}
               />
             ) : (
               <CourseGenerationSection
@@ -206,6 +236,8 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForClass}
+                setSelectedClass={setSelectedClassForClass}
               />
             ) : (
               <ClassGenerationSection
@@ -256,6 +288,10 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForDepot}
+                setSelectedClass={setSelectedClassForDepot}
+                selectedCourse={selectedCourseForDepot}
+                setSelectedCourse={setSelectedCourseForDepot}
               />
             ) : (
               <FileDropCreationSection
@@ -264,6 +300,10 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
                 classes={classes}
                 setClasses={setClasses}
                 showSnackbar={showSnackbar}
+                selectedClass={selectedClassForDepot}
+                setSelectedClass={setSelectedClassForDepot}
+                selectedCourse={selectedCourseForDepot}
+                setSelectedCourse={setSelectedCourseForDepot}
               />
             )}
           </AccordionDetails>

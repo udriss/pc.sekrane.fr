@@ -22,6 +22,8 @@ import { toast, Id } from 'react-toastify';
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
+import Collapse from '@mui/material/Collapse';
+import IconButton from '@mui/material/IconButton';
 import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; 
 import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
 
@@ -30,7 +32,9 @@ import "pdfjs-dist/web/pdf_viewer.css";
 
 import { 
   OpenInNew as ExternalLink,
-  Fullscreen as FullscreenIcon
+  Fullscreen as FullscreenIcon,
+  ExpandMore,
+  ExpandLess,
 } from '@mui/icons-material';
 import { 
   FileDownload as Download 
@@ -69,6 +73,7 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenOverlay, setShowFullscreenOverlay] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
 
 
@@ -798,9 +803,36 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
 
       {fileDropActivities.length > 0 && (
         <Box sx={{ width: '100%', mb: 3 }}>
-          {fileDropActivities.map((activity) => (
-            <FileDropZone key={activity.id} activity={activity} courseId={course.id} />
-          ))}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <IconButton
+              onClick={() => setExpanded(!expanded)}
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'primary.main',
+                },
+              }}
+            >
+              {expanded ? <ExpandLess /> : <ExpandMore />}
+            </IconButton>
+            <Typography variant="h6" sx={{ ml: 1 }}>
+              Zones de dépôt ({fileDropActivities.length})
+            </Typography>
+          </Box>
+          <Collapse in={expanded}>
+            <Box sx={{ width: '100%' }}>
+              {fileDropActivities.map((activity) => (
+                <FileDropZone key={activity.id} activity={activity} courseId={course.id} />
+              ))}
+            </Box>
+          </Collapse>
         </Box>
       )}
 

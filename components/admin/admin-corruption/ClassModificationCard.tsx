@@ -16,6 +16,8 @@ interface ClassModificationCardProps {
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (message: React.ReactNode, severity?: 'success' | 'error' | 'info' | 'warning') => void;
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
 }
 
 export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
@@ -23,9 +25,10 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
   setCourses,
   classes,
   setClasses,
-  showSnackbar
+  showSnackbar,
+  selectedClass,
+  setSelectedClass
 }) => {
-  const [selectedClasse, setSelectedClasse] = useState<string>('');
   const [associatedCourses, setAssociatedCourses] = useState<Course[]>([]);
   const [selectedClasseToDelete, setSelectedClasseToDelete] = useState<string>('');
   const [errorDeleteClasse, setErrorDeleteClasse] = useState<string>('');
@@ -65,16 +68,16 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
 
   useEffect(() => {
     // Mettre à jour les cours associés à la classe sélectionnée
-    if (selectedClasse) {
-      const filteredCourses = courses.filter(course => course.theClasseId === selectedClasse);
+    if (selectedClass) {
+      const filteredCourses = courses.filter(course => course.theClasseId === selectedClass);
       setAssociatedCourses(filteredCourses);
     } else {
       setAssociatedCourses([]);
     }
-  }, [selectedClasse, courses]);
+  }, [selectedClass, courses]);
 
   const handleClasseChange = useCallback((classeId: string) => {
-    setSelectedClasse(classeId);
+    setSelectedClass(classeId);
     const classe = classes && Array.isArray(classes)
       ? classes.find(classe => classe.id === classeId)
       : null;
@@ -82,11 +85,11 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
       const associatedCourses = courses.filter(course => classe.associated_courses.includes(course.id));
       setAssociatedCourses(associatedCourses);
     }
-  }, [classes, courses]);
+  }, [classes, courses, setSelectedClass]);
 
   useEffect(() => {
-    handleClasseChange(selectedClasse);
-  }, [classes, handleClasseChange, selectedClasse]);
+    handleClasseChange(selectedClass);
+  }, [classes, handleClasseChange, selectedClass]);
 
   const handleSelectChange = (classeId: string) => {
     setErrorDeleteCourseRapide(''); // Reset error message

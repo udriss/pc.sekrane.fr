@@ -151,10 +151,10 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          Stockage: <code>public/depots/{courseId}</code>
+          Stockage : <code>public/depots/{courseId}</code>
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Taille max: {maxSizeMb} Mo
+          Taille max : {maxSizeMb} Mo
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {renderSchedule()}

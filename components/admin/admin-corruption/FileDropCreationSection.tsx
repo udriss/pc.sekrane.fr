@@ -27,6 +27,10 @@ interface FileDropCreationSectionProps {
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (message: React.ReactNode, severity?: 'success' | 'error' | 'info' | 'warning') => void;
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
+  selectedCourse: string;
+  setSelectedCourse: (value: string) => void;
 }
 
 const naturalSort = (a: string, b: string) => {
@@ -53,10 +57,12 @@ export const FileDropCreationSection: React.FC<FileDropCreationSectionProps> = (
   setCourses,
   classes,
   setClasses,
-  showSnackbar
+  showSnackbar,
+  selectedClass,
+  setSelectedClass,
+  selectedCourse,
+  setSelectedCourse
 }) => {
-  const [selectedClasse, setSelectedClasse] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [acceptedTypes, setAcceptedTypes] = useState<string[]>(['.pdf']);
@@ -71,9 +77,9 @@ export const FileDropCreationSection: React.FC<FileDropCreationSectionProps> = (
 
   const filteredCourses = useMemo(() => {
     return courses
-      .filter((course) => !selectedClasse || course.theClasseId === selectedClasse)
+      .filter((course) => !selectedClass || course.theClasseId === selectedClass)
       .sort((a, b) => naturalSort(a.title, b.title));
-  }, [courses, selectedClasse]);
+  }, [courses, selectedClass]);
 
   const resetMessages = () => {
     setWarningMessage('');
@@ -82,7 +88,7 @@ export const FileDropCreationSection: React.FC<FileDropCreationSectionProps> = (
   };
 
   const resetForm = () => {
-    setSelectedClasse('');
+    setSelectedClass('');
     setSelectedCourse('');
     setDisplayName('');
     setEnabled(true);
@@ -186,9 +192,9 @@ export const FileDropCreationSection: React.FC<FileDropCreationSectionProps> = (
             Sélectionner une classe
           </InputLabel>
           <MuiSelect
-            value={selectedClasse}
+            value={selectedClass}
             onChange={(e) => {
-              setSelectedClasse(e.target.value);
+              setSelectedClass(e.target.value);
               setSelectedCourse('');
             }}
             label="Sélectionner une classe"

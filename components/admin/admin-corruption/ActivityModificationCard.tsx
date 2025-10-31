@@ -17,17 +17,26 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
  *  - Remplacer le fichier associé (suppression + upload)
  *  - Actualiser les listes après modification via les setters parent
  */
-export const ActivityModificationCard: React.FC<BaseCardProps> = ({
+export const ActivityModificationCard: React.FC<BaseCardProps & {
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
+  selectedCourse: string;
+  setSelectedCourse: (value: string) => void;
+  selectedActivity: string;
+  setSelectedActivity: (value: string) => void;
+}> = ({
   courses,
   setCourses,
   classes,
   setClasses,
-  showSnackbar
+  showSnackbar,
+  selectedClass,
+  setSelectedClass,
+  selectedCourse,
+  setSelectedCourse,
+  selectedActivity,
+  setSelectedActivity
 }) => {
-  // Sélections
-  const [selectedClassForActivity, setSelectedClassForActivity] = useState<string>('');
-  const [selectedCourseForActivity, setSelectedCourseForActivity] = useState<string>('');
-  const [selectedActivity, setSelectedActivity] = useState<string>('');
 
   // Form inputs
   const [newActivityTitle, setNewActivityTitle] = useState<string>('');
@@ -187,10 +196,10 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
               Sélectionner une classe
             </InputLabel>
             <MuiSelect
-              value={selectedClassForActivity}
+              value={selectedClass}
               onChange={(e) => {
-                setSelectedClassForActivity(e.target.value);
-                setSelectedCourseForActivity('');
+                setSelectedClass(e.target.value);
+                setSelectedCourse('');
                 setSelectedActivity('');
               }}
               label="Sélectionner une classe"
@@ -207,15 +216,15 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
               Sélectionner un cours
             </InputLabel>
             <MuiSelect
-              value={selectedCourseForActivity}
+              value={selectedCourse}
               onChange={(e) => {
-                setSelectedCourseForActivity(e.target.value);
+                setSelectedCourse(e.target.value);
                 setSelectedActivity('');
               }}
               label="Sélectionner un cours"
             >
               {courses
-                .filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity)
+                .filter(course => !selectedClass || course.theClasseId === selectedClass)
                 .sort((a, b) => naturalSort(a.title, b.title))
                 .map(course => (
                   <MenuItem key={course.id} value={course.id}>{course.title}</MenuItem>
@@ -234,9 +243,9 @@ export const ActivityModificationCard: React.FC<BaseCardProps> = ({
               label="Sélectionner une activité"
             >
               {(() => {
-                const filteredCourses = courses.filter(course => !selectedClassForActivity || course.theClasseId === selectedClassForActivity);
-                if (selectedCourseForActivity) {
-                  const chosenCourse = filteredCourses.find(c => c.id === selectedCourseForActivity);
+                const filteredCourses = courses.filter(course => !selectedClass || course.theClasseId === selectedClass);
+                if (selectedCourse) {
+                  const chosenCourse = filteredCourses.find(c => c.id === selectedCourse);
                   return chosenCourse?.activities
                     .filter(a => a && a.id && a.id.trim() !== '')
                     .sort((a, b) => naturalSort(a.title || '', b.title || ''))

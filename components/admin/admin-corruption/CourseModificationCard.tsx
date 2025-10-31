@@ -18,6 +18,10 @@ interface CourseModificationCardProps {
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (message: string, type: 'success' | 'error' | 'warning') => void;
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
+  selectedCourse: string;
+  setSelectedCourse: (value: string) => void;
 }
 
 export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
@@ -25,9 +29,12 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   setCourses,
   classes,
   setClasses,
-  showSnackbar
+  showSnackbar,
+  selectedClass,
+  setSelectedClass,
+  selectedCourse,
+  setSelectedCourse
 }) => {
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseToDelete, setCourseToDelete] = useState<string>('');
   const [files, setFiles] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<boolean | null>(null);
@@ -47,7 +54,6 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     themeChoice: 0,
   });
   const [newClasseId, setNewClasseId] = useState<string>('');
-  const [selectedClassFilter, setSelectedClassFilter] = useState('');
   const [currentCourse, setCurrentCourse] = useState<Course[]>([]);
   const [warningUpdateCourse, setWarningUpdateCourse] = useState<string>('');
 
@@ -355,8 +361,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
             <FormControl fullWidth>
               <InputLabel sx={{ fontSize: 'small', textTransform: 'uppercase' }}>Sélectionner une classe</InputLabel>
               <MuiSelect
-                value={selectedClassFilter}
-                onChange={(e) => setSelectedClassFilter(e.target.value)}
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
                 label="Sélectionner une classe"
               >
                 {classes && Array.isArray(classes) ? (
@@ -381,7 +387,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                 label="Sélectionner un cours"
               >
                 {courses && courses
-                  .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+                  .filter(course => !selectedClass || course.theClasseId === selectedClass)
                   .sort((a, b) => naturalSort(a.title, b.title))
                   .map((course) => (
                     <MenuItem key={course.id} value={course.id}>

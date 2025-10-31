@@ -13,16 +13,18 @@ interface ActivityGenerationSectionProps {
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (message: React.ReactNode, severity?: "success" | "error" | "info" | "warning") => void;
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
+  selectedCourse: string;
+  setSelectedCourse: (value: string) => void;
 }
 
-export function ActivityGenerationSection({ courses, setCourses, classes, setClasses, showSnackbar }: ActivityGenerationSectionProps) {
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+export function ActivityGenerationSection({ courses, setCourses, classes, setClasses, showSnackbar, selectedClass, setSelectedClass, selectedCourse, setSelectedCourse }: ActivityGenerationSectionProps) {
   const [file, setFile] = useState<File | null>(null);
   const [ActivityTitle, setActivityTitle] = useState<string>('');
   const [errorAddFile, setErrorAddFile] = useState<string>('');
   const [successMessageAddFile, setSuccessMessageAddFile] = useState<React.ReactNode>(null);
   const [warningAddFile, setWarningAddFile] = useState<string>('');
-  const [selectedClassFilter, setSelectedClassFilter] = useState('');
   const [rejectedFile, setRejectedFile] = useState<File | null>(null);
 
   const naturalSort = (a: string, b: string) => {
@@ -84,7 +86,6 @@ export function ActivityGenerationSection({ courses, setCourses, classes, setCla
   };
 
   const resetForm = () => {
-    setSelectedCourse('');
     setActivityTitle('');
     setFile(null);
   };
@@ -96,8 +97,8 @@ export function ActivityGenerationSection({ courses, setCourses, classes, setCla
           Sélectionner une classe
         </InputLabel>
         <MuiSelect
-          value={selectedClassFilter}
-          onChange={(e) => setSelectedClassFilter(e.target.value)}
+          value={selectedClass}
+          onChange={(e) => setSelectedClass(e.target.value)}
           label="Sélectionner une classe"
         >
           {classes && classes.sort((a, b) => naturalSort(a.name, b.name)).map((classe) => (
@@ -118,7 +119,7 @@ export function ActivityGenerationSection({ courses, setCourses, classes, setCla
           label="Sélectionner un cours"
         >
           {courses && courses
-            .filter(course => !selectedClassFilter || course.theClasseId === selectedClassFilter)
+            .filter(course => !selectedClass || course.theClasseId === selectedClass)
             .sort((a, b) => naturalSort(a.title, b.title))
             .map((course) => (
               <MenuItem key={course.id} value={course.id}>

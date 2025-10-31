@@ -36,6 +36,10 @@ interface FileDropManagementCardProps {
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (message: React.ReactNode, severity?: 'success' | 'error' | 'info' | 'warning') => void;
+  selectedClass: string;
+  setSelectedClass: (value: string) => void;
+  selectedCourse: string;
+  setSelectedCourse: (value: string) => void;
 }
 
 const naturalSort = (a: string, b: string) => {
@@ -68,10 +72,12 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
   setCourses,
   classes,
   setClasses,
-  showSnackbar
+  showSnackbar,
+  selectedClass,
+  setSelectedClass,
+  selectedCourse,
+  setSelectedCourse
 }) => {
-  const [selectedClasse, setSelectedClasse] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedDropId, setSelectedDropId] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [enabled, setEnabled] = useState(false);
@@ -90,10 +96,10 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
 
   const filteredCourses = useMemo(() => {
     return courses
-      .filter((course) => !selectedClasse || course.theClasseId === selectedClasse)
+      .filter((course) => !selectedClass || course.theClasseId === selectedClass)
       .filter((course) => (course.activities || []).some((activity) => activity.isFileDrop))
       .sort((a, b) => naturalSort(a.title, b.title));
-  }, [courses, selectedClasse]);
+  }, [courses, selectedClass]);
 
   const selectedActivity: Activity | undefined = useMemo(() => {
     const course = courses.find((c) => c.id === selectedCourse);
@@ -258,9 +264,9 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
           Sélectionner une classe
         </InputLabel>
         <MuiSelect
-          value={selectedClasse}
+          value={selectedClass}
           onChange={(e) => {
-            setSelectedClasse(e.target.value);
+            setSelectedClass(e.target.value);
             setSelectedCourse('');
             setSelectedDropId('');
               }}
