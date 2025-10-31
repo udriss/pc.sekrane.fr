@@ -1,5 +1,8 @@
 import React from 'react';
-import { Paper, Typography, Button, Box } from '@mui/material';
+import Link from 'next/link';
+import { Paper, Typography, Button, Box, Stack, IconButton } from '@mui/material';
+import FolderIcon from '@mui/icons-material/Folder';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 interface HeaderProps {
   onLogout: () => void;
@@ -35,20 +38,26 @@ export function Header({ onLogout }: HeaderProps) {
         sx={{
           gridColumn: 'span 2',
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: 'flex-end',
           alignItems: 'center'
         }}
       >
-        <Button
-          variant="outlined"
+        <IconButton
+          component={Link}
+          href="/admin/depots"
+          color="primary"
+          sx={{ mr: 1 }}
+          title="Gestion des dépôts"
+        >
+          <FolderIcon />
+        </IconButton>
+        <IconButton
           color="error"
           onClick={onLogout}
-          sx={{
-            fontWeight: 'bold',
-          }}
+          title="Déconnexion"
         >
-          Déconnexion
-        </Button>
+          <LogoutIcon />
+        </IconButton>
       </Box>
     </Paper>
   );

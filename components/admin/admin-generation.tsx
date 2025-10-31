@@ -6,15 +6,17 @@ import { Course, Classe } from '@/lib/data';
 import {SuccessMessage, ErrorMessage, WarningMessage} from '@/components/message-display';
 import { FileUploader } from '@/components/ui/file-uploader';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import { FileDropCreationSection } from './admin-corruption/FileDropCreationSection';
 
 interface GenerationsAdminProps {
   courses: Course[];
   setCourses: (courses: Course[]) => void;
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
+  showSnackbar: (message: React.ReactNode, severity?: "success" | "error" | "info" | "warning") => void;
 }
 
-export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: GenerationsAdminProps) {
+export function GenerationsAdmin({ courses, setCourses, classes, setClasses, showSnackbar }: GenerationsAdminProps) {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [ActivityTitle, setActivityTitle] = useState<string>('');
@@ -414,6 +416,14 @@ export function GenerationsAdmin({ courses, setCourses, classes, setClasses }: G
           </Box>
         </AccordionDetails>
       </Accordion>
+
+      <FileDropCreationSection
+        courses={courses}
+        setCourses={setCourses}
+        classes={classes}
+        setClasses={setClasses}
+        showSnackbar={showSnackbar}
+      />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import { Activity } from '@/lib/dataTemplate';
+import { Prisma } from '@prisma/client';
 
 // Utilitaires spécifiques pour les classes
 export async function getAllClasses() {
@@ -23,7 +23,10 @@ export async function getAllClasses() {
               id: true,
               name: true,
               title: true,
-              fileUrl: true
+              fileUrl: true,
+              order: true,
+              isFileDrop: true,
+              dropzoneConfig: true
             }
           }
         }
@@ -75,7 +78,9 @@ export async function deleteClasse(id: string) {
 export async function getAllCourses() {
   return await prisma.course.findMany({
     include: {
-      activities: true,
+      activities: {
+        orderBy: { order: 'asc' }
+      },
       classeRelation: true
     }
   });
@@ -117,6 +122,8 @@ export async function createCourse(data: {
     name: string;
     title: string;
     fileUrl: string;
+    isFileDrop?: boolean;
+    dropzoneConfig?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   }[];
 }) {
   const { activities, ...courseData } = data;
@@ -125,7 +132,10 @@ export async function createCourse(data: {
     data: {
       ...courseData,
       activities: activities ? {
-        create: activities
+        create: activities.map((activity) => ({
+          ...activity,
+          dropzoneConfig: activity.dropzoneConfig ?? undefined
+        }))
       } : undefined
     },
     include: {
@@ -174,7 +184,8 @@ export async function getActivityById(id: string) {
   return await prisma.activity.findUnique({
     where: { id },
     include: {
-      course: true
+      course: true,
+      submissions: true
     }
   });
 }
@@ -194,6 +205,8 @@ export async function createActivity(data: {
   title: string;
   fileUrl: string;
   courseId: string;
+  isFileDrop?: boolean;
+  dropzoneConfig?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }) {
   // Get the current max order for the course
   const maxOrder = await prisma.activity.aggregate({
@@ -202,8 +215,14 @@ export async function createActivity(data: {
   });
   const order = (maxOrder._max.order ?? -1) + 1;
 
+  const { dropzoneConfig, ...rest } = data;
+
   return await prisma.activity.create({
-    data: { ...data, order },
+    data: {
+      ...rest,
+      order,
+      ...(dropzoneConfig !== undefined ? { dropzoneConfig } : {})
+    },
     include: {
       course: true
     }
@@ -214,12 +233,17 @@ export async function updateActivity(id: string, data: {
   name?: string;
   title?: string;
   fileUrl?: string;
-  courseId?: string;
   order?: number;
+  isFileDrop?: boolean;
+  dropzoneConfig?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }) {
+  const { dropzoneConfig, ...rest } = data;
   return await prisma.activity.update({
     where: { id },
-    data,
+    data: {
+      ...rest,
+      ...(dropzoneConfig !== undefined ? { dropzoneConfig } : {})
+    },
     include: {
       course: true
     }

@@ -35,7 +35,7 @@ export default function Home() {
       flexDirection="column"
       alignItems="center"
       justifyContent="flex-start"
-      sx={{ minHeight: 'calc(100vh - 4rem)' }}
+      sx={{ minHeight: 'calc(100vh - 4rem)', mt: 4 }}
     >
       <Box textAlign="center" sx={{ maxWidth: 672, width: '100%' }}>
         <Stack spacing={3}>

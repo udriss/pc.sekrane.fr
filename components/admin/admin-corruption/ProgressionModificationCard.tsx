@@ -1,6 +1,6 @@
 // /components/admin/admin-corruption/ProgressionModificationCard.tsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { SuccessMessage, ErrorMessage } from "@/components/message-display";
 import { Course, Classe } from "@/lib/dataTemplate";
 import { SortableProgression } from "@/components/admin/SortableProgression";
@@ -26,6 +26,7 @@ import {
   FormLabel,
   List,
   ListItem,
+  ListItemText,
   IconButton,
   Tooltip,
   Button,
@@ -36,6 +37,11 @@ import {
   MenuItem,
   LinearProgress,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Checkbox,
 } from "@mui/material";
 import { Calendar } from "@/components/ui/calendar";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -58,6 +64,9 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
+import { FileDropCreationSection } from "./FileDropCreationSection";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 interface Progression {
   id: string;
@@ -75,6 +84,7 @@ interface Progression {
 interface ProgressionModificationCardProps {
   courses: Course[];
   classes: Classe[];
+  setCourses: (courses: Course[]) => void;
   setClasses: (classes: Classe[]) => void;
   showSnackbar: (
     message: React.ReactNode,
@@ -145,7 +155,7 @@ interface ProgressionModificationCardProps {
 
 export const ProgressionModificationCard: React.FC<
   ProgressionModificationCardProps
-> = ({ courses, classes, setClasses, showSnackbar, progressionState }) => {
+> = ({ courses, classes, setCourses, setClasses, showSnackbar, progressionState }) => {
   const {
     selectedClasseForProgression,
     setSelectedClasseForProgression,
@@ -187,6 +197,38 @@ export const ProgressionModificationCard: React.FC<
     uploadProgress,
     setUploadProgress,
   } = progressionState;
+
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
+  const [selectedProgressionToMove, setSelectedProgressionToMove] = useState<Progression | null>(null);
+  const [moveTargetDate, setMoveTargetDate] = useState<Date | undefined>(undefined);
+  const [selectedProgressionsForMove, setSelectedProgressionsForMove] = useState<Progression[]>([]);
+  const [selectedProgressionIds, setSelectedProgressionIds] = useState<string[]>([]);
+  const [existingProgressionsForDate, setExistingProgressionsForDate] = useState<Progression[]>([]);
+
+  // Mettre à jour les progressions existantes quand la date cible change
+  useEffect(() => {
+    if (moveTargetDate) {
+      const filtered = progressions.filter((p) => {
+        const progressionDate = new Date(p.date);
+        const targetDateOnly = new Date(
+          moveTargetDate.getFullYear(),
+          moveTargetDate.getMonth(),
+          moveTargetDate.getDate()
+        );
+        const progressionDateOnly = new Date(
+          progressionDate.getFullYear(),
+          progressionDate.getMonth(),
+          progressionDate.getDate()
+        );
+        return (
+          targetDateOnly.getTime() === progressionDateOnly.getTime()
+        );
+      });
+      setExistingProgressionsForDate(filtered);
+    } else {
+      setExistingProgressionsForDate([]);
+    }
+  }, [moveTargetDate, progressions]);
 
   const naturalSort = (a: string, b: string) => {
     const regex = /(\d+|\D+)/g;
@@ -255,6 +297,10 @@ export const ProgressionModificationCard: React.FC<
           selectedActivityForProgression !== "none"
             ? { activityId: selectedActivityForProgression }
             : {}),
+          ...(contentPreset === "file-drop" &&
+          selectedActivityForProgression !== "none"
+            ? { activityId: selectedActivityForProgression }
+            : {}),
         }),
       });
 
@@ -264,7 +310,7 @@ export const ProgressionModificationCard: React.FC<
         // Recharger les progressions
         loadProgressions(selectedClasseForProgression);
         // Réinitialiser le formulaire
-        const newContentType = contentPreset === "existing-activity" ? "activity" : "text";
+        const newContentType = contentPreset === "existing-activity" || contentPreset === "file-drop" ? "activity" : "text";
         setProgressionContent({
           title: "",
           content: "",
@@ -278,7 +324,7 @@ export const ProgressionModificationCard: React.FC<
         });
         setSelectedFile(null);
         setFilePreview(null);
-        if (contentPreset === "existing-activity") {
+        if (contentPreset === "existing-activity" || contentPreset === "file-drop") {
           setSelectedActivityForProgression("none");
         } else {
           setContentPreset("text");
@@ -351,7 +397,13 @@ export const ProgressionModificationCard: React.FC<
     });
     // If this progression is linked to an activity, switch edit preset accordingly
     if (progression.activityId) {
-      setEditContentPreset("existing-activity");
+      // Find the activity to check if it's a file drop
+      const foundActivity = courses.flatMap(c => c.activities || []).find(a => a.id === progression.activityId);
+      if (foundActivity?.isFileDrop) {
+        setEditContentPreset("file-drop");
+      } else {
+        setEditContentPreset("existing-activity");
+      }
       setEditSelectedActivityForProgression(progression.activityId);
       // Try to preselect the course containing this activity
       setEditSelectedCourseForProgression(foundCourse?.id || "all");
@@ -457,27 +509,111 @@ export const ProgressionModificationCard: React.FC<
     }
   };
 
-  // Fonction pour réinitialiser le dialog
-  const resetDialog = () => {
-    setSelectedFile(null);
-    setFilePreview(null);
-    setRejectedFile(null);
-    setContentPreset("text");
-    setProgressionContent({
-      title: "",
-      content: "",
-      icon: "none",
-      iconColor: "#3f51b5",
-      contentType: "text",
-      resourceUrl: "",
-      imageSize: 60,
-      linkedActivityId: "",
-      linkedCourseId: "",
-    });
+  // Fonction pour déplacer une progression
+  const handleMoveProgression = async (progression: Progression, targetDate: Date) => {
+    try {
+      const response = await fetch(`/api/progressions/${progression.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: targetDate.toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        setSuccessMessageProgression("Progression déplacée avec succès");
+        setErrorProgression("");
+        // Recharger les progressions
+        loadProgressions(selectedClasseForProgression);
+      } else {
+        setErrorProgression("Erreur lors du déplacement de la progression");
+      }
+    } catch (error) {
+      setErrorProgression("Erreur serveur");
+    }
+  };
+
+  // Fonction pour déplacer plusieurs progressions
+  const handleMoveMultipleProgressions = async () => {
+    const progressionsToMove = selectedProgressionsForMove.filter(p => selectedProgressionIds.includes(p.id));
+    if (!moveTargetDate || progressionsToMove.length === 0) {
+      setErrorProgression("Veuillez sélectionner une date cible et au moins une progression");
+      return;
+    }
+
+    try {
+      const promises = progressionsToMove.map(progression =>
+        fetch(`/api/progressions/${progression.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: moveTargetDate.toISOString(),
+          }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const failedCount = results.filter(r => !r.ok).length;
+
+      if (failedCount === 0) {
+        setSuccessMessageProgression(
+          progressionsToMove.length === 1
+            ? "1 progression déplacée avec succès"
+            : `${progressionsToMove.length} progressions déplacées avec succès`
+        );
+        setErrorProgression("");
+        // Recharger les progressions
+        loadProgressions(selectedClasseForProgression);
+        // Fermer le modal
+        setIsMoveDialogOpen(false);
+        setSelectedProgressionsForMove([]);
+        setSelectedProgressionIds([]);
+        setMoveTargetDate(undefined);
+      } else {
+        setErrorProgression(
+          failedCount === 1
+            ? "1 progression n'a pas pu être déplacée"
+            : `${failedCount} progressions n'ont pas pu être déplacées`
+        );
+      }
+    } catch (error) {
+      setErrorProgression("Erreur serveur");
+    }
+  };
+
+  // Fonction pour ouvrir le modal de déplacement
+  const openMoveDialog = () => {
+    if (selectedDate && !showAllProgressions) {
+      const filteredProgressions = progressions.filter((p) => {
+        const progressionDate = new Date(p.date);
+        const selectedDateOnly = new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          selectedDate.getDate()
+        );
+        const progressionDateOnly = new Date(
+          progressionDate.getFullYear(),
+          progressionDate.getMonth(),
+          progressionDate.getDate()
+        );
+        return (
+          selectedDateOnly.getTime() ===
+          progressionDateOnly.getTime()
+        );
+      });
+      setSelectedProgressionsForMove(filteredProgressions);
+      setSelectedProgressionIds(filteredProgressions.map(p => p.id));
+      setIsMoveDialogOpen(true);
+    }
   };
 
   return (
-    <Accordion
+    <>
+      <Accordion
     sx = {{
       width: "100%",
     }}
@@ -779,6 +915,27 @@ export const ProgressionModificationCard: React.FC<
                   sx={{ width: "100%" }}
                 >
                   Activité existante
+                </Button>
+                <Button
+                  type="button"
+                  variant={contentPreset === "file-drop" ? "contained" : "outlined"}
+                  size="medium"
+                  onClick={() => {
+                    setContentPreset("file-drop" as any);
+                    setSelectedActivityForProgression("none");
+                    setSelectedCourseForProgression("all");
+                    // Clear file/url fields when switching to file drop
+                    setSelectedFile(null);
+                    setFilePreview(null);
+                    setProgressionContent((prev) => ({
+                      ...prev,
+                      contentType: "file-drop",
+                      resourceUrl: "",
+                    }));
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  Zone de dépôt
                 </Button>
                 <Button
                   type="button"
@@ -1176,6 +1333,150 @@ export const ProgressionModificationCard: React.FC<
                 </Box>
               )}
 
+              {/* Zone de dépôt - crée une progression dédiée */}
+              {contentPreset === "file-drop" && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                    borderTop: 1,
+                    borderColor: "divider",
+                    pt: 2,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    Associer une zone de dépôt
+                  </Typography>
+
+                  {/* Sélection du cours */}
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel
+                        sx={{ fontSize: "small", textTransform: "uppercase" }}
+                      >
+                        Sélectionner un cours
+                      </InputLabel>
+                      <MuiSelect
+                        value={selectedCourseForProgression}
+                        onChange={(e) => {
+                          setSelectedCourseForProgression(e.target.value);
+                          setSelectedActivityForProgression("none");
+                        }}
+                        label="Sélectionner un cours"
+                      >
+                        <MenuItem value="all">Tous les cours</MenuItem>
+                        {courses
+                          .filter(
+                            (course) =>
+                              course.theClasseId ===
+                              selectedClasseForProgression
+                          )
+                          .sort((a, b) => naturalSort(a.title, b.title))
+                          .map((course) => (
+                            <MenuItem key={course.id} value={course.id}>
+                              {course.title}
+                            </MenuItem>
+                          ))}
+                      </MuiSelect>
+                    </FormControl>
+                  </Box>
+
+                  {/* Sélection de la zone de dépôt */}
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel
+                        sx={{ fontSize: "small", textTransform: "uppercase" }}
+                      >
+                        Sélectionner une zone de dépôt
+                      </InputLabel>
+                      <MuiSelect
+                        value={selectedActivityForProgression}
+                        onChange={(e) => {
+                          setSelectedActivityForProgression(e.target.value);
+                          if (e.target.value === "none") {
+                            setProgressionContent((prev) => ({
+                              ...prev,
+                              title: prev.title,
+                            }));
+                            return;
+                          }
+                          const filteredCourses =
+                            selectedCourseForProgression &&
+                            selectedCourseForProgression !== "all"
+                              ? courses.filter(
+                                  (c) => c.id === selectedCourseForProgression
+                                )
+                              : courses.filter(
+                                  (c) =>
+                                    c.theClasseId ===
+                                    selectedClasseForProgression
+                                );
+                          const withCourse = filteredCourses.flatMap((course) =>
+                            (course.activities || []).filter(a => a.isFileDrop).map((a) => ({
+                              a,
+                              course,
+                            }))
+                          );
+                          const found = withCourse.find(
+                            (x) => x.a && x.a.id === e.target.value
+                          );
+                          if (found) {
+                            setProgressionContent((prev) => ({
+                              ...prev,
+                              title: found.a.title || prev.title,
+                            }));
+                          }
+                        }}
+                        label="Sélectionner une zone de dépôt"
+                      >
+                        <MenuItem value="none">Aucune zone de dépôt</MenuItem>
+                        {(() => {
+                          const filteredCourses =
+                            selectedCourseForProgression &&
+                            selectedCourseForProgression !== "all"
+                              ? courses.filter(
+                                  (c) => c.id === selectedCourseForProgression
+                                )
+                              : courses.filter(
+                                  (c) =>
+                                    c.theClasseId ===
+                                    selectedClasseForProgression
+                                );
+                          return filteredCourses
+                            .flatMap((course) =>
+                              (course.activities || []).filter(a => a.isFileDrop).map((activity) => ({
+                                ...activity,
+                                courseName: course.title,
+                              }))
+                            )
+                            .filter(
+                              (activity) =>
+                                activity &&
+                                activity.id &&
+                                activity.id.trim() !== ""
+                            )
+                            .sort((a, b) =>
+                              naturalSort(a.title || "", b.title || "")
+                            )
+                            .map((activity) => (
+                              <MenuItem key={activity.id} value={activity.id}>
+                                {activity.title}{" "}
+                                {selectedCourseForProgression === "all" &&
+                                  `(${activity.courseName})`}
+                              </MenuItem>
+                            ));
+                        })()}
+                      </MuiSelect>
+                    </FormControl>
+                  </Box>
+                </Box>
+              )}
+
               {/* Sélection d'icône et couleur */}
               <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end" }}>
                 <Box sx={{ flex: 1 }}>
@@ -1290,6 +1591,61 @@ export const ProgressionModificationCard: React.FC<
                         </Button>
                       ) : null;
                     })()}
+                  <Button
+                  fullWidth
+                    size="medium"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => {
+                      if (selectedDate && !showAllProgressions) {
+                        const filteredProgressions = progressions.filter((p) => {
+                          const progressionDate = new Date(p.date);
+                          const selectedDateOnly = new Date(
+                            selectedDate.getFullYear(),
+                            selectedDate.getMonth(),
+                            selectedDate.getDate()
+                          );
+                          const progressionDateOnly = new Date(
+                            progressionDate.getFullYear(),
+                            progressionDate.getMonth(),
+                            progressionDate.getDate()
+                          );
+                          return (
+                            selectedDateOnly.getTime() ===
+                            progressionDateOnly.getTime()
+                          );
+                        });
+                        if (filteredProgressions.length === 1) {
+                          openMoveDialog();
+                        } else if (filteredProgressions.length > 1) {
+                          openMoveDialog();
+                        }
+                      }
+                    }}
+                    disabled={!selectedDate || showAllProgressions || (() => {
+                      if (!selectedDate || showAllProgressions) return true;
+                      const filteredProgressions = progressions.filter((p) => {
+                        const progressionDate = new Date(p.date);
+                        const selectedDateOnly = new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth(),
+                          selectedDate.getDate()
+                        );
+                        const progressionDateOnly = new Date(
+                          progressionDate.getFullYear(),
+                          progressionDate.getMonth(),
+                          progressionDate.getDate()
+                        );
+                        return (
+                          selectedDateOnly.getTime() ===
+                          progressionDateOnly.getTime()
+                        );
+                      });
+                      return filteredProgressions.length === 0;
+                    })()}
+                  >
+                    Déplacer progression
+                  </Button>
                   <Button
                   fullWidth
                     size="medium"
@@ -1415,5 +1771,171 @@ export const ProgressionModificationCard: React.FC<
         </Box>
       </AccordionDetails>
     </Accordion>
+
+    {/* Modal de déplacement de progression */}
+    <Dialog
+      open={isMoveDialogOpen}
+      onClose={() => {
+        setIsMoveDialogOpen(false);
+        setSelectedProgressionsForMove([]);
+        setSelectedProgressionIds([]);
+        setMoveTargetDate(undefined);
+      }}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>
+        Déplacer {selectedProgressionsForMove.length === 1 ? 'la progression' : 'les progressions'}
+      </DialogTitle>
+      <DialogContent>
+        <Box sx={{ pt: 1 }}>
+          {selectedProgressionsForMove.length === 1 ? (
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Déplacer &quot;{selectedProgressionsForMove[0].title}&quot; du{" "}
+              {format(new Date(selectedProgressionsForMove[0].date), "dd MMMM yyyy", { locale: fr })}
+            </Typography>
+          ) : (
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  Sélectionnez les progressions à déplacer :
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Tooltip title="Tout sélectionner">
+                    <IconButton
+                      size="small"
+                      onClick={() => setSelectedProgressionIds(selectedProgressionsForMove.map(p => p.id))}
+                      disabled={selectedProgressionIds.length === selectedProgressionsForMove.length}
+                    >
+                      <CheckBoxIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Tout désélectionner">
+                    <IconButton
+                      size="small"
+                      onClick={() => setSelectedProgressionIds([])}
+                      disabled={selectedProgressionIds.length === 0}
+                    >
+                      <CheckBoxOutlineBlankIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+              <List dense>
+                {selectedProgressionsForMove.map((progression) => (
+                  <ListItem key={progression.id} sx={{ px: 0 }}>
+                    <Checkbox
+                      checked={selectedProgressionIds.includes(progression.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedProgressionIds(prev => [...prev, progression.id]);
+                        } else {
+                          setSelectedProgressionIds(prev => prev.filter(id => id !== progression.id));
+                        }
+                      }}
+                      size="small"
+                    />
+                    <ListItemText
+                      primary={progression.title}
+                      secondary={format(new Date(progression.date), "dd MMMM yyyy", { locale: fr })}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+            Sélectionnez la nouvelle date :
+          </Typography>
+          <Calendar
+            mode="single"
+            selected={moveTargetDate}
+            onSelect={setMoveTargetDate}
+            locale={fr}
+            className="rounded-md border"
+            modifiers={{
+              hasProgression: getDatesWithProgression(),
+              currentDate: selectedProgressionsForMove.length === 1 ? [new Date(selectedProgressionsForMove[0].date)] : [],
+            }}
+            modifiersStyles={{
+              hasProgression: {
+                backgroundColor: "#9fcbf8ff",
+                color: "#111827",
+                fontWeight: "bold",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+              currentDate: {
+                backgroundColor: "#fbbf24",
+                color: "#111827",
+                fontWeight: "bold",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            }}
+          />
+          {existingProgressionsForDate.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+                Progressions déjà présentes pour cette date :
+              </Typography>
+              <List sx={{ maxHeight: 200, overflowY: "auto", gap: 1 }}>
+                {existingProgressionsForDate.map((progression) => (
+                  <SortableProgression
+                    key={progression.id}
+                    progression={progression}
+                    onEdit={handleEditProgression}
+                    onDelete={async (id) => {
+                      const response = await fetch(
+                        `/api/progressions/${id}`,
+                        {
+                          method: "DELETE",
+                        }
+                      );
+                      if (response.ok) {
+                        loadProgressions(selectedClasseForProgression);
+                        showSnackbar("Progression supprimée", "success");
+                      }
+                    }}
+                  />
+                ))}
+              </List>
+            </Box>
+          )}
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={() => {
+            setIsMoveDialogOpen(false);
+            setSelectedProgressionsForMove([]);
+            setSelectedProgressionIds([]);
+            setMoveTargetDate(undefined);
+          }}
+        >
+          Annuler
+        </Button>
+        <Button
+          onClick={() => {
+            if (selectedProgressionsForMove.length === 1) {
+              handleMoveProgression(selectedProgressionsForMove[0], moveTargetDate!);
+            } else {
+              handleMoveMultipleProgressions();
+            }
+          }}
+          variant="contained"
+          disabled={!moveTargetDate || (selectedProgressionsForMove.length > 1 && selectedProgressionIds.length === 0)}
+        >
+          Déplacer
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 };

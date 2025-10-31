@@ -33,7 +33,10 @@ export async function GET(request: Request) {
         id: activity.id,
         name: activity.name,
         title: activity.title,
-        fileUrl: activity.fileUrl
+        fileUrl: activity.fileUrl,
+        order: activity.order ?? undefined,
+        isFileDrop: activity.isFileDrop ?? false,
+        dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
       })),
       toggleVisibilityCourse: course.toggleVisibilityCourse || false,
       themeChoice: course.themeChoice || 0

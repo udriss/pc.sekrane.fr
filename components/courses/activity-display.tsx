@@ -36,6 +36,7 @@ import {
   FileDownload as Download 
 } from '@mui/icons-material';
 import SimplePDFViewer from "@/components/ui/simple-pdf-viewer";
+import { FileDropZone } from '@/components/courses/file-drop-zone';
 
 // Add helper function to detect mobile
 const isMobileDevice = () => {
@@ -71,15 +72,29 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
 
 
 
+  const standardActivities = useMemo(() => {
+    if (!course) {
+      return [] as Activity[];
+    }
+    return course.activities.filter((activity) => !activity.isFileDrop);
+  }, [course]);
+
+  const fileDropActivities = useMemo(() => {
+    if (!course) {
+      return [] as Activity[];
+    }
+    return course.activities.filter((activity) => activity.isFileDrop);
+  }, [course]);
+
   // Dans le composant CoursePage, ajouter cette fonction pour grouper les activités
   // juste avant le return
-const groupedActivities = useMemo(() => {
-  if (!course) return {};
+  const groupedActivities = useMemo(() => {
+  if (!standardActivities.length) return {};
   
   // Définir le type de l'objet groups pour permettre les propriétés dynamiques
   const groups: Record<string, Activity[]> = {};
   
-  course.activities.forEach(activity => {
+  standardActivities.forEach(activity => {
     // Déterminer le type de fichier basé sur l'extension
     const extension = activity.name.split('.').pop()?.toLowerCase() || '';
     let fileType = 'Autres fichiers';
@@ -98,7 +113,7 @@ const groupedActivities = useMemo(() => {
   });
   
   return groups;
-}, [course]);
+  }, [standardActivities]);
 
 
   const handleUniqueIdReceived = (id: string) => {
@@ -505,7 +520,7 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     return <LoadingPage />;
   }
 
-  const hasIpynb = course.activities.some((activity) => activity.name.endsWith('.ipynb'));
+  const hasIpynb = standardActivities.some((activity) => activity.name.endsWith('.ipynb'));
 
   // Add this component inside CoursePage
   const MobileOpenButton = ({ url }: { url: string }) => (
@@ -781,6 +796,14 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
     <div className="min-h-screen flex flex-col w-full md:max-w-[750px] lg:max-w-[960px] xl:max-w-[1400px] mx-auto px-4 md:px-0">
       <ActivityHeader title={course.title} description={course.description} />
 
+      {fileDropActivities.length > 0 && (
+        <Box sx={{ width: '100%', mb: 3 }}>
+          {fileDropActivities.map((activity) => (
+            <FileDropZone key={activity.id} activity={activity} courseId={course.id} />
+          ))}
+        </Box>
+      )}
+
       {/* Adapter la structure en fonction du thème */}
       <div className={`
         ${course.themeChoice === 1 ? 'flex flex-col md:flex-row' : 'flex flex-col'} 
@@ -790,7 +813,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         {(course.themeChoice !== 1 || hasIpynb) && (
           <ActivityList
             themeChoice={course.themeChoice ?? 0}
-            activities={course.activities}
+            activities={standardActivities}
             onSelectActivity={handleSelectActivity}
             onToggleSideBySide={handleToggleSideBySide}
             handleFileSelection={handleFileSelection}

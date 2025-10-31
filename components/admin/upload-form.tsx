@@ -32,7 +32,7 @@ export function UploadForm({ courses, setCourses, classes, setClasses }: UploadF
           <ModificationsAdmin courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <GenerationsAdmin courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} />
+          <GenerationsAdmin courses={courses} setCourses={setCourses} classes={classes} setClasses={setClasses} showSnackbar={snackbarState.showSnackbar} />
         </Box>
       </Stack>
       <Stack 
@@ -48,6 +48,7 @@ export function UploadForm({ courses, setCourses, classes, setClasses }: UploadF
       <ProgressionModificationCard
         courses={courses}
         classes={classes}
+        setCourses={setCourses}
         setClasses={setClasses}
         showSnackbar={snackbarState.showSnackbar}
         progressionState={progressionState}

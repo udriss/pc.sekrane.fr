@@ -60,7 +60,26 @@ model Activity {
   course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   progressions Progression[]
 
+  isFileDrop      Boolean  @default(false)
+  dropzoneConfig  Json?
+  submissions     FileDropSubmission[]
+
   @@map("activities")
+}
+
+model FileDropSubmission {
+  id           String   @id @default(uuid())
+  activityId   String
+  originalName String
+  storedName   String
+  fileSize     Int
+  mimeType     String
+  uploaderIp   String?
+  createdAt    DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@map("file_drop_submissions")
 }
 
 model Progression {

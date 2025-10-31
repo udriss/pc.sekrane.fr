@@ -1,9 +1,32 @@
+export interface FileDropConfig {
+  enabled: boolean;
+  acceptedTypes: string[];
+  timeRestricted: boolean;
+  startAt?: string | null;
+  endAt?: string | null;
+  maxSizeMb?: number;
+  displayName?: string;
+}
+
+export interface FileDropSubmission {
+  id: string;
+  originalName: string;
+  storedName: string;
+  fileSize: number;
+  mimeType: string;
+  uploaderIp?: string | null;
+  createdAt: string;
+}
+
 export interface Activity {
   id: string;
   name: string;
   title: string;
   fileUrl: string;
   order?: number;
+  isFileDrop?: boolean;
+  dropzoneConfig?: FileDropConfig | null;
+  submissions?: FileDropSubmission[];
 }
 
 export interface Course {

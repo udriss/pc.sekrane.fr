@@ -30,10 +30,10 @@ export default function AdminPage() {
   }, []);
   
   useEffect(() => {
-    const isAuthenticated = document.cookie.includes("adminAuth");
-    if (!isAuthenticated) {
-      router.push("/admin/login");
-    }
+    // Authentication is enforced server-side via middleware which checks the
+    // HttpOnly `adminAuth` cookie. Remove the client-side check because
+    // HttpOnly cookies aren't visible to `document.cookie` and this could
+    // trigger incorrect client redirects. Rely on middleware instead.
   }, [router]);
 
   const handleLogout = async () => {

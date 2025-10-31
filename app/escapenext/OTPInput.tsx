@@ -178,10 +178,12 @@ export const OTP: React.FC<OTPProps> = ({
             value={value[index] || ''}
             disabled={disabled}
             variant="outlined"
-            inputProps={{
-              maxLength: 1,
-              style: { textAlign: 'center' },
-              'aria-label': `Digit ${index + 1} of OTP`
+            slotProps={{
+              htmlInput: {
+                maxLength: 1,
+                style: { textAlign: 'center' },
+                'aria-label': `Digit ${index + 1} of OTP`
+              }
             }}
           />
           {index < length - 1 && <OTPSeparator>{separator}</OTPSeparator>}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteActivity, getCourseById, getActivityById, getAllClasses } from '@/lib/data-prisma-utils';
 import { Classe, Course } from '@/lib/dataTemplate';
+import { prisma } from '@/lib/prisma';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -29,8 +30,39 @@ export async function DELETE(req: NextRequest) {
 
     let fileNotFound = false;
 
-    // Supprimer le fichier physique du disque
-    if (activity.fileUrl) {
+    // Supprimer le fichier physique du disque (ou le dossier de dépôt)
+    if (activity.isFileDrop) {
+      const courseDir = path.join(process.cwd(), 'public', 'depots', activity.courseId);
+      try {
+        const submissions = await prisma.fileDropSubmission.findMany({
+          where: { activityId: activity.id }
+        });
+
+        for (const submission of submissions) {
+          const dropFilePath = path.join(courseDir, submission.storedName);
+          try {
+            await fs.unlink(dropFilePath);
+          } catch (unlinkError: any) {
+            if (unlinkError.code !== 'ENOENT') {
+              console.warn(`Error deleting drop submission file ${dropFilePath}:`, unlinkError);
+            }
+          }
+        }
+
+        try {
+          const remainingEntries = await fs.readdir(courseDir);
+          if (!remainingEntries.length) {
+            await fs.rmdir(courseDir).catch(() => undefined);
+          }
+        } catch (dirError: any) {
+          if (dirError.code !== 'ENOENT') {
+            console.warn(`Error checking drop directory ${courseDir}:`, dirError);
+          }
+        }
+      } catch (dropError) {
+        console.warn(`Error cleaning drop submissions for activity ${activity.id}:`, dropError);
+      }
+    } else if (activity.fileUrl) {
       const filePath = path.join(process.cwd(), 'public', activity.fileUrl);
       try {
         await fs.unlink(filePath);
@@ -71,7 +103,10 @@ export async function DELETE(req: NextRequest) {
             id: activity.id,
             name: activity.name,
             title: activity.title,
-            fileUrl: activity.fileUrl
+            fileUrl: activity.fileUrl,
+            order: activity.order ?? undefined,
+            isFileDrop: activity.isFileDrop ?? false,
+            dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
           })),
           toggleVisibilityCourse: course.toggleVisibilityCourse || false,
           themeChoice: course.themeChoice || 0

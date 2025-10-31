@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import { Classe, Course, Activity } from '@/lib/dataTemplate';
+import { Prisma } from '@prisma/client';
+import { Classe, Course } from '@/lib/dataTemplate';
 
 export async function parseData(): Promise<{ classes: Classe[], courses: Course[] }> {
   try {
@@ -39,7 +40,10 @@ export async function parseData(): Promise<{ classes: Classe[], courses: Course[
         id: activity.id,
         name: activity.name,
         title: activity.title,
-        fileUrl: activity.fileUrl
+        fileUrl: activity.fileUrl,
+        order: activity.order ?? undefined,
+        isFileDrop: activity.isFileDrop ?? false,
+        dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
       })),
       toggleVisibilityCourse: course.toggleVisibilityCourse || false,
       themeChoice: course.themeChoice || 0
@@ -92,7 +96,11 @@ export async function updateData(classes: Classe[], courses: Course[]): Promise<
                 id: activity.id,
                 name: activity.name,
                 title: activity.title,
-                fileUrl: activity.fileUrl
+                fileUrl: activity.fileUrl,
+                isFileDrop: activity.isFileDrop ?? false,
+                dropzoneConfig: activity.dropzoneConfig
+                  ? (activity.dropzoneConfig as unknown as Prisma.InputJsonValue)
+                  : undefined
               }))
             }
           }

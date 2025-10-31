@@ -9,6 +9,7 @@ import { CourseModificationCard } from './CourseModificationCard';
 import { ClassModificationCard } from './ClassModificationCard';
 import { useSnackbarState } from './hooks/useSnackbarState';
 import { SnackbarProvider } from './SnackbarProvider';
+import { FileDropManagementCard } from './FileDropManagementCard';
 
 /**
  * ModificationsAdmin component for managing courses, classes and activities in an admin interface.
@@ -76,6 +77,14 @@ export function ModificationsAdmin({ courses, setCourses, classes, setClasses }:
     <>
       <DndContext sensors={sensors} collisionDetection={closestCenter}>
         <ActivityModificationCard
+          courses={courses}
+          setCourses={setCourses}
+          classes={classes}
+          setClasses={setClasses}
+          showSnackbar={snackbarState.showSnackbar}
+        />
+
+        <FileDropManagementCard
           courses={courses}
           setCourses={setCourses}
           classes={classes}

@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { CalendarMonth, VideoLibrary, PictureAsPdf } from '@mui/icons-material';
 import { Box, Grid, Paper, Typography, Chip, Button, CircularProgress, Tooltip } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
+import { FileDropZone } from '@/components/courses/file-drop-zone';
+import type { Activity } from '@/lib/dataTemplate';
 interface Progression {
   id: string;
   date: Date;
@@ -213,6 +215,9 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
           )}
           {isIpynb && linkedCourse && (
             <Button component="a" href={`/courses/${linkedCourse.id}`} variant="contained" color="primary">Ouvrir l&apos;activité (Notebook)</Button>
+          )}
+          {linkedActivity.dropzoneConfig && linkedCourse && (
+            <FileDropZone activity={linkedActivity} courseId={linkedCourse.id} />
           )}
         </Box>
       );
