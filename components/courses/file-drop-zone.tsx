@@ -2,6 +2,8 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { Box, Typography, Stack, Chip, Alert } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import type { Activity, FileDropConfig } from '@/lib/dataTemplate';
 import { FilePond, registerPlugin } from 'react-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
@@ -180,19 +182,40 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
       }}
     >
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          component="span"
-          sx={({ palette }) => {
-            const color = isActive ? palette.success.main : palette.error.main;
-            return {
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              bgcolor: color,
-              boxShadow: `0 0 6px ${color}`
-            };
+        <Box 
+          sx={{ 
+            p: 1, 
+            borderRadius: 2, 
+            backgroundColor: 'background.paper',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            boxShadow: (theme) => theme.shadows[1],
+              '@keyframes pulse': {
+                '0%': { opacity: 1 },
+                '50%': { opacity: 0.5 },
+                '100%': { opacity: 1 },
+              },
           }}
-        />
+        >
+          {isActive ? (
+            <CheckCircleIcon fontSize='small' sx={{ color: 'success.main', animation: 'pulse 2s infinite', }} />
+          ) : (
+            <CancelIcon fontSize='small' sx={{ color: 'error.main', animation: 'pulse 2s infinite', }} />
+          )}
+          <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 500,  }}>
+            {isActive ? 'ACTIF' : 'INACTIF'}
+          </Typography>
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: isActive ? 'success.main' : 'error.main',
+              animation: 'pulse 2s infinite',
+            }}
+          />
+        </Box>
         <Typography variant="h6" fontWeight={700} sx={{ textTransform: 'uppercase' }}>
           {config.displayName || activity.title}
         </Typography>

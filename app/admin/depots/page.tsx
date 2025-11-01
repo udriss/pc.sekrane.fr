@@ -300,7 +300,7 @@ export default function FileDropDashboardPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 6, px: { xs: 2, md: 6 } }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 6, px: { xs: 2, md: 6 }, width: '100%' }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Box>
           <Typography variant="h4" fontWeight={700} sx={{ textTransform: 'uppercase' }}>
@@ -327,8 +327,8 @@ export default function FileDropDashboardPage() {
         </Alert>
       )}
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-        <Paper sx={{ width: { xs: '100%', md: 480 }, p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignSelf: 'flex-start' }}>
+      <Stack direction={{ xs: 'column', md: 'column' }} spacing={3}>
+        <Paper sx={{ width: { xs: '100%', md: '100%' }, p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignSelf: 'flex-start' }}>
           <Typography variant="subtitle1" fontWeight={600} sx={{ textTransform: 'uppercase', mb: 1 }}>
             Dépôts disponibles
           </Typography>
@@ -373,7 +373,7 @@ export default function FileDropDashboardPage() {
           )}
         </Paper>
 
-        <Paper sx={{ flex: 1, p: 3, minHeight: 480 }}>
+        <Paper sx={{ flex: 1, p: 3, minHeight: 480, width: '100%' }}>
           {!selectedDrop ? (
             <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="body2" color="text.secondary">
