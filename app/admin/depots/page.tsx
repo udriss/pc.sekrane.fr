@@ -6,8 +6,13 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   List,
@@ -16,11 +21,17 @@ import {
   ListItemText,
   Paper,
   Stack,
+  Tooltip,
   Typography
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DownloadIcon from '@mui/icons-material/Download';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import type { FileDropSubmission } from '@/lib/dataTemplate';
 
 interface FileDropSummary {
@@ -83,6 +94,10 @@ export default function FileDropDashboardPage() {
   const [dropsError, setDropsError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [isMultipleSelection, setIsMultipleSelection] = useState(false);
+  const [selectedSubmissions, setSelectedSubmissions] = useState<string[]>([]);
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
 
   useEffect(() => {
     // Authentication is handled by the server-side middleware which reads the
@@ -134,7 +149,20 @@ export default function FileDropDashboardPage() {
         throw new Error('Impossible de charger les fichiers déposés.');
       }
       const data = await response.json();
-      setSubmissions(data.submissions || []);
+      const submissions = data.submissions || [];
+      setSubmissions(submissions);
+      // Update the drops data for the selected drop
+      setDrops(current =>
+        current.map(drop =>
+          drop.activityId === activityId
+            ? {
+                ...drop,
+                submissionsCount: submissions.length,
+                lastSubmissionAt: submissions.length > 0 ? submissions[0].createdAt : null
+              }
+            : drop
+        )
+      );
     } catch (error: any) {
       console.error('Error loading submissions:', error);
       setSubmissionError(error.message || 'Erreur lors du chargement des fichiers.');
@@ -155,6 +183,10 @@ export default function FileDropDashboardPage() {
   const handleSelectDrop = (activityId: string) => {
     setSelectedId(activityId);
     setFeedback(null);
+    setConfirmingDelete(null);
+    setIsMultipleSelection(false);
+    setSelectedSubmissions([]);
+    setConfirmBulkDeleteOpen(false);
   };
 
   const handleRefreshSubmissions = () => {
@@ -197,7 +229,56 @@ export default function FileDropDashboardPage() {
     } catch (error: any) {
       console.error('Error deleting submission:', error);
       setFeedback({ kind: 'error', message: error.message || 'Erreur lors de la suppression du fichier.' });
+    } finally {
+      setConfirmingDelete(null);
     }
+  };
+
+  const handleBulkDelete = () => {
+    setConfirmBulkDeleteOpen(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!selectedId || selectedSubmissions.length === 0) return;
+    try {
+      const response = await fetch(`/api/file-drop/${selectedId}/submissions`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionIds: selectedSubmissions.map(id => parseInt(id, 10)) })
+      });
+      if (!response.ok) {
+        throw new Error('Suppression impossible.');
+      }
+      setSubmissions((prev) => {
+        const updated = prev.filter((item) => !selectedSubmissions.includes(item.id.toString()));
+        setDrops((current) =>
+          current.map((drop) =>
+            drop.activityId === selectedId
+              ? {
+                  ...drop,
+                  submissionsCount: updated.length,
+                  lastSubmissionAt: updated[0]?.createdAt ?? null
+                }
+              : drop
+          )
+        );
+        return updated;
+      });
+      setFeedback({ kind: 'success', message: `${selectedSubmissions.length} fichier${selectedSubmissions.length > 1 ? 's' : ''} supprimé${selectedSubmissions.length > 1 ? 's' : ''}.` });
+      setSelectedSubmissions([]);
+      setIsMultipleSelection(false);
+      setConfirmBulkDeleteOpen(false);
+    } catch (error: any) {
+      console.error('Error bulk deleting submissions:', error);
+      setFeedback({ kind: 'error', message: error.message || 'Erreur lors de la suppression des fichiers.' });
+      setConfirmBulkDeleteOpen(false);
+    }
+  };
+
+  const handleBulkDownload = () => {
+    if (selectedSubmissions.length === 0) return;
+    const url = `/api/file-drop/${selectedId}/download-selected?ids=${selectedSubmissions.join(',')}`;
+    window.open(url);
   };
 
   const handleDeleteDrop = async (activityId: string) => {
@@ -247,7 +328,7 @@ export default function FileDropDashboardPage() {
       )}
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-        <Paper sx={{ width: { xs: '100%', md: 320 }, p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Paper sx={{ width: { xs: '100%', md: 480 }, p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignSelf: 'flex-start' }}>
           <Typography variant="subtitle1" fontWeight={600} sx={{ textTransform: 'uppercase', mb: 1 }}>
             Dépôts disponibles
           </Typography>
@@ -271,15 +352,16 @@ export default function FileDropDashboardPage() {
                 >
                   <ListItemText
                     primary={drop.displayName}
-                    secondary={drop.courseTitle}
-                    primaryTypographyProps={{ fontWeight: 600 }}
+                    secondary={`${drop.classeLabel} — ${drop.courseTitle}`}
+                    slotProps={{ primary: { fontWeight: 600 } }}
                   />
                   <Stack direction="column" alignItems="flex-end" spacing={0.5}>
                     <Chip
-                      label={drop.isOpen ? 'Ouvert' : 'Fermé'}
+                      variant='outlined'
+                      label={drop.isOpen ? 'ouvert' : 'fermé'}
                       color={drop.isOpen ? 'success' : 'error'}
                       size="small"
-                      sx={{ minWidth: 64, textTransform: 'uppercase' }}
+                      sx={{ minWidth: 64, fontVariant: 'small-caps' }}
                     />
                     <Typography variant="caption" color="text.secondary">
                       {drop.submissionsCount} fichier{drop.submissionsCount > 1 ? 's' : ''}
@@ -314,11 +396,13 @@ export default function FileDropDashboardPage() {
                 </Box>
                 <Stack direction="row" spacing={1}>
                   <Chip
+                    variant='outlined'
                     label={selectedDrop.isOpen ? 'Ouvert' : 'Fermé'}
                     color={selectedDrop.isOpen ? 'success' : 'error'}
                     sx={{ textTransform: 'uppercase', fontWeight: 600 }}
                   />
                   <Chip
+                    variant='outlined'
                     label={selectedDrop.enabled ? 'Activé' : 'Désactivé'}
                     color={selectedDrop.enabled ? 'primary' : 'default'}
                     sx={{ textTransform: 'uppercase', fontWeight: 600 }}
@@ -336,7 +420,7 @@ export default function FileDropDashboardPage() {
                       <Chip label="Tous formats" color="primary" size="small" />
                     ) : (
                       selectedDrop.acceptedTypes.map((type) => (
-                        <Chip key={type} label={type.toUpperCase()} variant="outlined" size="small" />
+                        <Chip key={type} label={type.toUpperCase()} variant="outlined" size="small" sx={{ fontWeight: 400, textTransform: 'lowercase', fontVariant: 'small-caps' }} />
                       ))
                     )}
                   </Stack>
@@ -386,13 +470,76 @@ export default function FileDropDashboardPage() {
 
               <Divider />
 
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="subtitle1" fontWeight={600}>
-                  Fichiers déposés
+              <Stack direction="column" alignItems="center" justifyContent="space-between">
+                <Typography variant="subtitle1" fontWeight={600} sx={{ width: '100%' }}>
+                  Fichiers déposés {isMultipleSelection && selectedSubmissions.length > 0 && `(${selectedSubmissions.length} sélectionné${selectedSubmissions.length > 1 ? 's' : ''})`}
                 </Typography>
-                <IconButton onClick={handleRefreshSubmissions} disabled={loadingSubmissions}>
-                  <RefreshIcon />
-                </IconButton>
+                <Stack direction="row"
+                sx = {{
+                  alignSelf: 'flex-end',
+                  gap: 1
+                }}
+                >
+                  {isMultipleSelection && (
+                    <>
+                      <Tooltip title="Tout sélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
+                            <CheckBoxIcon />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Tout désélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
+                            <CheckBoxOutlineBlankIcon />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </>
+                  )}
+                  {isMultipleSelection && selectedSubmissions.length > 0 && (
+                    <>
+                      <Tooltip title="Télécharger sélectionnés">
+                        <IconButton onClick={handleBulkDownload}>
+                          <ArchiveIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Supprimer sélectionnés">
+                        <IconButton color="error" onClick={handleBulkDelete}>
+                          <DeleteForeverIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                  {isMultipleSelection && 
+                  <Divider orientation="vertical" flexItem />
+                  }
+                  <Tooltip title="Télécharger tous les fichiers (ZIP)">
+                    <span>
+                    <IconButton onClick={() => window.open(`/api/file-drop/${selectedId}/download-all`)} disabled={!submissions.length}>
+                      <ArchiveIcon />
+                    </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Actualiser la liste">
+                    <span>
+                    <IconButton onClick={handleRefreshSubmissions} disabled={loadingSubmissions}>
+                      <RefreshIcon />
+                    </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={isMultipleSelection ? "Annuler la sélection multiple" : "Sélection multiple"}>
+                    <IconButton onClick={() => {
+                      setIsMultipleSelection(!isMultipleSelection);
+                      setSelectedSubmissions([]);
+                      setConfirmingDelete(null);
+                      setConfirmBulkDeleteOpen(false);
+                    }}>
+                      <CheckBoxIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               </Stack>
 
               {submissionError && (
@@ -413,28 +560,50 @@ export default function FileDropDashboardPage() {
                     <ListItem
                       key={submission.id}
                       secondaryAction={
-                        <Stack direction="row" spacing={1}>
-                          <IconButton onClick={() => handleDownloadSubmission(submission.id)}>
-                            <DownloadIcon />
-                          </IconButton>
-                          <IconButton color="error" onClick={() => handleDeleteSubmission(submission.id)}>
-                            <DeleteForeverIcon />
-                          </IconButton>
-                        </Stack>
+                        isMultipleSelection ? null : confirmingDelete === submission.id ? (
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Confirmer suppression">
+                              <IconButton color="success" onClick={() => handleDeleteSubmission(submission.id)}>
+                                <CheckIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Annuler">
+                              <IconButton onClick={() => setConfirmingDelete(null)}>
+                                <CloseIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        ) : (
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Télécharger">
+                              <IconButton onClick={() => handleDownloadSubmission(submission.id)}>
+                                <DownloadIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Supprimer">
+                              <IconButton color="error" onClick={() => setConfirmingDelete(submission.id)}>
+                                <DeleteForeverIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        )
                       }
                     >
+                      {isMultipleSelection && (
+                        <Checkbox
+                          checked={selectedSubmissions.includes(submission.id.toString())}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSubmissions(prev => [...prev, submission.id.toString()]);
+                            } else {
+                              setSelectedSubmissions(prev => prev.filter(id => id !== submission.id.toString()));
+                            }
+                          }}
+                        />
+                      )}
                       <ListItemText
                         primary={submission.originalName}
-                        secondary={
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                            <Typography variant="caption" color="text.secondary">
-                              {formatSize(submission.fileSize)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {formatDate(submission.createdAt)}
-                            </Typography>
-                          </Stack>
-                        }
+                        secondary={`${formatSize(submission.fileSize)} • ${formatDate(submission.createdAt)}`}
                       />
                     </ListItem>
                   ))}
@@ -444,6 +613,46 @@ export default function FileDropDashboardPage() {
           )}
         </Paper>
       </Stack>
+
+      <Dialog
+        open={confirmBulkDeleteOpen}
+        onClose={() => setConfirmBulkDeleteOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Confirmer la suppression de {selectedSubmissions.length} fichier{selectedSubmissions.length > 1 ? 's' : ''}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Cette action est irréversible.
+          </Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Fichiers à supprimer :
+          </Typography>
+          <List dense>
+            {selectedSubmissions.map((id) => {
+              const submission = submissions.find(s => s.id.toString() === id);
+              return submission ? (
+                <ListItem key={id} sx={{ py: 0.5 }}>
+                  <ListItemText
+                    primary={submission.originalName}
+                    secondary={`${formatSize(submission.fileSize)} • ${formatDate(submission.createdAt)}`}
+                  />
+                </ListItem>
+              ) : null;
+            })}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmBulkDeleteOpen(false)}>
+            Annuler
+          </Button>
+          <Button onClick={confirmBulkDelete} color="error" variant="outlined">
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

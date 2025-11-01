@@ -31,6 +31,27 @@ const isWithinWindow = (start?: string | null, end?: string | null) => {
   return true;
 };
 
+const mimeTypeMap: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.odt': 'application/vnd.oasis.opendocument.text',
+  '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
+  '.tex': 'text/x-tex',
+  '.txt': 'text/plain',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.zip': 'application/zip',
+  '.mp4': 'video/mp4',
+  '.mov': 'video/quicktime',
+  '.avi': 'video/x-msvideo',
+  '.mp3': 'audio/mpeg',
+};
+
 interface FileDropZoneProps {
   activity: Activity;
   courseId: string;
@@ -40,7 +61,39 @@ type StatusKind = 'success' | 'error' | 'info';
 
 export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
   const pondRef = useRef<any>(null);
-  const [status, setStatus] = useState<{ kind: StatusKind; message: string } | null>(null);
+  const [status, setStatus] = useState<{ kind: StatusKind; message: string | React.ReactNode } | null>(null);
+
+  const checkRateLimit = () => {
+    const key = 'fileDropUploads';
+    const now = Date.now();
+    const windowMs = 10 * 60 * 1000; // 10 minutes
+    const maxUploads = 3;
+    
+    let uploads: number[] = [];
+    try {
+      const stored = localStorage.getItem(key);
+      uploads = stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      // If localStorage fails, allow upload
+      return true;
+    }
+    
+    // Filter out old uploads
+    uploads = uploads.filter(timestamp => now - timestamp < windowMs);
+    
+    if (uploads.length >= maxUploads) {
+      return false;
+    }
+    
+    uploads.push(now);
+    try {
+      localStorage.setItem(key, JSON.stringify(uploads));
+    } catch (e) {
+      // If can't save, still allow
+    }
+    
+    return true;
+  };
 
   const config: FileDropConfig = useMemo(() => {
     if (activity.dropzoneConfig && typeof activity.dropzoneConfig === 'object') {
@@ -60,13 +113,15 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
   const configuredTypes = Array.isArray(config.acceptedTypes) ? config.acceptedTypes : [];
   const acceptsAll = configuredTypes.length === 0;
   const maxSizeMb = config.maxSizeMb ?? 50;
+  const acceptedMimeTypes = acceptsAll ? undefined : configuredTypes.map(ext => mimeTypeMap[ext]).filter(Boolean);
+  const acceptedFileTypes = acceptsAll ? undefined : configuredTypes;
 
   const handleProcess = (error: any, file: any) => {
     if (error) {
       setStatus({ kind: 'error', message: error.body?.error || 'Échec de l\'envoi du fichier.' });
       return;
     }
-    setStatus({ kind: 'success', message: `"${file.filename}" a été déposé avec succès.` });
+    setStatus({ kind: 'success', message: <span><b>{file.filename}</b> a été déposé avec succès.</span> });
   pondRef.current?.removeFile(file.id);
   };
 
@@ -196,10 +251,27 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
         maxFiles={10}
         server={serverConfig}
         disabled={!isActive}
-  acceptedFileTypes={acceptsAll ? undefined : configuredTypes}
+        acceptedFileTypes={acceptedMimeTypes}
         maxFileSize={`${maxSizeMb}MB`}
         labelIdle='Déposez vos fichiers ici ou <span class="filepond--label-action">parcourez</span>'
+        labelFileTypeNotAllowed="Type de fichier non autorisé"
+        labelMaxFileSizeExceeded="Fichier dépasse la taille maximale"
+        labelTapToCancel="Appuyez pour annuler"
+        labelTapToRetry="Appuyez pour réessayer"
+        labelTapToUndo="Appuyez pour annuler"
+        labelFileLoadError="Erreur lors du chargement du fichier"
+        labelFileProcessing="Téléchargement en cours..."
         credits={false}
+        onaddfile={(error, file) => {
+          if (error) return;
+          if (!checkRateLimit()) {
+            setStatus({ kind: 'error', message: 'Limite d\'envoi dépassée. Veuillez attendre 10 minutes avant de réessayer.' });
+            // Remove the file from FilePond to prevent upload
+            setTimeout(() => pondRef.current?.removeFile(file.id), 100);
+            return false;
+          }
+          return true;
+        }}
         onprocessfile={handleProcess}
         onprocessfileabort={() => setStatus({ kind: 'info', message: 'Envoi annulé.' })}
       />

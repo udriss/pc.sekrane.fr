@@ -29,10 +29,35 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const activityId = formData.get('activityId') as string;
-    const file = formData.get('file') as File;
+    const rawFileEntries = formData.getAll('file');
+    const file = rawFileEntries.find((entry): entry is File => entry instanceof File) ?? null;
+
+    const debugEntries: Array<{ key: string; type: string; isBlob: boolean; constructorName: string | undefined }> = [];
+    formData.forEach((value, key) => {
+      debugEntries.push({
+        key,
+        type: typeof value,
+        isBlob: value instanceof Blob,
+        constructorName: (value as any)?.constructor?.name
+      });
+    });
+
 
     if (!activityId || !file) {
+      console.log('Missing activityId or file:', { activityId, hasFile: !!file });
       return NextResponse.json({ error: 'Activity ID and file are required' }, { status: 400 });
+    }
+
+    // Vérifier le type de l'objet file
+    if (!(file instanceof File)) {
+      console.log('File is not a File instance:', file);
+      return NextResponse.json({ error: 'Le fichier n\'est pas valide' }, { status: 400 });
+    }
+
+    // Vérifier que file.name existe
+    if (!file.name || typeof file.name !== 'string') {
+      console.log('Invalid file name:', file.name);
+      return NextResponse.json({ error: 'Nom de fichier invalide' }, { status: 400 });
     }
 
     const activity = await getActivityById(activityId);
@@ -52,7 +77,8 @@ export async function POST(req: NextRequest) {
       ? (config.acceptedTypes as string[])
       : [];
 
-    if (acceptedTypes.length && !acceptedTypes.includes(path.extname(file.name).toLowerCase())) {
+    const fileExtension = path.extname(file.name).toLowerCase();
+    if (acceptedTypes.length && !acceptedTypes.includes(fileExtension)) {
       return NextResponse.json({ error: 'Type de fichier non autorisé' }, { status: 415 });
     }
 

@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sub
     }
 
     const submission = await prisma.fileDropSubmission.findUnique({
-      where: { id: submissionId },
+      where: { id: parseInt(submissionId) },
       include: {
         activity: {
           select: { courseId: true }

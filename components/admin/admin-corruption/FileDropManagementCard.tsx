@@ -19,11 +19,23 @@ import {
   ListItemText,
   IconButton,
   Stack,
-  Chip
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Tooltip,
+  Alert,
+  Divider
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import ArchiveIcon from '@mui/icons-material/Archive';
 import type { Course, Classe, Activity, FileDropSubmission } from '@/lib/dataTemplate';
 import { FILE_TYPE_GROUPS } from './file-drop-options';
 import { SuccessMessage, WarningMessage, ErrorMessage } from '@/components/message-display';
@@ -93,6 +105,10 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
   const [submissions, setSubmissions] = useState<FileDropSubmission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [submissionError, setSubmissionError] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [isMultipleSelection, setIsMultipleSelection] = useState(false);
+  const [selectedSubmissions, setSelectedSubmissions] = useState<string[]>([]);
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
 
   const filteredCourses = useMemo(() => {
     return courses
@@ -253,6 +269,39 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
     }
   };
 
+  const handleBulkDelete = () => {
+    setConfirmBulkDeleteOpen(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!selectedDropId || selectedSubmissions.length === 0) return;
+    try {
+      const response = await fetch(`/api/file-drop/${selectedDropId}/submissions`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionIds: selectedSubmissions.map(id => parseInt(id, 10)) })
+      });
+      if (!response.ok) {
+        throw new Error('Suppression impossible.');
+      }
+      setSubmissions((prev) => prev.filter((item) => !selectedSubmissions.includes(item.id.toString())));
+      showSnackbar(`${selectedSubmissions.length} fichier${selectedSubmissions.length > 1 ? 's' : ''} supprimé${selectedSubmissions.length > 1 ? 's' : ''}`, 'success');
+      setSelectedSubmissions([]);
+      setIsMultipleSelection(false);
+      setConfirmBulkDeleteOpen(false);
+    } catch (error: any) {
+      console.error('Error bulk deleting submissions:', error);
+      showSnackbar(error.message || 'Erreur lors de la suppression des fichiers', 'error');
+      setConfirmBulkDeleteOpen(false);
+    }
+  };
+
+  const handleBulkDownload = () => {
+    if (selectedSubmissions.length === 0) return;
+    const url = `/api/file-drop/${selectedDropId}/download-selected?ids=${selectedSubmissions.join(',')}`;
+    window.open(url);
+  };
+
   const handleDownloadSubmission = (submissionId: string) => {
     window.open(`/api/file-drop/download/${submissionId}`);
   };
@@ -309,7 +358,13 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
             </InputLabel>
             <MuiSelect
               value={selectedDropId}
-              onChange={(e) => setSelectedDropId(e.target.value)}
+              onChange={(e) => {
+                setSelectedDropId(e.target.value);
+                setConfirmingDelete(null);
+                setIsMultipleSelection(false);
+                setSelectedSubmissions([]);
+                setConfirmBulkDeleteOpen(false);
+              }}
               label="Sélectionner un dépôt"
             >
               {(courses.find((c) => c.id === selectedCourse)?.activities || [])
@@ -429,17 +484,78 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
               </Button>
 
               <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Fichiers déposés ({submissions.length})
+                <Stack direction="column" alignItems="center" justifyContent="space-between">
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ width: '100%' }}>
+                    Fichiers déposés {isMultipleSelection && selectedSubmissions.length > 0 && `(${selectedSubmissions.length} sélectionné${selectedSubmissions.length > 1 ? 's' : ''})`}
                   </Typography>
-                  <Box>
-                    <IconButton onClick={fetchSubmissions} disabled={!selectedDropId || loadingSubmissions}>
-                      <RefreshIcon />
-                    </IconButton>
-                  </Box>
+                  <Stack direction="row"
+                  sx = {{
+                    alignSelf: 'flex-end',
+                    gap: 1
+                  }}
+                  >
+                    {isMultipleSelection && (
+                      <>
+                        <Tooltip title="Tout sélectionner">
+                          <span>
+                            <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
+                              <CheckBoxIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Tout désélectionner">
+                          <span>
+                            <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
+                              <CheckBoxOutlineBlankIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </>
+                    )}
+                    {isMultipleSelection && selectedSubmissions.length > 0 && (
+                      <>
+                        <Tooltip title="Télécharger sélectionnés">
+                          <IconButton onClick={handleBulkDownload}>
+                            <ArchiveIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer sélectionnés">
+                          <IconButton color="error" onClick={handleBulkDelete}>
+                            <DeleteForeverIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+                    {isMultipleSelection &&
+                    <Divider orientation="vertical" flexItem />
+                    }
+                    <Tooltip title="Télécharger tous les fichiers (ZIP)">
+                      <span>
+                      <IconButton onClick={() => window.open(`/api/file-drop/${selectedDropId}/download-all`)} disabled={!submissions.length}>
+                        <ArchiveIcon />
+                      </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="Actualiser la liste">
+                      <span>
+                      <IconButton onClick={fetchSubmissions} disabled={!selectedDropId || loadingSubmissions}>
+                        <RefreshIcon />
+                      </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title={isMultipleSelection ? "Annuler la sélection multiple" : "Sélection multiple"}>
+                      <IconButton onClick={() => {
+                        setIsMultipleSelection(!isMultipleSelection);
+                        setSelectedSubmissions([]);
+                        setConfirmingDelete(null);
+                        setConfirmBulkDeleteOpen(false);
+                      }}>
+                        <CheckBoxIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
                 </Stack>
-                {submissionError && <ErrorMessage message={submissionError} />}
+                {submissionError && <Alert severity="error" sx={{ mt: 2 }}>{submissionError}</Alert>}
                 {!submissionError && !loadingSubmissions && submissions.length === 0 && (
                   <Typography variant="body2" color="text.secondary">
                     Aucun fichier déposé pour le moment.
@@ -450,16 +566,47 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
                     <ListItem
                       key={item.id}
                       secondaryAction={
-                        <Stack direction="row" spacing={1}>
-                          <IconButton onClick={() => handleDownloadSubmission(item.id)}>
-                            <DownloadIcon />
-                          </IconButton>
-                          <IconButton color="error" onClick={() => handleDeleteSubmission(item.id)}>
-                            <DeleteForeverIcon />
-                          </IconButton>
-                        </Stack>
+                        isMultipleSelection ? null : confirmingDelete === item.id ? (
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Confirmer suppression">
+                              <IconButton color="success" onClick={() => handleDeleteSubmission(item.id)}>
+                                <CheckIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Annuler">
+                              <IconButton onClick={() => setConfirmingDelete(null)}>
+                                <CloseIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        ) : (
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Télécharger">
+                              <IconButton onClick={() => handleDownloadSubmission(item.id)}>
+                                <DownloadIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Supprimer">
+                              <IconButton color="error" onClick={() => setConfirmingDelete(item.id)}>
+                                <DeleteForeverIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        )
                       }
                     >
+                      {isMultipleSelection && (
+                        <Checkbox
+                          checked={selectedSubmissions.includes(item.id.toString())}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSubmissions(prev => [...prev, item.id.toString()]);
+                            } else {
+                              setSelectedSubmissions(prev => prev.filter(id => id !== item.id.toString()));
+                            }
+                          }}
+                        />
+                      )}
                       <ListItemText
                         primary={item.originalName}
                         secondary={
@@ -483,6 +630,46 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
               Sélectionnez un dépôt pour voir les détails.
             </Typography>
           )}
-        </Box>
+
+        <Dialog
+          open={confirmBulkDeleteOpen}
+          onClose={() => setConfirmBulkDeleteOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            Confirmer la suppression de {selectedSubmissions.length} fichier{selectedSubmissions.length > 1 ? 's' : ''}
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Cette action est irréversible.
+            </Typography>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Fichiers à supprimer :
+            </Typography>
+            <List dense>
+              {selectedSubmissions.map((id) => {
+                const submission = submissions.find(s => s.id.toString() === id);
+                return submission ? (
+                  <ListItem key={id} sx={{ py: 0.5 }}>
+                    <ListItemText
+                      primary={submission.originalName}
+                      secondary={`${formatSize(submission.fileSize)} • ${format(new Date(submission.createdAt), 'dd MMM yyyy HH:mm', { locale: fr })}`}
+                    />
+                  </ListItem>
+                ) : null;
+              })}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmBulkDeleteOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={confirmBulkDelete} color="error" variant="outlined">
+              Supprimer
+            </Button>
+          </DialogActions>
+        </Dialog>
+    </Box>
   );
 };

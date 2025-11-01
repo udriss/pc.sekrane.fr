@@ -3,13 +3,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Course, Classe } from '@/lib/data';
-import { Box, Accordion, AccordionSummary, AccordionDetails, Typography, ToggleButtonGroup, ToggleButton, Tooltip } from '@mui/material';
+import { Box, Accordion, AccordionSummary, AccordionDetails, Typography, ToggleButtonGroup, ToggleButton, Tooltip, Chip, alpha } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import SchoolIcon from '@mui/icons-material/School';
+import ClassIcon from '@mui/icons-material/Class';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import FolderIcon from '@mui/icons-material/Folder';
+import TimelineIcon from '@mui/icons-material/Timeline';
 
 
 // Import des composants de modification
@@ -36,6 +39,114 @@ interface UnifiedAdminActionsProps {
 
 type ActionMode = 'edit' | 'add';
 
+interface StyledAdminAccordionProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error';
+  mode: ActionMode;
+  setMode: (mode: ActionMode) => void;
+  children: React.ReactNode;
+  showModeToggle?: boolean;
+}
+
+function StyledAdminAccordion({ title, description, icon, color, mode, setMode, children, showModeToggle = true }: StyledAdminAccordionProps) {
+  return (
+    <Accordion
+      sx={{
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: (theme) => theme.shadows[2],
+        '&:before': { display: 'none' },
+        '&:not(:last-child)': { mb: 0 },
+        background: 'background.paper',
+        transition: 'all 0.3s ease-in-out',
+        '&:hover': {
+          boxShadow: (theme) => theme.shadows[4],
+          transform: 'translateY(-2px)',
+        },
+        mb: 0,
+      }}
+    >
+      <AccordionSummary
+        component="div"
+        expandIcon={<ExpandMoreIcon sx={{ color: `${color}.main` }} />}
+        sx={{
+          borderRadius: 2,
+          minHeight: 64,
+          '& .MuiAccordionSummary-content': {
+            alignItems: 'center',
+          },
+          background: (theme) => `linear-gradient(135deg, ${theme.palette[color]}15, ${theme.palette[color].main}08)`,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 2,
+              borderColor: (theme) => `linear-gradient(135deg, ${theme.palette[color].main}, ${theme.palette[color].dark})`,
+              borderWidth: 2,
+              borderStyle: 'solid',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: (theme) => alpha(theme.palette[color].dark, 0.4),
+              boxShadow: (theme) => theme.shadows[2],
+            }}
+          >
+            {icon}
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant='h6' fontWeight="700" sx={{ fontVariant: 'small-caps', color: `text.primary` }}>
+              {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {description}
+            </Typography>
+          </Box>
+        </Box>
+        {showModeToggle && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 2 }}>
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              onChange={(e, newMode) => {
+                if (newMode !== null) {
+                  setMode(newMode);
+                }
+              }}
+              size="small"
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                backgroundColor: 'background.paper',
+                borderRadius: 1,
+                boxShadow: 1,
+              }}
+            >
+              <ToggleButton value="edit" aria-label="modifier" sx={{ px: 1.5 }}>
+                <Tooltip title="Modifier">
+                  <EditIcon fontSize="small" color={mode === 'edit' ? 'warning' : 'inherit'} />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="add" aria-label="ajouter" sx={{ px: 1.5 }}>
+                <Tooltip title="Ajouter">
+                  <AddCircleIcon fontSize="small" color={mode === 'add' ? 'success' : 'inherit'} />
+                </Tooltip>
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        )}
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 0, mt: 2, }}>
+        {children}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
 export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, showSnackbar, progressionState }: UnifiedAdminActionsProps) {
   const [activityMode, setActivityMode] = useState<ActionMode>('edit');
   const [courseMode, setCourseMode] = useState<ActionMode>('edit');
@@ -58,13 +169,6 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
   const [selectedClassForDepot, setSelectedClassForDepot] = useState<string>('');
   const [selectedCourseForDepot, setSelectedCourseForDepot] = useState<string>('');
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   useEffect(() => {
     const fetchData = async () => {
       const fetchRes = await fetch('/api/courses');
@@ -77,261 +181,170 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
   }, [setClasses, setCourses]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <DndContext sensors={sensors} collisionDetection={closestCenter}>
-        {/* ACTIVITÉ */}
-        <Accordion>
-          <AccordionSummary component="div" expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-              <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-                activité
-              </Typography>
-              <ToggleButtonGroup
-                value={activityMode}
-                exclusive
-                onChange={(e, newMode) => {
-                  if (newMode !== null) {
-                    setActivityMode(newMode);
-                  }
-                }}
-                size="small"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ToggleButton value="edit" aria-label="modifier">
-                  <Tooltip title="Modifier">
-                    <EditIcon fontSize="small" color={activityMode === 'edit' ? 'warning' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-                <ToggleButton value="add" aria-label="ajouter">
-                  <Tooltip title="Ajouter">
-                    <AddCircleIcon fontSize="small" color={activityMode === 'add' ? 'success' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            {activityMode === 'edit' ? (
-              <ActivityModificationCard
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForActivity}
-                setSelectedClass={setSelectedClassForActivity}
-                selectedCourse={selectedCourseForActivity}
-                setSelectedCourse={setSelectedCourseForActivity}
-                selectedActivity={selectedActivity}
-                setSelectedActivity={setSelectedActivity}
-              />
-            ) : (
-              <ActivityGenerationSection
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForActivity}
-                setSelectedClass={setSelectedClassForActivity}
-                selectedCourse={selectedCourseForActivity}
-                setSelectedCourse={setSelectedCourseForActivity}
-              />
-            )}
-          </AccordionDetails>
-        </Accordion>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 0,
+      p: 2,
+      background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
+      borderRadius: 3,
+      minHeight: '100%'
+    }}>
+      {/* ACTIVITÉ */}
+        <StyledAdminAccordion
+          title="activité"
+          description="Gérer les activités pédagogiques"
+          icon={<SchoolIcon />}
+          color="primary"
+          mode={activityMode}
+          setMode={setActivityMode}
+        >
+          {activityMode === 'edit' ? (
+            <ActivityModificationCard
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForActivity}
+              setSelectedClass={setSelectedClassForActivity}
+              selectedCourse={selectedCourseForActivity}
+              setSelectedCourse={setSelectedCourseForActivity}
+              selectedActivity={selectedActivity}
+              setSelectedActivity={setSelectedActivity}
+            />
+          ) : (
+            <ActivityGenerationSection
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForActivity}
+              setSelectedClass={setSelectedClassForActivity}
+              selectedCourse={selectedCourseForActivity}
+              setSelectedCourse={setSelectedCourseForActivity}
+            />
+          )}
+        </StyledAdminAccordion>
 
         {/* COURS */}
-        <Accordion>
-          <AccordionSummary component="div" expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-              <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-                cours
-              </Typography>
-              <ToggleButtonGroup
-                value={courseMode}
-                exclusive
-                onChange={(e, newMode) => {
-                  if (newMode !== null) {
-                    setCourseMode(newMode);
-                  }
-                }}
-                size="small"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ToggleButton value="edit" aria-label="modifier">
-                  <Tooltip title="Modifier">
-                    <EditIcon fontSize="small" color={courseMode === 'edit' ? 'warning' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-                <ToggleButton value="add" aria-label="ajouter">
-                  <Tooltip title="Ajouter">
-                    <AddCircleIcon fontSize="small" color={courseMode === 'add' ? 'success' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            {courseMode === 'edit' ? (
-              <CourseModificationCard
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForCourse}
-                setSelectedClass={setSelectedClassForCourse}
-                selectedCourse={selectedCourseForCourse}
-                setSelectedCourse={setSelectedCourseForCourse}
-              />
-            ) : (
-              <CourseGenerationSection
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-              />
-            )}
-          </AccordionDetails>
-        </Accordion>
+        <StyledAdminAccordion
+          title="cours"
+          description="Organiser les cours et programmes"
+          icon={<MenuBookIcon />}
+          color="error"
+          mode={courseMode}
+          setMode={setCourseMode}
+        >
+          {courseMode === 'edit' ? (
+            <CourseModificationCard
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForCourse}
+              setSelectedClass={setSelectedClassForCourse}
+              selectedCourse={selectedCourseForCourse}
+              setSelectedCourse={setSelectedCourseForCourse}
+            />
+          ) : (
+            <CourseGenerationSection
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+            />
+          )}
+        </StyledAdminAccordion>
 
         {/* CLASSE */}
-        <Accordion>
-          <AccordionSummary component="div" expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-              <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-                classe
-              </Typography>
-              <ToggleButtonGroup
-                value={classMode}
-                exclusive
-                onChange={(e, newMode) => {
-                  if (newMode !== null) {
-                    setClassMode(newMode);
-                  }
-                }}
-                size="small"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ToggleButton value="edit" aria-label="modifier">
-                  <Tooltip title="Modifier">
-                    <EditIcon fontSize="small" color={classMode === 'edit' ? 'warning' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-                <ToggleButton value="add" aria-label="ajouter">
-                  <Tooltip title="Ajouter">
-                    <AddCircleIcon fontSize="small" color={classMode === 'add' ? 'success' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            {classMode === 'edit' ? (
-              <ClassModificationCard
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForClass}
-                setSelectedClass={setSelectedClassForClass}
-              />
-            ) : (
-              <ClassGenerationSection
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-              />
-            )}
-          </AccordionDetails>
-        </Accordion>
+        <StyledAdminAccordion
+          title="classe"
+          description="Gérer les groupes d'étudiants"
+          icon={<ClassIcon />}
+          color="info"
+          mode={classMode}
+          setMode={setClassMode}
+        >
+          {classMode === 'edit' ? (
+            <ClassModificationCard
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForClass}
+              setSelectedClass={setSelectedClassForClass}
+            />
+          ) : (
+            <ClassGenerationSection
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+            />
+          )}
+        </StyledAdminAccordion>
 
         {/* DÉPÔT */}
-        <Accordion>
-          <AccordionSummary component="div" expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-              <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-                dépôt
-              </Typography>
-              <ToggleButtonGroup
-                value={depotMode}
-                exclusive
-                onChange={(e, newMode) => {
-                  if (newMode !== null) {
-                    setDepotMode(newMode);
-                  }
-                }}
-                size="small"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ToggleButton value="edit" aria-label="modifier">
-                  <Tooltip title="Modifier">
-                    <EditIcon fontSize="small" color={depotMode === 'edit' ? 'warning' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-                <ToggleButton value="add" aria-label="ajouter">
-                  <Tooltip title="Ajouter">
-                    <AddCircleIcon fontSize="small" color={depotMode === 'add' ? 'success' : 'inherit'} />
-                  </Tooltip>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            {depotMode === 'edit' ? (
-              <FileDropManagementCard
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForDepot}
-                setSelectedClass={setSelectedClassForDepot}
-                selectedCourse={selectedCourseForDepot}
-                setSelectedCourse={setSelectedCourseForDepot}
-              />
-            ) : (
-              <FileDropCreationSection
-                courses={courses}
-                setCourses={setCourses}
-                classes={classes}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                selectedClass={selectedClassForDepot}
-                setSelectedClass={setSelectedClassForDepot}
-                selectedCourse={selectedCourseForDepot}
-                setSelectedCourse={setSelectedCourseForDepot}
-              />
-            )}
-          </AccordionDetails>
-        </Accordion>
+        <StyledAdminAccordion
+          title="dépôt"
+          description="Gérer les zones de dépôt de fichiers"
+          icon={<FolderIcon />}
+          color="success"
+          mode={depotMode}
+          setMode={setDepotMode}
+        >
+          {depotMode === 'edit' ? (
+            <FileDropManagementCard
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForDepot}
+              setSelectedClass={setSelectedClassForDepot}
+              selectedCourse={selectedCourseForDepot}
+              setSelectedCourse={setSelectedCourseForDepot}
+            />
+          ) : (
+            <FileDropCreationSection
+              courses={courses}
+              setCourses={setCourses}
+              classes={classes}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              selectedClass={selectedClassForDepot}
+              setSelectedClass={setSelectedClassForDepot}
+              selectedCourse={selectedCourseForDepot}
+              setSelectedCourse={setSelectedCourseForDepot}
+            />
+          )}
+        </StyledAdminAccordion>
 
         {/* PROGRESSION */}
         {progressionState && (
-          <Accordion>
-            <AccordionSummary component="div" expandIcon={<ExpandMoreIcon />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                <Typography variant='body2' fontWeight="bold" fontSize={23} sx={{ fontVariant: 'small-caps' }}>
-                  progression
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <ProgressionModificationCard
-                courses={courses}
-                classes={classes}
-                setCourses={setCourses}
-                setClasses={setClasses}
-                showSnackbar={showSnackbar}
-                progressionState={progressionState}
-              />
-            </AccordionDetails>
-          </Accordion>
+          <StyledAdminAccordion
+            title="progression"
+            description="Suivre l'avancement pédagogique"
+            icon={<TimelineIcon />}
+            color="warning"
+            mode="edit"
+            setMode={() => {}}
+            showModeToggle={false}
+          >
+            <ProgressionModificationCard
+              courses={courses}
+              classes={classes}
+              setCourses={setCourses}
+              setClasses={setClasses}
+              showSnackbar={showSnackbar}
+              progressionState={progressionState}
+            />
+          </StyledAdminAccordion>
         )}
-      </DndContext>
     </Box>
   );
 }
