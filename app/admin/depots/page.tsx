@@ -22,7 +22,12 @@ import {
   Paper,
   Stack,
   Tooltip,
-  Typography
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -31,7 +36,8 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import SelectAllIcon from '@mui/icons-material/SelectAll';
+import DeselectIcon from '@mui/icons-material/Deselect';
 import type { FileDropSubmission } from '@/lib/dataTemplate';
 
 interface FileDropSummary {
@@ -410,41 +416,42 @@ export default function FileDropDashboardPage() {
                 </Stack>
               </Stack>
 
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Types acceptés
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
-                    {selectedDrop.acceptedTypes.length === 0 ? (
-                      <Chip label="Tous formats" color="primary" size="small" />
-                    ) : (
-                      selectedDrop.acceptedTypes.map((type) => (
-                        <Chip key={type} label={type.toUpperCase()} variant="outlined" size="small" sx={{ fontWeight: 400, textTransform: 'lowercase', fontVariant: 'small-caps' }} />
-                      ))
-                    )}
-                  </Stack>
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Fenêtre de dépôt
-                  </Typography>
-                  <Stack spacing={0.5} mt={1}>
-                    <Typography variant="body2">Début : {formatDate(selectedDrop.startAt)}</Typography>
-                    <Typography variant="body2">Fin : {formatDate(selectedDrop.endAt)}</Typography>
-                  </Stack>
-                </Box>
-                <Box sx={{ flexShrink: 0 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Taille max.
-                  </Typography>
-                  <Typography variant="body2" fontWeight={600} mt={1}>
-                    {selectedDrop.maxSizeMb} Mo
-                  </Typography>
-                </Box>
-              </Stack>
+                <Table size="small" >
+                  <TableBody>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Types acceptés</TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          {selectedDrop.acceptedTypes.length === 0 ? (
+                            <Chip label="Tous formats" color="primary" size="small" />
+                          ) : (
+                            selectedDrop.acceptedTypes.map((type) => (
+                              <Chip key={type} label={type.toUpperCase()} variant="outlined" size="small" sx={{ fontWeight: 400, textTransform: 'lowercase', fontVariant: 'small-caps' }} />
+                            ))
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Fenêtre de dépôt</TableCell>
+                      <TableCell>
+                        <Stack spacing={0.5}>
+                          <Typography variant="body2">Début : {formatDate(selectedDrop.startAt)}</Typography>
+                          <Typography variant="body2">Fin : {formatDate(selectedDrop.endAt)}</Typography>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Taille max.</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {selectedDrop.maxSizeMb} Mo
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
 
-              <Divider />
 
               <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
                 <Box>
@@ -480,24 +487,6 @@ export default function FileDropDashboardPage() {
                   gap: 1
                 }}
                 >
-                  {isMultipleSelection && (
-                    <>
-                      <Tooltip title="Tout sélectionner">
-                        <span>
-                          <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
-                            <CheckBoxIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Tout désélectionner">
-                        <span>
-                          <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
-                            <CheckBoxOutlineBlankIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </>
-                  )}
                   {isMultipleSelection && selectedSubmissions.length > 0 && (
                     <>
                       <Tooltip title="Télécharger sélectionnés">
@@ -509,6 +498,25 @@ export default function FileDropDashboardPage() {
                         <IconButton color="error" onClick={handleBulkDelete}>
                           <DeleteForeverIcon />
                         </IconButton>
+                      </Tooltip>
+                      <Divider orientation="vertical" flexItem />
+                    </>
+                  )}
+                  {isMultipleSelection && (
+                    <>
+                      <Tooltip title="Tout sélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
+                            <SelectAllIcon />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Tout désélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
+                            <DeselectIcon />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </>
                   )}

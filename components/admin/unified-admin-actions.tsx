@@ -63,8 +63,8 @@ function StyledAdminAccordion({ title, description, icon, color, mode, setMode, 
         background: 'background.paper',
         transition: 'all 0.3s ease-in-out',
         '&:hover': {
-          boxShadow: (theme) => theme.shadows[4],
-          transform: 'translateY(-2px)',
+          boxShadow: (theme) => theme.shadows[2],
+          transform: 'translateY(-1.5px)',
         },
         mb: 0,
       }}
@@ -89,7 +89,7 @@ function StyledAdminAccordion({ title, description, icon, color, mode, setMode, 
               borderRadius: 2,
               borderColor: (theme) => `linear-gradient(135deg, ${theme.palette[color].main}, ${theme.palette[color].dark})`,
               borderWidth: 2,
-              borderStyle: 'solid',
+              borderStyle: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -263,7 +263,7 @@ export function UnifiedAdminActions({ courses, setCourses, classes, setClasses, 
         {/* CLASSE */}
         <StyledAdminAccordion
           title="classe"
-          description="Gérer les groupes d'étudiants"
+          description="Gérer les cours d'une classe"
           icon={<ClassIcon />}
           color="info"
           mode={classMode}

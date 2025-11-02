@@ -1,9 +1,14 @@
 "use client";
 
 import { useMemo, useRef, useState } from 'react';
-import { Box, Typography, Stack, Chip, Alert } from '@mui/material';
+import { Box, Typography, Stack, Chip, Alert,
+  Table, TableBody, TableCell, TableRow,
+  Collapse, IconButton, Tooltip
+ } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import type { Activity, FileDropConfig } from '@/lib/dataTemplate';
 import { FilePond, registerPlugin } from 'react-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
@@ -57,13 +62,15 @@ const mimeTypeMap: Record<string, string> = {
 interface FileDropZoneProps {
   activity: Activity;
   courseId: string;
+  isSmall?: boolean;
 }
 
 type StatusKind = 'success' | 'error' | 'info';
 
-export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
+export function FileDropZone({ activity, courseId, isSmall = false }: FileDropZoneProps) {
   const pondRef = useRef<any>(null);
   const [status, setStatus] = useState<{ kind: StatusKind; message: string | React.ReactNode } | null>(null);
+  const [dropzoneExpanded, setDropzoneExpanded] = useState<boolean>(false);
 
   const checkRateLimit = () => {
     const key = 'fileDropUploads';
@@ -193,19 +200,12 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
             boxShadow: (theme) => theme.shadows[1],
               '@keyframes pulse': {
                 '0%': { opacity: 1 },
-                '50%': { opacity: 0.5 },
+                '50%': { opacity: 0.3 },
                 '100%': { opacity: 1 },
               },
           }}
         >
-          {isActive ? (
-            <CheckCircleIcon fontSize='small' sx={{ color: 'success.main', animation: 'pulse 2s infinite', }} />
-          ) : (
-            <CancelIcon fontSize='small' sx={{ color: 'error.main', animation: 'pulse 2s infinite', }} />
-          )}
-          <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 500,  }}>
-            {isActive ? 'ACTIF' : 'INACTIF'}
-          </Typography>
+          {isSmall ? (
           <Box
             sx={{
               width: 8,
@@ -215,29 +215,70 @@ export function FileDropZone({ activity, courseId }: FileDropZoneProps) {
               animation: 'pulse 2s infinite',
             }}
           />
+          ) : (
+          <>
+          {isActive ? (
+            <CheckCircleIcon fontSize='small' sx={{ color: 'success.main', animation: 'pulse 2s infinite', }} />
+          ) : (
+            <CancelIcon fontSize='small' sx={{ color: 'error.main', animation: 'pulse 2s infinite', }} />
+          )}
+          <Chip
+            label={statusIndicatorLabel}
+            color={isActive ? 'success' : 'error'}
+            variant='outlined'
+            size="small"
+            sx={{ textTransform: 'uppercase', fontWeight: 600 }}
+          />
+          </>
+
+          )}
+
         </Box>
         <Typography variant="h6" fontWeight={700} sx={{ textTransform: 'uppercase' }}>
           {config.displayName || activity.title}
         </Typography>
-        <Chip
-          label={statusIndicatorLabel}
-          color={isActive ? 'success' : 'error'}
-          size="small"
-          sx={{ textTransform: 'uppercase', fontWeight: 600 }}
-        />
-      </Stack>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          Stockage : <code>public/depots/{courseId}</code>
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Taille max : {maxSizeMb} Mo
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {renderSchedule()}
-        </Typography>
       </Stack>
+      <Box
+      sx = {{
+        display: 'flex',
+        alignItems: 'center',
+        mb: 2,
+        cursor: 'pointer',
+        width: '100%',
+        color: 'text.secondary',
+        justifyContent: 'center',
+        alignContent: 'center',
+      }}
+      >
+        <Tooltip title={dropzoneExpanded ? "Masquer les détails" : "Afficher les détails"}>
+          <IconButton 
+            onClick={() => setDropzoneExpanded(!dropzoneExpanded)}
+            size="small"
+            color='primary'
+          >
+            {dropzoneExpanded ? <ExpandLessIcon color='error' /> : <ExpandMoreIcon color='success' />}
+          </IconButton>
+        </Tooltip>
+      </Box>
+      <Collapse in={dropzoneExpanded}>
+        <Table size="small" sx={{ mb: 2 }}>
+          <TableBody>
+            <TableRow>
+          <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Stockage</TableCell>
+          <TableCell sx={{ color: 'text.secondary' }}><code>public/depots/{courseId}</code></TableCell>
+            </TableRow>
+            <TableRow>
+          <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Taille max</TableCell>
+          <TableCell sx={{ color: 'text.secondary' }}>{maxSizeMb} Mo</TableCell>
+            </TableRow>
+            <TableRow>
+          <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Période</TableCell>
+          <TableCell sx={{ color: 'text.secondary' }}>{renderSchedule()}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Collapse>
 
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         {acceptsAll ? (

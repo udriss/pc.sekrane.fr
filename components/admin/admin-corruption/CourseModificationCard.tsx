@@ -10,7 +10,10 @@ import { SortableFile } from '@/components/admin/SortableFile';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Box, Typography, FormLabel, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch } from '@mui/material';
+import { Box, Typography, FormLabel, Button, TextField, FormControl,
+   InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch, Tooltip, IconButton, Stack } from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
 
 interface CourseModificationCardProps {
   courses: Course[];
@@ -45,13 +48,14 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   const [ErrorUpdateCourse, setErrorUpdateCourse] = useState<string>('');
   const [successMessageDeleteCourse, setSuccessMessageDeleteCourse] = useState<string>('');
   const [successMessageUpdateCourse, setSuccessMessageUpdateCourse] = useState<string>('');
-  const [courseDetails, setCourseDetails] = useState<{ id: string, title: string; description: string; classe: string; theClasseId: string; themeChoice?: number; }>({
+  const [courseDetails, setCourseDetails] = useState<{ id: string, title: string; description: string; classe: string; theClasseId: string; themeChoice?: number; toggleVisibilityCourse?: boolean; }>({
     id: '',
     title: '',
     description: '',
     classe: '',
     theClasseId: '',
     themeChoice: 0,
+    toggleVisibilityCourse: true,
   });
   const [newClasseId, setNewClasseId] = useState<string>('');
   const [currentCourse, setCurrentCourse] = useState<Course[]>([]);
@@ -95,6 +99,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
           classe: updatedCourse.classe,
           theClasseId: updatedCourse.theClasseId,
           themeChoice: updatedCourse.themeChoice ?? 0,
+          toggleVisibilityCourse: updatedCourse.toggleVisibilityCourse ?? true,
         });
         setNewClasseId(updatedCourse.theClasseId); // Mettre à jour newClasseId
       }
@@ -117,6 +122,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
         classe: course.classe || '',
         theClasseId: course.theClasseId || '',
         themeChoice: course.themeChoice ?? 0,
+        toggleVisibilityCourse: course.toggleVisibilityCourse ?? true,
       });
     }
   };
@@ -354,6 +360,32 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     }
   };
 
+  // Ajouter cette fonction avec les autres handlers
+  const handleToggleVisibilityCourse = async (courseId: string, visibility: boolean) => {
+    try {
+      const response = await fetch(`/api/updatecourse/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId,
+          toggleVisibilityCourse: visibility
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update course visibility');
+      }
+
+      const data = await response.json();
+      setCourses(data.courses);
+      setClasses(data.classes);
+    } catch (error) {
+      console.error('Error updating course visibility:', error);
+    }
+  };
+
   return (
     <>
     <Box sx={{ '& > * + *': { mt: 3 } }}>
@@ -396,12 +428,100 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                   ))}
               </MuiSelect>
             </FormControl>
+            <Stack 
+              direction={{ xs: 'column', md: 'row' }} 
+              spacing={2} 
+              sx={{ mt: 1, width: '100%' }}
+            >
+              <Button 
+                type="submit" 
+                fullWidth
+                disabled={!selectedCourse}
+                sx={{ 
+                  flex: { xs: 'none', md: 1 },
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  minWidth: 0 // Permet au bouton de rétrécir si nécessaire
+                }}
+              >
+                Enregistrer les modifications
+              </Button>
+              <Button 
+                color='error' 
+                fullWidth
+                onClick={() => {
+                  const form = document.getElementById('delete-course-form') as HTMLFormElement;
+                  if (form) form.requestSubmit();
+                }}
+                disabled={!courseToDelete} 
+                className="w-full"
+                sx={{ flex: { xs: 'none', md: 1 } }}
+              >
+                Supprimer le cours
+              </Button>
+          
+                <Tooltip title="Ouvrir la page du cours">
+                  <span>
+                  <IconButton
+                    size="medium"
+                    disabled={!selectedCourse}
+                    onClick={() => window.open(`/courses/${selectedCourse}`, '_blank', 'noopener,noreferrer')}
+                  >
+                    <OpenInNewIcon fontSize="inherit" color={selectedCourse ? "primary" : "disabled"} sx={{ p: 0 }} />
+                  </IconButton>
+                  </span>
+                </Tooltip>
+
+            <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Tooltip title={courseDetails.toggleVisibilityCourse ? "Masquer le cours" : "Afficher le cours"}>
+                  <span>
+                  <IconButton
+                  onClick={() => handleToggleVisibilityCourse(selectedCourse, !courseDetails.toggleVisibilityCourse)}
+                  disabled={!selectedCourse}
+                  size='medium'
+                  >
+                  {courseDetails.toggleVisibilityCourse ? (
+                  <VisibilityOffIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'error.main' : 'disabled' }} />
+                  ) : (
+                  <VisibilityIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'success.main' : 'disabled' }} />
+                  )}
+                  </IconButton>
+                  </span>
+                </Tooltip>
+                </Box>
+            </Box>
+            </Stack>
+              <form id="delete-course-form" onSubmit={handleDeleteCourse}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', my: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Switch
+              checked={deleteFiles}
+              onChange={(e) => setDeleteFiles(e.target.checked)}
+              disabled={!courseToDelete}
+            />
+            <Typography
+              sx={{
+                fontSize: 'small',
+                textTransform: 'uppercase',
+              }}
+            >
+              Supprimer les fichiers associés
+            </Typography>
+          </Box>
+        </Box>
+        <div className='mt-2'>
+          {errorDeleteCourse && <ErrorMessage message={errorDeleteCourse} />}
+          {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
+        </div>
+      </form>
         </Box>
         {selectedCourse && (
         <form onSubmit={handleSaveCourseDetails} style={{ marginTop: '2rem' }}>
           <Box sx={{ '& > * + *': { mt: 3 } }}>
             <Box>
-              <FormLabel component="legend">Titre du cours</FormLabel>
+              <FormLabel component="legend"><Typography variant="body2" fontWeight={'bold'}>Titre du cours</Typography></FormLabel>
               <TextField
                 fullWidth
                 type="text"
@@ -412,7 +532,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
               />
             </Box>
             <Box>
-              <FormLabel component="legend">Description du cours</FormLabel>
+              <FormLabel component="legend"><Typography variant="body2" fontWeight={'bold'}>Description du cours</Typography></FormLabel>
               <TextField
                 fullWidth
                 type="text"
@@ -458,9 +578,6 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
             {ErrorUpdateCourse && <ErrorMessage message={ErrorUpdateCourse} />}
             {warningUpdateCourse && <WarningMessage message={warningUpdateCourse} />}
             {successMessageUpdateCourse && <SuccessMessage message={successMessageUpdateCourse} />}
-            <Button type="submit" className="w-full">
-              Enregistrer les modifications
-            </Button>
           </Box>
         </form>
         )}
@@ -494,33 +611,6 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
         {errorDeleteFile && <ErrorMessage message={errorDeleteFile} />}
         {successMessageDeleteFile && <SuccessMessage message={successMessageDeleteFile} />}
       </Box>
-
-      <form onSubmit={handleDeleteCourse} style={{ marginTop: '2rem' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', my: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Switch
-              checked={deleteFiles}
-              onChange={(e) => setDeleteFiles(e.target.checked)}
-              disabled={!courseToDelete}
-            />
-            <Typography
-              sx={{
-                fontSize: 'small',
-                textTransform: 'uppercase',
-              }}
-            >
-              Supprimer les fichiers associés
-            </Typography>
-          </Box>
-        </Box>
-        <Button color='error' type="submit" disabled={!courseToDelete} className="w-full">
-          Supprimer le cours
-        </Button>
-        <div className='mt-2'>
-          {errorDeleteCourse && <ErrorMessage message={errorDeleteCourse} />}
-          {successMessageDeleteCourse && <SuccessMessage message={successMessageDeleteCourse} />}
-        </div>
-      </form>
     </>
   );
 };

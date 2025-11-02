@@ -373,7 +373,7 @@ export function ProgressionCard({ classeId, classeName, initialDate, onDateChang
                 </Typography>
               </Box>
               <Collapse in={dropzoneExpanded}>
-                <FileDropZone activity={linkedActivity} courseId={linkedCourse.id} />
+                <FileDropZone activity={linkedActivity} courseId={linkedCourse.id} isSmall={true}/>
               </Collapse>
             </Box>
           )}

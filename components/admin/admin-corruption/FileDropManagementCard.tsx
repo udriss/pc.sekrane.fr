@@ -34,7 +34,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import SelectAllIcon from '@mui/icons-material/SelectAll';
+import DeselectIcon from '@mui/icons-material/Deselect';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import type { Course, Classe, Activity, FileDropSubmission } from '@/lib/dataTemplate';
 import { FILE_TYPE_GROUPS } from './file-drop-options';
@@ -488,72 +489,75 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
                   <Typography variant="subtitle1" fontWeight={600} sx={{ width: '100%' }}>
                     Fichiers déposés {isMultipleSelection && selectedSubmissions.length > 0 && `(${selectedSubmissions.length} sélectionné${selectedSubmissions.length > 1 ? 's' : ''})`}
                   </Typography>
-                  <Stack direction="row"
-                  sx = {{
-                    alignSelf: 'flex-end',
-                    gap: 1
-                  }}
-                  >
-                    {isMultipleSelection && (
-                      <>
-                        <Tooltip title="Tout sélectionner">
-                          <span>
-                            <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
-                              <CheckBoxIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Tout désélectionner">
-                          <span>
-                            <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
-                              <CheckBoxOutlineBlankIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      </>
-                    )}
-                    {isMultipleSelection && selectedSubmissions.length > 0 && (
-                      <>
-                        <Tooltip title="Télécharger sélectionnés">
-                          <IconButton onClick={handleBulkDownload}>
-                            <ArchiveIcon />
+
+                <Stack direction="row"
+                sx = {{
+                  alignSelf: 'flex-end',
+                  gap: 1
+                }}
+                >
+                  {isMultipleSelection && selectedSubmissions.length > 0 && (
+                    <>
+                      <Tooltip title="Télécharger sélectionnés">
+                        <IconButton onClick={handleBulkDownload}>
+                          <ArchiveIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Supprimer sélectionnés">
+                        <IconButton color="error" onClick={handleBulkDelete}>
+                          <DeleteForeverIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Divider orientation="vertical" flexItem />
+                    </>
+                  )}
+                  {isMultipleSelection && (
+                    <>
+                      <Tooltip title="Tout sélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions(submissions.map(s => s.id.toString()))} disabled={selectedSubmissions.length === submissions.length}>
+                            <SelectAllIcon />
                           </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Supprimer sélectionnés">
-                          <IconButton color="error" onClick={handleBulkDelete}>
-                            <DeleteForeverIcon />
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Tout désélectionner">
+                        <span>
+                          <IconButton onClick={() => setSelectedSubmissions([])} disabled={selectedSubmissions.length === 0}>
+                            <DeselectIcon />
                           </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
-                    {isMultipleSelection &&
-                    <Divider orientation="vertical" flexItem />
-                    }
-                    <Tooltip title="Télécharger tous les fichiers (ZIP)">
-                      <span>
-                      <IconButton onClick={() => window.open(`/api/file-drop/${selectedDropId}/download-all`)} disabled={!submissions.length}>
-                        <ArchiveIcon />
-                      </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Actualiser la liste">
-                      <span>
-                      <IconButton onClick={fetchSubmissions} disabled={!selectedDropId || loadingSubmissions}>
-                        <RefreshIcon />
-                      </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title={isMultipleSelection ? "Annuler la sélection multiple" : "Sélection multiple"}>
-                      <IconButton onClick={() => {
-                        setIsMultipleSelection(!isMultipleSelection);
-                        setSelectedSubmissions([]);
-                        setConfirmingDelete(null);
-                        setConfirmBulkDeleteOpen(false);
-                      }}>
-                        <CheckBoxIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
+                        </span>
+                      </Tooltip>
+                    </>
+                  )}
+                  {isMultipleSelection && 
+                  <Divider orientation="vertical" flexItem />
+                  }
+                  <Tooltip title="Télécharger tous les fichiers (ZIP)">
+                    <span>
+                    <IconButton onClick={() => window.open(`/api/file-drop/${selectedDropId}/download-all`)} disabled={!submissions.length}>
+                      <ArchiveIcon />
+                    </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Actualiser la liste">
+                    <span>
+                    <IconButton onClick={fetchSubmissions} disabled={!selectedDropId || loadingSubmissions}>
+                      <RefreshIcon />
+                    </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={isMultipleSelection ? "Annuler la sélection multiple" : "Sélection multiple"}>
+                    <IconButton onClick={() => {
+                      setIsMultipleSelection(!isMultipleSelection);
+                      setSelectedSubmissions([]);
+                      setConfirmingDelete(null);
+                      setConfirmBulkDeleteOpen(false);
+                    }}>
+                      <CheckBoxIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+
                 </Stack>
                 {submissionError && <Alert severity="error" sx={{ mt: 2 }}>{submissionError}</Alert>}
                 {!submissionError && !loadingSubmissions && submissions.length === 0 && (
@@ -610,11 +614,17 @@ export const FileDropManagementCard: React.FC<FileDropManagementCardProps> = ({
                       <ListItemText
                         primary={item.originalName}
                         secondary={
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Chip size="small" label={formatSize(item.fileSize)} />
+                          <Stack direction="row" alignItems="center"
+                          sx = {{
+                            gap: 2,
+                            mt: .5,
+                          }}
+                          >
+                            <Chip size="small" variant='outlined' label={formatSize(item.fileSize)} />
                             <Chip
                               size="small"
                               color="info"
+                              variant='outlined'
                               label={format(new Date(item.createdAt), 'dd MMM yyyy HH:mm', { locale: fr })}
                             />
                           </Stack>

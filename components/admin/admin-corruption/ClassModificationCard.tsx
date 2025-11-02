@@ -8,7 +8,8 @@ import { SortableCourse } from '@/components/admin/SortableCourse';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Switch from '@mui/material/Switch';
-import { Typography, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem } from '@mui/material';
+import { Typography, Button, TextField, FormControl, InputLabel, Select as MuiSelect, MenuItem, Tooltip, IconButton,  } from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 interface ClassModificationCardProps {
   courses: Course[];
@@ -335,12 +336,30 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
             }}
           />
           <div className="flex flex-row justify-around">
-            <Button onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
+            <Button disabled={!selectedClasseToDelete} color={selectedClasseToDelete ? "success" : 'inherit'} onClick={() => handleRenameClasse(selectedClasseToDelete, editedClasseName)}>
               Modifier la classe
             </Button>
-            <Button color="error" onClick={() => handleDeleteClasse(selectedClasseToDelete)}>
+            <Button disabled={!selectedClasseToDelete} color={selectedClasseToDelete ? "error" : 'inherit'} onClick={() => handleDeleteClasse(selectedClasseToDelete)}>
               Supprimer la classe
             </Button>
+            {/* Icon button for redirect */}
+            <Tooltip title="Page de la classe">
+              <span>
+              <IconButton
+                onClick={() => {
+                  if (selectedClasseToDelete) {
+                    window.open(
+                      `/classes/${selectedClasseToDelete}`,
+                      "_blank"
+                    );
+                  }
+                }}
+                disabled={!selectedClasseToDelete}
+              >
+                <OpenInNewIcon color={selectedClasseToDelete ? "primary" : "disabled"} />
+              </IconButton>
+              </span>
+            </Tooltip>
             <div className="flex flex-row items-center">
               <h4 className="text-sm font-medium text-gray-500">Visible</h4>
               <Switch
