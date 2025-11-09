@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     if (courseData) {
       // Transformation vers le format attendu
       const course: Course = {
-        id: courseData.id,
+        id: courseData.id.toString(),
         title: courseData.title,
         description: courseData.description,
         classe: courseData.classe,
@@ -32,12 +32,13 @@ export async function GET(request: Request) {
           fileUrl: activity.fileUrl,
           order: activity.order,
           isFileDrop: activity.isFileDrop ?? false,
-          dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
+          dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null,
+          isHidden: activity.isHidden ?? false,
+          isDisabled: activity.isDisabled ?? false
         })),
         toggleVisibilityCourse: courseData.toggleVisibilityCourse || false,
         themeChoice: courseData.themeChoice || 0
       };
-
       return NextResponse.json({ course });
     } else {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });

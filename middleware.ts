@@ -36,9 +36,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Bloquer l'accès direct aux fichiers d'activités et rediriger vers l'API sécurisée
+  // Pattern: /{courseId}/{type}/{filename} où type est 'pdf', 'notebook', ou 'autre'
+  const filePattern = /^\/(\d+)\/(pdf|notebook|autre)\/(.+)$/;
+  if (filePattern.test(url.pathname)) {
+    // Rediriger vers l'API sécurisée qui fait les vérifications de permissions
+    const apiUrl = new URL(`/api/files${url.pathname}`, request.url);
+    return NextResponse.redirect(apiUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/admin/:path*', '/:path*']
 };

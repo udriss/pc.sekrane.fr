@@ -37,7 +37,7 @@ export async function PUT(
       name: classe.name,
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
       hasProgression: classe.hasProgression || false,
-      associated_courses: classe.courses.map(course => course.id)
+      associated_courses: classe.courses.map(course => course.id.toString())
     }));
 
     return NextResponse.json({ classes: formattedClasses, success: true });

@@ -226,6 +226,50 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     }
   };
 
+  const handleToggleHidden = async (activityId: string) => {
+    try {
+      const res = await fetch('/api/activities/toggle-hidden', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activityId })
+      });
+      if (!res.ok) throw new Error('Erreur lors du changement de visibilité');
+      
+      const data = await res.json();
+      // Refresh data from the API
+      const refreshRes = await fetch('/api/courses');
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        setCourses(refreshData.courses);
+      }
+      showSnackbar(data.isHidden ? 'Activité masquée' : 'Activité affichée', 'success');
+    } catch (err: any) {
+      showSnackbar(err.message || 'Erreur', 'error');
+    }
+  };
+
+  const handleToggleDisabled = async (activityId: string) => {
+    try {
+      const res = await fetch('/api/activities/toggle-disabled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activityId })
+      });
+      if (!res.ok) throw new Error('Erreur lors du changement d\'état');
+      
+      const data = await res.json();
+      // Refresh data from the API
+      const refreshRes = await fetch('/api/courses');
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        setCourses(refreshData.courses);
+      }
+      showSnackbar(data.isDisabled ? 'Activité désactivée' : 'Activité activée', 'success');
+    } catch (err: any) {
+      showSnackbar(err.message || 'Erreur', 'error');
+    }
+  };
+
   const handleDeleteCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!courseToDelete) {
@@ -483,9 +527,9 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                   size='medium'
                   >
                   {courseDetails.toggleVisibilityCourse ? (
-                  <VisibilityOffIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'error.main' : 'disabled' }} />
-                  ) : (
                   <VisibilityIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'success.main' : 'disabled' }} />
+                  ) : (
+                  <VisibilityOffIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'error.main' : 'disabled' }} />
                   )}
                   </IconButton>
                   </span>
@@ -532,7 +576,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
               />
             </Box>
             <Box>
-              <FormLabel component="legend"><Typography variant="body2" fontWeight={'bold'}>Description du cours</Typography></FormLabel>
+              
+              <FormLabel component="legend"><Typography variant="body2" fontWeight={600}>Description du cours</Typography></FormLabel>
               <TextField
                 fullWidth
                 type="text"
@@ -583,7 +628,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
         )}
         {files.length > 0 && (
           <Box sx={{ '& > * + *': { mt: 1 } }}>
-            <Typography variant="body2" fontWeight={600}>Fichiers associés</Typography>
+            <FormLabel component="legend"><Typography variant="body2" fontWeight={600}>Fichiers associés</Typography></FormLabel>
+            
             <DndContext 
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -601,6 +647,10 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                       fileName={activity.title}
                       fileUrl={activity.fileUrl}
                       onDelete={handleDeleteFile}
+                      isHidden={activity.isHidden}
+                      isDisabled={activity.isDisabled}
+                      onToggleHidden={handleToggleHidden}
+                      onToggleDisabled={handleToggleDisabled}
                     />
                   ))}
                 </ul>

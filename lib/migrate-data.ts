@@ -72,7 +72,7 @@ async function migrateDataFromJson() {
       for (const course of data.courses) {
         await tx.course.create({
           data: {
-            id: course.id,
+            id: parseInt(course.id, 10),
             title: course.title,
             description: course.description,
             classe: course.classe,

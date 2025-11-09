@@ -7,12 +7,13 @@ interface ParamsPromise { courseId: string }
 
 async function getCourse(courseId: string) {
   try {
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://pc.sekrane.fr' 
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8000';
-    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      throw new Error('NEXT_PUBLIC_BASE_URL environment variable is not defined');
+    }
+
     const res = await fetch(`${baseUrl}/api/courses/${courseId}`, { cache: 'no-store' });
-    
+
     if (!res.ok) return null;
     const data = await res.json();
     return data.course || null;

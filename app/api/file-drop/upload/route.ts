@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const safeName = sanitizeFileName(file.name);
   const storedName = `${activityId}_${Date.now()}_${safeName}`;
-  const uploadDir = path.join(process.cwd(), 'public', 'depots', activity.courseId);
+  const uploadDir = path.join(process.cwd(), 'public', 'depots', activity.courseId.toString());
     await fs.mkdir(uploadDir, { recursive: true });
 
     await fs.writeFile(path.join(uploadDir, storedName), buffer);

@@ -1,21 +1,40 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@/components/ui/button';
 import { 
   DragIndicator, 
   OpenInNew as OpenInNewIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Visibility as VisibilityIcon,
+  Block as BlockIcon,
+  CheckCircle as CheckCircleIcon,
+  Delete as DeleteIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
-import { Tooltip, IconButton } from '@mui/material';
+import { Tooltip, IconButton, ListItem, Box, Typography, Button, Stack } from '@mui/material';
 
 interface PropsSortableFile {
   fileId: string;
   fileUrl: string;
   fileName: string;
   onDelete: (fileId: string) => void;
+  isHidden?: boolean;
+  isDisabled?: boolean;
+  onToggleHidden?: (fileId: string) => void;
+  onToggleDisabled?: (fileId: string) => void;
 }
 
-export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortableFile) {
+export function SortableFile({
+  fileId, 
+  fileUrl, 
+  fileName, 
+  onDelete,
+  isHidden = false,
+  isDisabled = false,
+  onToggleHidden,
+  onToggleDisabled
+}: PropsSortableFile) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: fileId,
@@ -27,56 +46,121 @@ export function SortableFile({fileId, fileUrl, fileName, onDelete }: PropsSortab
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="grid grid-cols-9 items-center justify-between p-2 bg-white rounded-md">
+    <ListItem 
+      ref={setNodeRef} 
+      style={style} 
+      sx={{ 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        py: 1,
+        px:0,
+        backgroundColor: 'background.paper',
+        borderRadius: 1
+      }}
+    >
+      <Stack
+        sx= {{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1
+        }}
+      >
       {/* Drag handle section */}
-      <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
-      <DragIndicator fontSize='medium' />
-      </div>
+      <Box {...attributes} {...listeners} sx={{ cursor: 'move', userSelect: 'none', marginRight: 1 }}>
+        <DragIndicator fontSize='medium' />
+      </Box>
 
       {/* File name and delete logic */}
-      <div className='flex-1 col-span-6 flex flex-col justify-start space-x-2'>
-      <span className="truncate flex-1">{fileName}</span>
-      {fileUrl && <h4 className="truncate text-sm text-gray-500">{fileUrl}</h4>}
-      </div>
-      <div className="flex col-span-2 justify-around space-x-2 ml-2">
+      <Box sx={{ flex: 1, gridColumn: 'span 4', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 1 }}>
+        <Typography variant="body1" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+          {fileName}
+        </Typography>
+        {fileUrl && (
+          <Typography variant="body2" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
+            {fileUrl}
+          </Typography>
+        )}
+      </Box>
+      </Stack>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
+        <Stack
+        sx= {{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1
+        }}
+        >
         {fileUrl && (
           <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
             <IconButton
               size="small"
-              onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+              onClick={() => window.open(`/api/files${fileUrl}`, '_blank', 'noopener,noreferrer')}
             >
               <OpenInNewIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
         )}
+        {onToggleHidden && (
+          <Tooltip title={isHidden ? "Afficher l'activité" : "Masquer l'activité"}>
+            <IconButton
+              size="small"
+              onClick={() => onToggleHidden(fileId)}
+              sx={{ color: isHidden ? 'error.main' : 'success.main' }}
+            >
+              {isHidden ? <VisibilityOffIcon fontSize="inherit" /> : <VisibilityIcon fontSize="inherit" />}
+            </IconButton>
+          </Tooltip>
+        )}
+        {onToggleDisabled && (
+          <Tooltip title={isDisabled ? "Activer l'activité" : "Désactiver l'activité"}>
+            <IconButton
+              size="small"
+              onClick={() => onToggleDisabled(fileId)}
+              sx={{ color: isDisabled ? 'error.main' : 'success.main' }}
+            >
+              {isDisabled ? <BlockIcon fontSize="inherit" /> : <CheckCircleIcon fontSize="inherit" />}
+            </IconButton>
+          </Tooltip>
+        )}
+        </Stack>
         {confirmDelete ? (
           <>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => onDelete(fileId)}
-            >
-              ✓
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              className='hover:bg-green-200'
-              onClick={() => setConfirmDelete(false)}
-            >
-              ✕
-            </Button>
+            <Tooltip title="Confirmer la suppression">
+              <IconButton
+                size="small"
+                onClick={() => onDelete(fileId)}
+                sx={{ color: 'error.main' }}
+              >
+                <CheckIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Annuler">
+              <IconButton
+                size="small"
+                onClick={() => setConfirmDelete(false)}
+                sx={{ color: 'text.secondary' }}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setConfirmDelete(true)}
-          >
-            Supprimer
-          </Button>
+          <Tooltip title="Supprimer l'activité">
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setConfirmDelete(true)}
+            >
+              Supprimer
+            </Button>
+          </Tooltip>
         )}
-      </div>
-    </li>
+      </Box>
+    </ListItem>
   );
 }

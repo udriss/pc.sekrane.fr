@@ -8,6 +8,12 @@ import { Typography, Box, Button, TextField, FormControl, InputLabel, Select as 
 import { FileUploader } from '@/components/ui/file-uploader';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { 
+  VisibilityOff as VisibilityOffIcon,
+  Visibility as VisibilityIcon,
+  Block as BlockIcon,
+  CheckCircle as CheckCircleIcon,
+} from '@mui/icons-material';
 
 /**
  * ActivityModificationCard
@@ -288,21 +294,74 @@ export const ActivityModificationCard: React.FC<BaseCardProps & {
           {selectedActivity && !newActivityTitle && currentActivityTitle && (() => {
             const selectedActivityObj = courses.flatMap(c => c.activities || []).find(a => a && a.id === selectedActivity);
             const fileUrl = selectedActivityObj?.fileUrl ? `/api/files${selectedActivityObj.fileUrl}` : null;
+            const isHidden = selectedActivityObj?.isHidden || false;
+            const isDisabled = selectedActivityObj?.isDisabled || false;
+
+            const handleToggleHidden = async () => {
+              try {
+                const res = await fetch('/api/activities/toggle-hidden', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ activityId: selectedActivity })
+                });
+                if (!res.ok) throw new Error('Erreur lors du changement de visibilité');
+                await refreshData();
+                showSnackbar(isHidden ? 'Activité affichée' : 'Activité masquée', 'success');
+              } catch (err: any) {
+                showSnackbar(err.message || 'Erreur', 'error');
+              }
+            };
+
+            const handleToggleDisabled = async () => {
+              try {
+                const res = await fetch('/api/activities/toggle-disabled', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ activityId: selectedActivity })
+                });
+                if (!res.ok) throw new Error('Erreur lors du changement d\'état');
+                await refreshData();
+                showSnackbar(isDisabled ? 'Activité activée' : 'Activité désactivée', 'success');
+              } catch (err: any) {
+                showSnackbar(err.message || 'Erreur', 'error');
+              }
+            };
+
             return (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   Titre actuel : {currentActivityTitle}
                 </Typography>
-                {fileUrl && (
-                  <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Tooltip title={isHidden ? "Afficher l'activité" : "Masquer l'activité"}>
                     <IconButton
                       size="small"
-                      onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+                      onClick={handleToggleHidden}
+                      sx={{ color: isHidden ? 'error.main' : 'success.main' }}
                     >
-                      <OpenInNewIcon fontSize="inherit" />
+                      {isHidden ? <VisibilityOffIcon fontSize="inherit" /> : <VisibilityIcon fontSize="inherit" />}
                     </IconButton>
                   </Tooltip>
-                )}
+                  <Tooltip title={isDisabled ? "Activer l'activité" : "Désactiver l'activité"}>
+                    <IconButton
+                      size="small"
+                      onClick={handleToggleDisabled}
+                      sx={{ color: isDisabled ? 'error.main' : 'success.main' }}
+                    >
+                      {isDisabled ? <BlockIcon fontSize="inherit" /> : <CheckCircleIcon fontSize="inherit" />}
+                    </IconButton>
+                  </Tooltip>
+                  {fileUrl && (
+                    <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+                      <IconButton
+                        size="small"
+                        onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+                      >
+                        <OpenInNewIcon fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
               </Box>
             );
           })()}

@@ -27,6 +27,8 @@ export interface Activity {
   isFileDrop?: boolean;
   dropzoneConfig?: FileDropConfig | null;
   submissions?: FileDropSubmission[];
+  isHidden?: boolean;
+  isDisabled?: boolean;
 }
 
 export interface Course {

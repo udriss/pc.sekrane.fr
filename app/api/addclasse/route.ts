@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const classes: Classe[] = allClassesData.map(classe => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map(course => course.id),
+      associated_courses: classe.courses.map(course => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false
     }));
 

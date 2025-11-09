@@ -66,6 +66,9 @@ export function ActivityList({
 
   // Function to determine if an activity button should be disabled
   const shouldDisableActivity = (activity: Activity) => {
+    // Si l'activité est masquée ou désactivée, elle est toujours désactivée
+    if (activity.isDisabled || activity.isHidden) return true;
+    
     if (showSideBySide) {
       // Double view mode: disable if either left or right document is this activity
       return (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRightOrigin);

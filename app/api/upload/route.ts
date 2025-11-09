@@ -89,13 +89,13 @@ export async function POST(req: Request) {
     const classes: Classe[] = updatedClassesData.map(classe => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map(course => course.id),
+      associated_courses: classe.courses.map(course => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false
     }));
 
     const courses: Course[] = updatedClassesData.flatMap(classe => 
       classe.courses.map(course => ({
-        id: course.id,
+        id: course.id.toString(),
         title: course.title,
         description: course.description,
         classe: course.classe,
@@ -107,7 +107,9 @@ export async function POST(req: Request) {
           fileUrl: activity.fileUrl,
           order: activity.order ?? undefined,
           isFileDrop: activity.isFileDrop ?? false,
-          dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
+          dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null,
+          isHidden: activity.isHidden ?? false,
+          isDisabled: activity.isDisabled ?? false
         })),
         toggleVisibilityCourse: course.toggleVisibilityCourse || false,
         themeChoice: course.themeChoice || 0

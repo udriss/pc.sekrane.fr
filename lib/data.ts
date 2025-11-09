@@ -27,6 +27,8 @@
     title: string;
     fileUrl: string;
     isFileDrop?: boolean;
+    isDisabled?: boolean;
+    isHidden?: boolean;
     dropzoneConfig?: FileDropConfig | null;
     submissions?: FileDropSubmission[];
   }

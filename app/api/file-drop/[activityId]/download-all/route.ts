@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ acti
 
     // Add files to the archive
     for (const submission of submissions) {
-      const filePath = path.join(process.cwd(), 'public', 'depots', activity.courseId, submission.storedName);
+      const filePath = path.join(process.cwd(), 'public', 'depots', activity.courseId.toString(), submission.storedName);
       if (fs.existsSync(filePath)) {
         const uniqueName = `${submission.id}_${submission.originalName}`;
         archive.file(filePath, { name: uniqueName });

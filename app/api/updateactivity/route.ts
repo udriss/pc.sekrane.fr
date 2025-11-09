@@ -45,13 +45,13 @@ export async function PUT(req: NextRequest) {
     const classes: Classe[] = updatedClassesData.map(classe => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map(course => course.id),
+      associated_courses: classe.courses.map(course => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false
     }));
 
     const courses: Course[] = updatedClassesData.flatMap(classe => 
       classe.courses.map(course => ({
-        id: course.id,
+        id: course.id.toString(),
         title: course.title,
         description: course.description,
         classe: course.classe,

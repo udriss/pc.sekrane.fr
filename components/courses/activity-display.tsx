@@ -12,7 +12,6 @@ import DOMPurify from 'dompurify';
 import ActivityHeader from "@/components/courses/activity-header";
 import { ActivityList } from "@/components/courses/activity-list";
 import { Course, Activity } from "@/lib/dataTemplate";
-import NotFound from "@/app/not-found";
 import LoadingPage from "@/app/loading";
 import Split from 'react-split';
 import ImageZoom from "@/components/courses/image-zoom";
@@ -24,7 +23,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
-import { getFileType, getFileIcon } from "@/components/utils/fileUtils"; 
+import { getFileIcon } from "@/components/utils/fileUtils"; 
 import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
 
 
@@ -39,7 +38,6 @@ import {
 import { 
   FileDownload as Download 
 } from '@mui/icons-material';
-import SimplePDFViewer from "@/components/ui/simple-pdf-viewer";
 import { FileDropZone } from '@/components/courses/file-drop-zone';
 
 // Add helper function to detect mobile
@@ -81,14 +79,14 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     if (!course) {
       return [] as Activity[];
     }
-    return course.activities.filter((activity) => !activity.isFileDrop);
+    return course.activities.filter((activity) => !activity.isFileDrop && !activity.isHidden);
   }, [course]);
 
   const fileDropActivities = useMemo(() => {
     if (!course) {
       return [] as Activity[];
     }
-    return course.activities.filter((activity) => activity.isFileDrop);
+    return course.activities.filter((activity) => activity.isFileDrop && !activity.isHidden);
   }, [course]);
 
   // Dans le composant CoursePage, ajouter cette fonction pour grouper les activités
@@ -899,6 +897,9 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
         
         // Function to determine if an activity button should be disabled
         const shouldDisableActivity = (activity: Activity) => {
+          // Si l'activité est masquée ou désactivée, elle est toujours désactivée
+          if (activity.isDisabled || activity.isHidden) return true;
+          
           if (showSideBySide) {
             // Double view mode: disable if either left or right document is this activity
             return (activity.fileUrl === selectedFileLeftOrigin) || (activity.fileUrl === selectedFileRightOrigin);

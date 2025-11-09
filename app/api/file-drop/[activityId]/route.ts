@@ -53,14 +53,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ acti
     const classes: Classe[] = updatedClassesData.map((classe) => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map((course) => course.id),
+      associated_courses: classe.courses.map((course) => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
       hasProgression: classe.hasProgression || false
     }));
 
     const courses: Course[] = updatedClassesData.flatMap((classe) =>
       classe.courses.map((course) => ({
-        id: course.id,
+        id: course.id.toString(),
         title: course.title,
         description: course.description,
         classe: course.classe,
@@ -98,7 +98,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'File drop activity not found' }, { status: 404 });
     }
 
-    const courseDir = path.join(process.cwd(), 'public', 'depots', activity.courseId);
+    const courseDir = path.join(process.cwd(), 'public', 'depots', activity.courseId.toString());
 
     if (Array.isArray(activity.submissions) && activity.submissions.length) {
       for (const submission of activity.submissions) {
@@ -131,14 +131,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const classes: Classe[] = updatedClassesData.map((classe) => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map((course) => course.id),
+      associated_courses: classe.courses.map((course) => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false,
       hasProgression: classe.hasProgression || false
     }));
 
     const courses: Course[] = updatedClassesData.flatMap((classe) =>
       classe.courses.map((course) => ({
-        id: course.id,
+        id: course.id.toString(),
         title: course.title,
         description: course.description,
         classe: course.classe,

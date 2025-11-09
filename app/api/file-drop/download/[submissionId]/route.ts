@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sub
       return NextResponse.json({ error: 'Course non trouvé pour ce dépôt' }, { status: 500 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', 'depots', courseId, submission.storedName);
+    const filePath = path.join(process.cwd(), 'public', 'depots', courseId.toString(), submission.storedName);
     try {
       const fileBuffer = await fs.readFile(filePath);
       return new NextResponse(fileBuffer as unknown as BodyInit, {

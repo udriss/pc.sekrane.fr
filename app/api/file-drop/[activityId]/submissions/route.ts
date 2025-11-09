@@ -57,7 +57,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ a
 
       // Delete files
       for (const submission of submissions) {
-        const filePath = path.join(process.cwd(), 'public', 'depots', courseId, submission.storedName);
+        const filePath = path.join(process.cwd(), 'public', 'depots', courseId.toString(), submission.storedName);
         try {
           await fs.unlink(filePath);
         } catch (unlinkError: any) {
@@ -93,7 +93,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ a
         return NextResponse.json({ error: 'Course non trouvé pour ce dépôt' }, { status: 500 });
       }
 
-      const filePath = path.join(process.cwd(), 'public', 'depots', courseId, submission.storedName);
+      const filePath = path.join(process.cwd(), 'public', 'depots', courseId.toString(), submission.storedName);
       try {
         await fs.unlink(filePath);
       } catch (unlinkError: any) {

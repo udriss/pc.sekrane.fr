@@ -26,12 +26,12 @@ export async function parseData(): Promise<{ classes: Classe[], courses: Course[
     const classes: Classe[] = classesData.map(classe => ({
       id: classe.id,
       name: classe.name,
-      associated_courses: classe.courses.map(course => course.id),
+      associated_courses: classe.courses.map(course => course.id.toString()),
       toggleVisibilityClasse: classe.toggleVisibilityClasse || false
     }));
 
     const courses: Course[] = coursesData.map(course => ({
-      id: course.id,
+      id: course.id.toString(),
       title: course.title,
       description: course.description,
       classe: course.classe,
@@ -84,7 +84,7 @@ export async function updateData(classes: Classe[], courses: Course[]): Promise<
       for (const course of courses) {
         await tx.course.create({
           data: {
-            id: course.id,
+            id: parseInt(course.id, 10),
             title: course.title,
             description: course.description,
             classe: course.classe,

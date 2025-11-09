@@ -1,5 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
@@ -26,7 +32,7 @@ model Classe {
 }
 
 model Course {
-  id                     Int      @id @default(autoincrement())
+  id                     String   @id
   title                  String
   description            String   @db.Text
   classe                 String
@@ -48,7 +54,7 @@ model Activity {
   name      String
   title     String
   fileUrl   String
-  courseId  Int
+  courseId  String
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,4 +123,79 @@ model ConnectionLog {
   timezone  String?
 
   @@map("connection_logs")
+}
+
+model classes {
+  id                     String         @id
+  name                   String
+  toggleVisibilityClasse Boolean?       @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime
+  hasProgression         Boolean        @default(false)
+  courses                courses[]
+  progressions           progressions[]
+}
+
+model connection_logs {
+  id        String   @id
+  ip        String
+  timestamp DateTime @default(now())
+  endpoint  String
+  method    String
+  userAgent String?
+  language  String?
+  screen    String?
+  timezone  String?
+}
+
+model courses {
+  id                     String       @id
+  title                  String
+  description            String       @db.Text
+  classe                 String
+  theClasseId            String
+  toggleVisibilityCourse Boolean?     @default(false)
+  themeChoice            Int?         @default(0)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime
+  activities             activities[]
+  classes                classes      @relation(fields: [theClasseId], references: [id], onDelete: Cascade)
+
+  @@index([theClasseId], map: "courses_theClasseId_fkey")
+}
+
+model file_drop_submissions {
+  id           Int        @id @default(autoincrement())
+  activityId   String
+  originalName String
+  storedName   String
+  fileSize     Int
+  mimeType     String
+  uploaderIp   String?
+  createdAt    DateTime   @default(now())
+  activities   activities @relation(fields: [activityId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "file_drop_submissions_ibfk_1")
+
+  @@index([activityId], map: "activityId")
+}
+
+model progressions {
+  id          String      @id
+  classeId    String
+  date        DateTime
+  title       String
+  content     String      @db.Text
+  icon        String?
+  iconColor   String?
+  contentType String
+  resourceUrl String?     @db.VarChar(1024)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  order       Int         @default(0)
+  imageSize   Int?        @default(60)
+  activityId  String?
+  activities  activities? @relation(fields: [activityId], references: [id])
+  classes     classes     @relation(fields: [classeId], references: [id], onDelete: Cascade)
+
+  @@index([activityId], map: "progressions_activityId_fkey")
+  @@index([classeId, date])
 }
