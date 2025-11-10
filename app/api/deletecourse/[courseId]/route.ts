@@ -57,7 +57,8 @@ export async function DELETE(req: NextRequest) {
           isFileDrop: activity.isFileDrop ?? false,
           dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
         })),
-        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        isHidden: course.isHidden ?? false,
+        isDisabled: course.isDisabled ?? false,
         themeChoice: course.themeChoice || 0
       }))
     );

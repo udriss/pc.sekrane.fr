@@ -13,7 +13,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { Box, Typography, FormLabel, Button, TextField, FormControl,
    InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch, Tooltip, IconButton, Stack } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
+import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Block as BlockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
 interface CourseModificationCardProps {
   courses: Course[];
@@ -48,14 +48,15 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
   const [ErrorUpdateCourse, setErrorUpdateCourse] = useState<string>('');
   const [successMessageDeleteCourse, setSuccessMessageDeleteCourse] = useState<string>('');
   const [successMessageUpdateCourse, setSuccessMessageUpdateCourse] = useState<string>('');
-  const [courseDetails, setCourseDetails] = useState<{ id: string, title: string; description: string; classe: string; theClasseId: string; themeChoice?: number; toggleVisibilityCourse?: boolean; }>({
+  const [courseDetails, setCourseDetails] = useState<{ id: string, title: string; description: string; classe: string; theClasseId: string; themeChoice?: number; isHidden?: boolean; isDisabled?: boolean; }>({
     id: '',
     title: '',
     description: '',
     classe: '',
     theClasseId: '',
     themeChoice: 0,
-    toggleVisibilityCourse: true,
+    isHidden: false,
+    isDisabled: false,
   });
   const [newClasseId, setNewClasseId] = useState<string>('');
   const [currentCourse, setCurrentCourse] = useState<Course[]>([]);
@@ -99,7 +100,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
           classe: updatedCourse.classe,
           theClasseId: updatedCourse.theClasseId,
           themeChoice: updatedCourse.themeChoice ?? 0,
-          toggleVisibilityCourse: updatedCourse.toggleVisibilityCourse ?? true,
+          isHidden: updatedCourse.isHidden ?? false,
+          isDisabled: updatedCourse.isDisabled ?? false,
         });
         setNewClasseId(updatedCourse.theClasseId); // Mettre à jour newClasseId
       }
@@ -121,8 +123,9 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
         description: course.description || '',
         classe: course.classe || '',
         theClasseId: course.theClasseId || '',
-        themeChoice: course.themeChoice ?? 0,
-        toggleVisibilityCourse: course.toggleVisibilityCourse ?? true,
+  themeChoice: course.themeChoice ?? 0,
+  isHidden: course.isHidden ?? false,
+  isDisabled: course.isDisabled ?? false,
       });
     }
   };
@@ -404,8 +407,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
     }
   };
 
-  // Ajouter cette fonction avec les autres handlers
-  const handleToggleVisibilityCourse = async (courseId: string, visibility: boolean) => {
+  const handleToggleHiddenCourse = async (courseId: string, hidden: boolean) => {
     try {
       const response = await fetch(`/api/updatecourse/${courseId}`, {
         method: 'PUT',
@@ -414,7 +416,7 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
         },
         body: JSON.stringify({
           courseId,
-          toggleVisibilityCourse: visibility
+          isHidden: hidden
         }),
       });
 
@@ -425,8 +427,59 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
       const data = await response.json();
       setCourses(data.courses);
       setClasses(data.classes);
+
+      const updatedCourse = data.courses.find((course: Course) => course.id === courseId);
+      if (updatedCourse) {
+        setCourseDetails((prev) => ({
+          ...prev,
+          isHidden: updatedCourse.isHidden ?? false
+        }));
+      } else {
+        setCourseDetails((prev) => ({
+          ...prev,
+          isHidden: hidden
+        }));
+      }
     } catch (error) {
       console.error('Error updating course visibility:', error);
+    }
+  };
+
+  const handleToggleDisabledCourse = async (courseId: string, disabled: boolean) => {
+    try {
+      const response = await fetch(`/api/updatecourse/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId,
+          isDisabled: disabled
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update course state');
+      }
+
+      const data = await response.json();
+      setCourses(data.courses);
+      setClasses(data.classes);
+
+      const updatedCourse = data.courses.find((course: Course) => course.id === courseId);
+      if (updatedCourse) {
+        setCourseDetails((prev) => ({
+          ...prev,
+          isDisabled: updatedCourse.isDisabled ?? false
+        }));
+      } else {
+        setCourseDetails((prev) => ({
+          ...prev,
+          isDisabled: disabled
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating course state:', error);
     }
   };
 
@@ -518,23 +571,38 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                 </Tooltip>
 
             <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Tooltip title={courseDetails.toggleVisibilityCourse ? "Masquer le cours" : "Afficher le cours"}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Tooltip title={(courseDetails.isHidden ?? false) ? "Afficher le cours" : "Masquer le cours"}>
                   <span>
-                  <IconButton
-                  onClick={() => handleToggleVisibilityCourse(selectedCourse, !courseDetails.toggleVisibilityCourse)}
-                  disabled={!selectedCourse}
-                  size='medium'
-                  >
-                  {courseDetails.toggleVisibilityCourse ? (
-                  <VisibilityIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'success.main' : 'disabled' }} />
-                  ) : (
-                  <VisibilityOffIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'error.main' : 'disabled' }} />
-                  )}
-                  </IconButton>
+                    <IconButton
+                      onClick={() => handleToggleHiddenCourse(selectedCourse, !(courseDetails.isHidden ?? false))}
+                      disabled={!selectedCourse}
+                      size='medium'
+                    >
+                      {(courseDetails.isHidden ?? false) ? (
+                        <VisibilityOffIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'error.main' : 'disabled' }} />
+                      ) : (
+                        <VisibilityIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'success.main' : 'disabled' }} />
+                      )}
+                    </IconButton>
                   </span>
                 </Tooltip>
-                </Box>
+                <Tooltip title={(courseDetails.isDisabled ?? false) ? "Activer le cours" : "Désactiver le cours"}>
+                  <span>
+                    <IconButton
+                      onClick={() => handleToggleDisabledCourse(selectedCourse, !(courseDetails.isDisabled ?? false))}
+                      disabled={!selectedCourse}
+                      size='medium'
+                    >
+                      {(courseDetails.isDisabled ?? false) ? (
+                        <BlockIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'warning.main' : 'disabled' }} />
+                      ) : (
+                        <CheckCircleIcon sx={{ fontSize: 'inherit', color: selectedCourse ? 'primary.main' : 'disabled' }} />
+                      )}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
             </Box>
             </Stack>
               <form id="delete-course-form" onSubmit={handleDeleteCourse}>

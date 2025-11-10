@@ -173,7 +173,8 @@ export async function POST(req: NextRequest) {
           isFileDrop: activity.isFileDrop ?? false,
           dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
         })),
-        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        isHidden: course.isHidden ?? false,
+        isDisabled: course.isDisabled ?? false,
         themeChoice: course.themeChoice || 0
       }))
     );

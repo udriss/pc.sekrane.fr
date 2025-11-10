@@ -76,12 +76,14 @@ export default function CoursesPage() {
     Cookies.set('selectedClasses', JSON.stringify(typeof value === 'string' ? value.split(',') : value), { expires: 365 });
   };
 
+  const isCourseHidden = (course: Course) => course.isHidden ?? false;
+
   const filteredCourses = selectedClasses.length > 0
     ? courses.filter((course) => 
         selectedClasses.includes(course.classe) && 
-        (course.toggleVisibilityCourse !== false)
+        !isCourseHidden(course)
       )
-    : courses.filter((course) => course.toggleVisibilityCourse !== false);
+    : courses.filter((course) => !isCourseHidden(course));
 
   // Sort courses by class name then by course title
   filteredCourses.sort((a, b) => {

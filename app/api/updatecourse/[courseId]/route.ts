@@ -23,33 +23,49 @@ export async function PUT(req: NextRequest) {
       description?: string;
       classe?: string;
       theClasseId?: string;
-      toggleVisibilityCourse?: boolean;
       themeChoice?: number;
+      isHidden?: boolean;
+      isDisabled?: boolean;
     } = {};
 
-    // Si c'est une mise à jour du thème
-    if ('themeChoice' in body) {
+    let hasUpdate = false;
+
+    if (typeof body.themeChoice !== 'undefined') {
       updateData.themeChoice = body.themeChoice;
+      hasUpdate = true;
     }
-    // Si c'est une mise à jour de visibilité
-    else if ('toggleVisibilityCourse' in body) {
-      updateData.toggleVisibilityCourse = body.toggleVisibilityCourse;
+
+    if (typeof body.isHidden !== 'undefined') {
+      updateData.isHidden = body.isHidden;
+      hasUpdate = true;
     }
-    // Si c'est une mise à jour complète du cours
-    else if (body.title || body.description || body.newClasseId) {
-      if (body.title) updateData.title = body.title;
-      if (body.description) updateData.description = body.description;
-      
-      if (body.newClasseId) {
-        // Vérifier que la nouvelle classe existe
-        const newClasse = await getClasseById(body.newClasseId);
-        if (!newClasse) {
-          return NextResponse.json({ error: 'New classe not found' }, { status: 404 });
-        }
-        updateData.theClasseId = body.newClasseId;
-        updateData.classe = newClasse.name;
+
+    if (typeof body.isDisabled !== 'undefined') {
+      updateData.isDisabled = body.isDisabled;
+      hasUpdate = true;
+    }
+
+    if (typeof body.title === 'string' && body.title.trim().length > 0) {
+      updateData.title = body.title;
+      hasUpdate = true;
+    }
+
+    if (typeof body.description === 'string') {
+      updateData.description = body.description;
+      hasUpdate = true;
+    }
+
+    if (typeof body.newClasseId === 'string' && body.newClasseId.trim().length > 0) {
+      const newClasse = await getClasseById(body.newClasseId);
+      if (!newClasse) {
+        return NextResponse.json({ error: 'New classe not found' }, { status: 404 });
       }
-    } else {
+      updateData.theClasseId = body.newClasseId;
+      updateData.classe = newClasse.name;
+      hasUpdate = true;
+    }
+
+    if (!hasUpdate) {
       return NextResponse.json({ error: 'Invalid update parameters' }, { status: 400 });
     }
 
@@ -86,7 +102,8 @@ export async function PUT(req: NextRequest) {
           isHidden: activity.isHidden ?? false,
           isDisabled: activity.isDisabled ?? false
         })),
-        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        isHidden: course.isHidden ?? false,
+        isDisabled: course.isDisabled ?? false,
         themeChoice: course.themeChoice || 0
       }))
     );

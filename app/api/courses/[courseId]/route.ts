@@ -36,7 +36,8 @@ export async function GET(request: Request) {
           isHidden: activity.isHidden ?? false,
           isDisabled: activity.isDisabled ?? false
         })),
-        toggleVisibilityCourse: courseData.toggleVisibilityCourse || false,
+        isHidden: courseData.isHidden ?? false,
+        isDisabled: courseData.isDisabled ?? false,
         themeChoice: courseData.themeChoice || 0
       };
       return NextResponse.json({ course });

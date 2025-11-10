@@ -1,26 +1,26 @@
 import NextLink from "next/link";
-import { 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Typography, 
-  Button, 
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Typography,
+  Button,
   Box,
   Chip,
-  IconButton,
-  Link
+  Tooltip
 } from "@mui/material";
-import { 
-  School as GraduationCap, 
-  MenuBook as BookOpen, 
-  ArrowForward as ArrowRight 
+import {
+  ArrowForward as ArrowRight
 } from "@mui/icons-material";
+import type { Course } from "@/lib/dataTemplate";
 
 interface CourseCardProps {
-  course: any;
+  course: Course;
 }
 
 export function CourseCard({ course }: CourseCardProps) {
+  const isDisabled = course.isDisabled ?? false;
+  const cardOpacity = course.isHidden ? 0.5 : 1;
   return (
     <Card 
       sx={{ 
@@ -31,6 +31,7 @@ export function CourseCard({ course }: CourseCardProps) {
         overflow: 'hidden',
         position: 'relative',
         bgcolor: 'white',
+        opacity: cardOpacity,
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -63,6 +64,20 @@ export function CourseCard({ course }: CourseCardProps) {
             zIndex: 10
           }} 
         />
+        {isDisabled && (
+          <Chip
+            label="Désactivé"
+            size="small"
+            color="warning"
+            sx={{
+              position: 'absolute',
+              top: 12,
+              right: 110,
+              fontWeight: 'bold',
+              zIndex: 10
+            }}
+          />
+        )}
         <Typography 
           variant="h6" 
           component="h3" 
@@ -94,30 +109,36 @@ export function CourseCard({ course }: CourseCardProps) {
       </CardContent>
 
       <CardActions sx={{ p: 2, pt: 1 }}>
-        <Link component={NextLink} href={`/courses/${course.id}`} style={{ width: '100%', textDecoration: 'none' }}>
+        <Tooltip title={isDisabled ? "Ce cours est temporairement désactivé" : "Voir les activités"}>
+          <span style={{ display: 'block', width: '100%' }}>
             <Button 
-            variant="contained" 
-            color="primary"
-            endIcon={<ArrowRight fontSize='medium' />}
-            fullWidth
-            sx={{
-              borderRadius: 2,
-              py: 1,
-              backgroundColor: '#000000',
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 'bold',
-              '&:hover': {
-              bgcolor: '#333333',
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
-              },
-              transition: 'all 0.3s ease'
-            }}
+              component={NextLink}
+              href={`/courses/${course.id}`}
+              variant="contained" 
+              color="primary"
+              endIcon={<ArrowRight fontSize='medium' />}
+              fullWidth
+              disabled={isDisabled}
+              onClick={isDisabled ? (event) => event.preventDefault() : undefined}
+              sx={{
+                borderRadius: 2,
+                py: 1,
+                backgroundColor: isDisabled ? '#9e9e9e' : '#000000',
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                '&:hover': {
+                  bgcolor: isDisabled ? '#9e9e9e' : '#333333',
+                  transform: isDisabled ? 'none' : 'translateY(-2px)',
+                  boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(0,0,0,0.25)'
+                },
+                transition: 'all 0.3s ease'
+              }}
             >
-            Voir les activités
+              Voir les activités
             </Button>
-        </Link>
+          </span>
+        </Tooltip>
       </CardActions>
     </Card>
   );

@@ -1,27 +1,35 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@/components/ui/button';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';import { Visibility } from '@mui/icons-material';
-import Switch from '@mui/material/Switch';
-import { TbEyeClosed } from "react-icons/tb";
-import { Tooltip, IconButton } from '@mui/material';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import BlockIcon from '@mui/icons-material/Block';
+import { Tooltip, IconButton, Box, Typography, Stack, Button } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 interface PropsSortableCourse {
   courseId: string;
   courseTitle: string;
-  toggleVisibilityCourse?: boolean;
+  isHidden?: boolean;
+  isDisabled?: boolean;
   onDelete: (courseId: string) => void;
-  onToggleVisibility: (courseId: string, visibility: boolean) => void;
+  onToggleHidden: (courseId: string, hidden: boolean) => void;
+  onToggleDisabled: (courseId: string, disabled: boolean) => void;
 }
 
 export function SortableCourse({ 
   courseId, 
   courseTitle, 
-  toggleVisibilityCourse = true,
+  isHidden = false,
+  isDisabled = false,
   onDelete,
-  onToggleVisibility 
+  onToggleHidden,
+  onToggleDisabled
 }: PropsSortableCourse) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -33,67 +41,131 @@ export function SortableCourse({
     transition,
   };
 
+  const isVisible = !isHidden;
+  const isActive = !isDisabled;
+
   return (
-    <li ref={setNodeRef} style={style} className="grid grid-cols-12 items-center justify-between p-2 bg-white rounded-md">
-      <div {...attributes} {...listeners} className="cursor-move select-none mr-2">
-        <DragIndicatorIcon fontSize='medium' />
-      </div>
+    <Box
+      component="li"
+      ref={setNodeRef}
+      style={style}
+      sx={{
+        p: 1,
+        bgcolor: 'background.paper',
+        borderRadius: 1,
+        boxShadow: 1,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 1,
 
-      <div className='flex-1 col-span-6 flex flex-col justify-start space-x-2'>
-        <span className="truncate flex-1">{courseTitle}</span>
-      </div>
+      }}
+    >
+      <Stack
+        sx={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1
+        }}
+      >
+        {/* Drag handle section */}
+        <Box {...attributes} {...listeners} sx={{ cursor: 'move', userSelect: 'none', marginRight: 1 }}>
+          <DragIndicatorIcon fontSize='medium' />
+        </Box>
 
-      <div className="flex col-span-2 items-center">
-      <h4 className="text-sm font-medium text-gray-500 mr-2">
-          {toggleVisibilityCourse ? (
-            <Visibility className="text-green-600" />
+        {/* Course title */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 0.5 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+            }}
+          >
+            {courseTitle}
+          </Typography>
+        </Box>
+      </Stack>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
+        <Stack
+          sx={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1
+          }}
+        >
+          <Tooltip title="Ouvrir la page du cours">
+            <IconButton
+              size="small"
+              onClick={() => window.open(`/courses/${courseId}`, '_blank', 'noopener,noreferrer')}
+            >
+              <OpenInNewIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={isVisible ? "Masquer le cours" : "Afficher le cours"}>
+            <IconButton
+              size="small"
+              onClick={() => onToggleHidden(courseId, !isVisible)}
+              sx={{ color: isVisible ? 'success.main' : 'error.main' }}
+            >
+              {isVisible ? <VisibilityIcon fontSize="inherit" /> : <VisibilityOffIcon fontSize="inherit" />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={isActive ? "Désactiver le cours" : "Activer le cours"}>
+            <IconButton
+              size="small"
+              onClick={() => onToggleDisabled(courseId, !isActive)}
+              sx={{ color: isActive ? 'primary.main' : 'warning.main' }}
+            >
+              {isActive ? <CheckCircleIcon fontSize="inherit" /> : <BlockIcon fontSize="inherit" />}
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        <Box sx={{ minWidth: 140, minHeight: 36, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          {confirmDelete ? (
+            <>
+              <IconButton
+                size="small"
+                onFocus={(event) => event.currentTarget.blur()}
+                onClick={() => onDelete(courseId)}
+                sx={{ color: 'error.main' }}
+                title="Confirmer la suppression"
+              >
+                <CheckIcon fontSize="inherit" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onFocus={(event) => event.currentTarget.blur()}
+                onClick={() => setConfirmDelete(false)}
+                sx={{ color: 'text.secondary' }}
+                title="Annuler"
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            </>
           ) : (
-            <TbEyeClosed className="h-6 w-6 text-red-600" />            
+            <>
+            <Tooltip title="Supprimer le cours">
+              <span>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setConfirmDelete(true)}
+              >
+                Supprimer
+              </Button>
+              </span>
+            </Tooltip>
+            </>
           )}
-        </h4>
-        <Switch
-          checked={toggleVisibilityCourse}
-          onChange={(e) => onToggleVisibility(courseId, e.target.checked)}
-        />
-      </div>
-
-      <div className="flex col-span-3 justify-end space-x-2">
-        <Tooltip title="Ouvrir la page du cours">
-          <IconButton
-            size="small"
-            onClick={() => window.open(`/courses/${courseId}`, '_blank', 'noopener,noreferrer')}
-          >
-            <OpenInNewIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
-        {confirmDelete ? (
-          <>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => onDelete(courseId)}
-            >
-              ✓
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              className='hover:bg-green-200'
-              onClick={() => setConfirmDelete(false)}
-            >
-              ✕
-            </Button>
-          </>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setConfirmDelete(true)}
-          >
-            Supprimer
-          </Button>
-        )}
-      </div>
-    </li>
+        </Box>
+      </Box>
+    </Box>
   );
 }

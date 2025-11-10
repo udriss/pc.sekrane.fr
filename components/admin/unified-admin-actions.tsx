@@ -62,10 +62,6 @@ function StyledAdminAccordion({ title, description, icon, color, mode, setMode, 
         '&:not(:last-child)': { mb: 0 },
         background: 'background.paper',
         transition: 'all 0.3s ease-in-out',
-        '&:hover': {
-          boxShadow: (theme) => theme.shadows[2],
-          transform: 'translateY(-1.5px)',
-        },
         mb: 0,
       }}
     >

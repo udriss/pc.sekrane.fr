@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
       description: description || '',
       classe: existingClasse.name,
       theClasseId: theClasseId,
-      toggleVisibilityCourse: false,
+      isHidden: true,
+      isDisabled: false,
       themeChoice: 0,
       activities: []
     });
@@ -67,7 +68,8 @@ export async function POST(req: NextRequest) {
           isHidden: activity.isHidden ?? false,
           isDisabled: activity.isDisabled ?? false
         })),
-        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        isHidden: course.isHidden ?? false,
+        isDisabled: course.isDisabled ?? false,
         themeChoice: course.themeChoice || 0
       }))
     );

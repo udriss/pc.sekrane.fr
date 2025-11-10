@@ -126,40 +126,43 @@ export function SortableFile({
           </Tooltip>
         )}
         </Stack>
-        {confirmDelete ? (
-          <>
-            <Tooltip title="Confirmer la suppression">
+
+        <Box sx={{ minWidth: 140, minHeight: 36, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          {confirmDelete ? (
+            <>
               <IconButton
                 size="small"
+                onFocus={(event) => event.currentTarget.blur()}
                 onClick={() => onDelete(fileId)}
                 sx={{ color: 'error.main' }}
+                title="Confirmer la suppression"
               >
                 <CheckIcon fontSize="inherit" />
               </IconButton>
-            </Tooltip>
-            <Tooltip title="Annuler">
               <IconButton
                 size="small"
+                onFocus={(event) => event.currentTarget.blur()}
                 onClick={() => setConfirmDelete(false)}
                 sx={{ color: 'text.secondary' }}
+                title="Annuler"
               >
                 <CloseIcon fontSize="inherit" />
               </IconButton>
+            </>
+          ) : (
+            <Tooltip title="Supprimer l'activité">
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setConfirmDelete(true)}
+              >
+                Supprimer
+              </Button>
             </Tooltip>
-          </>
-        ) : (
-          <Tooltip title="Supprimer l'activité">
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setConfirmDelete(true)}
-            >
-              Supprimer
-            </Button>
-          </Tooltip>
-        )}
+          )}
+        </Box>
       </Box>
     </ListItem>
   );

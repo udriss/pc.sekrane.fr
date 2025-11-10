@@ -45,7 +45,8 @@ export async function parseData(): Promise<{ classes: Classe[], courses: Course[
         isFileDrop: activity.isFileDrop ?? false,
         dropzoneConfig: activity.dropzoneConfig ? (activity.dropzoneConfig as any) : null
       })),
-      toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+      isHidden: course.isHidden ?? false,
+      isDisabled: course.isDisabled ?? false,
       themeChoice: course.themeChoice || 0
     }));
 
@@ -89,7 +90,8 @@ export async function updateData(classes: Classe[], courses: Course[]): Promise<
             description: course.description,
             classe: course.classe,
             theClasseId: course.theClasseId,
-            toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+            isHidden: course.isHidden ?? false,
+            isDisabled: course.isDisabled ?? false,
             themeChoice: course.themeChoice || 0,
             activities: {
               create: course.activities.map(activity => ({

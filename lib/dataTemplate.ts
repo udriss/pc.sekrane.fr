@@ -38,7 +38,8 @@ export interface Course {
   classe: string;
   theClasseId: string;
   activities: Activity[];
-  toggleVisibilityCourse?: boolean;
+  isHidden?: boolean;
+  isDisabled?: boolean;
   themeChoice?: number;
 }
 

@@ -98,7 +98,7 @@
           "fileUrl": "/19/pdf/2SNT_Algo.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
+      "isHidden": false,
       "themeChoice": 1
     },
     {
@@ -108,7 +108,7 @@
       "classe": "SNT",
       "theClasseId": "5",
       "activities": [],
-      "toggleVisibilityCourse": false,
+      "isHidden": true,
       "themeChoice": 0
     },
     {
@@ -126,7 +126,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "37",
@@ -206,8 +206,8 @@
           "fileUrl": "/2/pdf/TSTI_C1_supplement.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "3",
@@ -229,8 +229,8 @@
           "fileUrl": "/3/notebook/TST_C2_TP_1.ipynb"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "4",
@@ -252,8 +252,8 @@
           "fileUrl": "/4/notebook/TSTI_C4_TP1.ipynb"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "16",
@@ -269,8 +269,8 @@
           "fileUrl": "/16/pdf/1S_T4_C1_A4.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "15",
@@ -316,8 +316,8 @@
           "fileUrl": "/15/pdf/1S_C4_CE2.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 1
+      "themeChoice": 1,
+      "isHidden": false
     },
     {
       "id": "5",
@@ -333,8 +333,8 @@
           "fileUrl": "/5/pdf/TSTI_C6_A1.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "6",
@@ -350,8 +350,8 @@
           "fileUrl": "/6/pdf/TSTI_C7_A1.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "12",
@@ -385,8 +385,8 @@
           "fileUrl": "/12/pdf/2nd_T1_C6_cours.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 2
+      "themeChoice": 2,
+      "isHidden": false
     },
     {
       "id": "17",
@@ -408,8 +408,8 @@
           "fileUrl": "/17/pdf/1S_C5_A2.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "32",
@@ -426,7 +426,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "31",
@@ -455,7 +455,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "33",
@@ -478,7 +478,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "34",
@@ -495,7 +495,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "14",
@@ -517,8 +517,8 @@
           "fileUrl": "/14/pdf/2nd_T1_C5_A1.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "13",
@@ -552,8 +552,8 @@
           "fileUrl": "/13/autre/tableau_periodique_LEWIS_vide.png"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 1
+      "themeChoice": 1,
+      "isHidden": true
     },
     {
       "id": "18",
@@ -581,8 +581,8 @@
           "fileUrl": "/18/pdf/TSTI_C8_A3.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "20",
@@ -591,8 +591,8 @@
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "10",
@@ -644,8 +644,8 @@
           "fileUrl": "/10/autre/2MVT_chute_glycerol.avi"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 1
+      "themeChoice": 1,
+      "isHidden": false
     },
     {
       "id": "11",
@@ -655,7 +655,7 @@
       "theClasseId": "6",
       "activities": [],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "23",
@@ -677,8 +677,8 @@
           "fileUrl": "/23/pdf/2nd_T3_C1_A4.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "24",
@@ -712,8 +712,8 @@
           "fileUrl": "/24/pdf/1S_T1_C8_A2_molecules_1.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": false
     },
     {
       "id": "25",
@@ -722,8 +722,8 @@
       "classe": "1 Spé",
       "theClasseId": "7",
       "activities": [],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "21",
@@ -793,8 +793,8 @@
           "fileUrl": "/21/pdf/1S_C9_syntheses.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": false
     },
     {
       "id": "26",
@@ -907,7 +907,7 @@
         }
       ],
       "themeChoice": 1,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "30",
@@ -930,7 +930,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "27",
@@ -959,7 +959,7 @@
         }
       ],
       "themeChoice": 0,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "8",
@@ -975,8 +975,8 @@
           "fileUrl": "/8/pdf/2SNT_IA.pdf"
         }
       ],
-      "toggleVisibilityCourse": false,
-      "themeChoice": 0
+      "themeChoice": 0,
+      "isHidden": true
     },
     {
       "id": "35",
@@ -999,7 +999,7 @@
         }
       ],
       "themeChoice": 1,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "38",
@@ -1163,8 +1163,8 @@
           "fileUrl": "/1/pdf/TSTI_C13.pdf"
         }
       ],
-      "toggleVisibilityCourse": true,
-      "themeChoice": 1
+      "themeChoice": 1,
+      "isHidden": false
     },
     {
       "id": "40",
@@ -1193,7 +1193,7 @@
         }
       ],
       "themeChoice": 1,
-      "toggleVisibilityCourse": false
+      "isHidden": true
     },
     {
       "id": "41",

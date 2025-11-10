@@ -16,7 +16,8 @@ export async function getAllClasses() {
           description: true,
           classe: true,
           theClasseId: true,
-          toggleVisibilityCourse: true,
+          isHidden: true,
+          isDisabled: true,
           themeChoice: true,
           activities: {
             select: {
@@ -122,7 +123,8 @@ export async function createCourse(data: {
   description: string;
   classe: string;
   theClasseId: string;
-  toggleVisibilityCourse?: boolean;
+  isHidden?: boolean;
+  isDisabled?: boolean;
   themeChoice?: number;
   activities?: {
     id: string;
@@ -164,7 +166,8 @@ export async function updateCourse(id: string, data: {
   description?: string;
   classe?: string;
   theClasseId?: string;
-  toggleVisibilityCourse?: boolean;
+  isHidden?: boolean;
+  isDisabled?: boolean;
   themeChoice?: number;
 }) {
   const courseId = parseInt(id, 10);

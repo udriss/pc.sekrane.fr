@@ -43,7 +43,7 @@ export default function ClassePage() {
       .then(res => res.json())
       .then((data: { courses: Course[]; classes: Classe[] }) => {
         if (!mounted) return;
-        const visibleCourses = data.courses.filter(c => c.toggleVisibilityCourse !== false);
+  const visibleCourses = data.courses.filter(c => !(c.isHidden ?? false));
         const visibleClasses = data.classes.filter(cl => cl.toggleVisibilityClasse !== false);
         setCourses(visibleCourses);
         setClasses(visibleClasses);
@@ -56,7 +56,7 @@ export default function ClassePage() {
   const classeName = classe?.name ?? null;
 
   const classeCourses = useMemo(() =>
-    courses.filter(c => c.theClasseId === classeId),
+  courses.filter(c => c.theClasseId === classeId && !(c.isHidden ?? false)),
   [courses, classeId]);
 
   // If finished loading and class not found => 404

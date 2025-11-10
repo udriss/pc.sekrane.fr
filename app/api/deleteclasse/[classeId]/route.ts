@@ -77,7 +77,8 @@ export async function DELETE(req: NextRequest) {
           isHidden: activity.isHidden ?? false,
           isDisabled: activity.isDisabled ?? false
         })),
-        toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+        isHidden: course.isHidden ?? false,
+        isDisabled: course.isDisabled ?? false,
         themeChoice: course.themeChoice || 0
       }))
     );

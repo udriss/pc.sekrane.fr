@@ -26,8 +26,7 @@ async function getCourse(courseId: string) {
 export default async function CoursePageWrapper({ params }: { params: Promise<ParamsPromise> }) {
   const { courseId } = await params;
   const course = await getCourse(courseId);
-  // Protection: si toggleVisibilityCourse === false => 404 (suit même logique que courses/page.tsx)
-  if (!course || course.toggleVisibilityCourse === false) {
+  if (!course) {
     notFound();
   }
   return (

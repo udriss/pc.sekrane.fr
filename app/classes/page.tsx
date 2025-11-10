@@ -20,7 +20,7 @@ export default function ClassesPage() {
       .then((data: { courses: Course[]; classes: Classe[] }) => {
         if (!mounted) return;
         const visibleClasses = data.classes.filter(c => c.toggleVisibilityClasse !== false);
-        const visibleCourses = data.courses.filter(c => c.toggleVisibilityCourse !== false);
+  const visibleCourses = data.courses.filter(c => !(c.isHidden ?? false));
         setClasses(visibleClasses);
         setCourses(visibleCourses);
       })
@@ -30,7 +30,7 @@ export default function ClassesPage() {
 
   const courseCountByClasse = useMemo(() => {
     const map = new Map<string, number>();
-    for (const c of courses) {
+  for (const c of courses.filter(course => !(course.isHidden ?? false))) {
       const key = c.theClasseId;
       map.set(key, (map.get(key) || 0) + 1);
     }

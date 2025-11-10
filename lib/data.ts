@@ -40,6 +40,8 @@
     classe: string;
     theClasseId: string;
     activities: Activity[];
+    isHidden?: boolean;
+    isDisabled?: boolean;
   }
 
   export interface Classe {

@@ -230,8 +230,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
     }
   };
 
-  // Ajouter cette fonction avec les autres handlers
-  const handleToggleVisibilityCourse = async (courseId: string, visibility: boolean) => {
+  const handleToggleHiddenCourse = async (courseId: string, hidden: boolean) => {
     try {
       const response = await fetch(`/api/updatecourse/${courseId}`, {
         method: 'PUT',
@@ -240,7 +239,7 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
         },
         body: JSON.stringify({
           courseId,
-          toggleVisibilityCourse: visibility
+          isHidden: hidden
         }),
       });
 
@@ -253,6 +252,31 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
       setClasses(data.classes);
     } catch (error) {
       console.error('Error updating course visibility:', error);
+    }
+  };
+
+  const handleToggleDisabledCourse = async (courseId: string, disabled: boolean) => {
+    try {
+      const response = await fetch(`/api/updatecourse/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId,
+          isDisabled: disabled
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update course state');
+      }
+
+      const data = await response.json();
+      setCourses(data.courses);
+      setClasses(data.classes);
+    } catch (error) {
+      console.error('Error updating course state:', error);
     }
   };
 
@@ -386,9 +410,11 @@ export const ClassModificationCard: React.FC<ClassModificationCardProps> = ({
                     key={course.id}
                     courseId={course.id}
                     courseTitle={course.title}
-                    toggleVisibilityCourse={course.toggleVisibilityCourse}
+                    isHidden={course.isHidden ?? false}
+                    isDisabled={course.isDisabled ?? false}
                     onDelete={handleDeleteClickRapide}
-                    onToggleVisibility={handleToggleVisibilityCourse}
+                    onToggleHidden={handleToggleHiddenCourse}
+                    onToggleDisabled={handleToggleDisabledCourse}
                     />
                   ))}
                   </ul>

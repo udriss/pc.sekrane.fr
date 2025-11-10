@@ -16,7 +16,8 @@ interface CourseData {
   classe: string;
   theClasseId: string;
   activities: ActivityData[];
-  toggleVisibilityCourse?: boolean;
+  isHidden?: boolean;
+  isDisabled?: boolean;
   themeChoice?: number;
 }
 
@@ -70,6 +71,8 @@ async function migrateDataFromJson() {
       
       // Créer les cours avec leurs activités
       for (const course of data.courses) {
+        const isHidden = course.isHidden ?? false;
+        const isDisabled = course.isDisabled ?? false;
         await tx.course.create({
           data: {
             id: parseInt(course.id, 10),
@@ -77,7 +80,8 @@ async function migrateDataFromJson() {
             description: course.description,
             classe: course.classe,
             theClasseId: course.theClasseId,
-            toggleVisibilityCourse: course.toggleVisibilityCourse || false,
+            isHidden,
+            isDisabled,
             themeChoice: course.themeChoice || 0,
             activities: {
               create: course.activities.map(activity => ({
