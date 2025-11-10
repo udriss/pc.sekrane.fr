@@ -26,9 +26,13 @@ async function getCourse(courseId: string) {
 export default async function CoursePageWrapper({ params }: { params: Promise<ParamsPromise> }) {
   const { courseId } = await params;
   const course = await getCourse(courseId);
-  if (!course) {
+  
+  // Si le cours n'existe pas ou est désactivé, afficher 404
+  if (!course || course.isDisabled) {
     notFound();
   }
+  
+  // Si le cours est masqué, on peut quand même l'afficher (accès direct par URL)
   return (
     <div className="flex-grow flex justify-center items-center w-full">
       <CoursePage params={Promise.resolve({ courseId })} />

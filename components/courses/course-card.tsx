@@ -7,7 +7,8 @@ import {
   Button,
   Box,
   Chip,
-  Tooltip
+  Tooltip,
+  Stack
 } from "@mui/material";
 import {
   ArrowForward as ArrowRight
@@ -46,46 +47,49 @@ export function CourseCard({ course }: CourseCardProps) {
     >
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
           p: 2,
-          pb: 0
+          pb: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
         }}
       >
-        <Chip 
-          label={course.classe} 
-          size="small" 
-          color="primary" 
-          sx={{ 
-            fontWeight: 'medium',
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            zIndex: 10
-          }} 
-        />
-        {isDisabled && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            mb: 1,
+            justifyContent: 'flex-end'
+          }}
+        >
+          {isDisabled && (
+            <Chip
+              label="Désactivé"
+              size="small"
+              color="warning"
+              variant="outlined"
+              sx={{
+                fontWeight: 'bold'
+              }}
+            />
+          )}
           <Chip
-            label="Désactivé"
+            label={course.classe}
             size="small"
-            color="warning"
+            color="primary"
+            variant="outlined"
             sx={{
-              position: 'absolute',
-              top: 12,
-              right: 110,
-              fontWeight: 'bold',
-              zIndex: 10
+              fontWeight: 'medium'
             }}
           />
-        )}
-        <Typography 
-          variant="h6" 
-          component="h3" 
+        </Stack>
+        <Typography
+          variant="h6"
+          component="h3"
           gutterBottom={false}
-          sx={{ 
+          sx={{
             fontWeight: 'bold',
-            color: '#1a237e',
-            pr: 6
+            color: '#1a237e'
           }}
         >
           {course.title}
