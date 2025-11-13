@@ -5,10 +5,15 @@ import { Classe, Course } from '@/lib/dataTemplate';
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { courseId } = body;
+    const { courseId: courseIdRaw } = body;
 
-    if (!courseId) {
+    if (!courseIdRaw) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
+    }
+
+    const courseId = typeof courseIdRaw === 'string' ? parseInt(courseIdRaw, 10) : courseIdRaw;
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     }
 
     // Vérifier si le cours existe

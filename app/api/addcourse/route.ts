@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     
     // Trouver l'ID le plus grand et ajouter 1
     const maxId = allCourses.reduce((max, course) => Math.max(max, course.id), 0);
-    const newId = (maxId + 1).toString();
+    const newId = maxId + 1;
 
     // Créer le nouveau cours directement dans la base de données
     await createCourse({

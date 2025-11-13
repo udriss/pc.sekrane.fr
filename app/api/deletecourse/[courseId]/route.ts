@@ -6,10 +6,15 @@ import path from 'path';
 
 export async function DELETE(req: NextRequest) {
     try {
-    const { deleteFiles, courseId } = await req.json();
+    const { deleteFiles, courseId: courseIdRaw } = await req.json();
 
-    if (!courseId) {
+    if (!courseIdRaw) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const courseId = typeof courseIdRaw === 'string' ? parseInt(courseIdRaw, 10) : courseIdRaw;
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     }
 
     // Vérifier si le cours existe
@@ -20,7 +25,7 @@ export async function DELETE(req: NextRequest) {
 
     // Supprimer le dossier associé si deleteFiles est vrai
     if (deleteFiles) {
-      const courseDir = path.join(process.cwd(), 'public', courseId);
+      const courseDir = path.join(process.cwd(), 'public', courseId.toString());
       await fs.rm(courseDir, { recursive: true, force: true }).catch(err => 
         console.error(`Error deleting directory ${courseDir}:`, err)
       );

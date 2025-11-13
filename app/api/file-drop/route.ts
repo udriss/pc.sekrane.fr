@@ -4,7 +4,7 @@ import { Classe, Course } from '@/lib/dataTemplate';
 import { prisma } from '@/lib/prisma';
 
 interface FileDropRequestBody {
-  courseId: string;
+  courseId: string | number;
   config: {
     displayName: string;
     enabled: boolean;
@@ -111,10 +111,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as FileDropRequestBody;
-    const { courseId, config } = body;
+    const { courseId: courseIdRaw, config } = body;
 
-    if (!courseId || !config) {
+    if (!courseIdRaw || !config) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const courseId = typeof courseIdRaw === 'string' ? parseInt(courseIdRaw, 10) : courseIdRaw;
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     }
 
     if (!Array.isArray(config.acceptedTypes) || config.acceptedTypes.length === 0) {

@@ -9,17 +9,19 @@ export async function GET(request: Request) {
   try {
     await logConnection(request, '/api/courses/[courseId]');
     const url = new URL(request.url);
-    const courseId = url.pathname.split('/').pop();
+    const courseIdStr = url.pathname.split('/').pop();
 
-    if (!courseId) {
+    if (!courseIdStr) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
     }
 
-    // Convertir courseId en entier
-    const courseIdInt = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+    const courseId = parseInt(courseIdStr, 10);
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
+    }
 
     // Récupération directe depuis la base de données
-    const courseData = await getCourseById(courseIdInt);
+    const courseData = await getCourseById(courseId);
     if (courseData) {
       // Transformation vers le format attendu
       const course: Course = {

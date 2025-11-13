@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest) {
     if (newName) {
       const associatedCourses = await getCoursesByClasseId(classeId);
       for (const course of associatedCourses) {
-        await updateCourse(course.id.toString(), { classe: newName });
+        await updateCourse(course.id, { classe: newName });
       }
     }
 

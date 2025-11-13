@@ -89,14 +89,13 @@ export async function getAllCourses() {
   });
 }
 
-export async function getCourseById(id: string) {
-  const courseId = parseInt(id, 10);
-  if (isNaN(courseId)) {
+export async function getCourseById(id: number) {
+  if (isNaN(id)) {
     return null;
   }
 
   return await prisma.course.findUnique({
-    where: { id: courseId },
+    where: { id },
     include: {
       activities: {
         orderBy: { order: 'asc' }
@@ -118,7 +117,7 @@ export async function getCoursesByClasseId(classeId: string) {
 }
 
 export async function createCourse(data: {
-  id: string;
+  id: number;
   title: string;
   description: string;
   classe: string;
@@ -135,8 +134,7 @@ export async function createCourse(data: {
     dropzoneConfig?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   }[];
 }) {
-  const courseId = parseInt(data.id, 10);
-  if (isNaN(courseId)) {
+  if (isNaN(data.id)) {
     throw new Error('Invalid course ID');
   }
 
@@ -145,7 +143,7 @@ export async function createCourse(data: {
   return await prisma.course.create({
     data: {
       ...courseData,
-      id: courseId,
+      id: data.id,
       activities: activities ? {
         create: activities.map((activity) => ({
           ...activity,
@@ -161,7 +159,7 @@ export async function createCourse(data: {
   });
 }
 
-export async function updateCourse(id: string, data: {
+export async function updateCourse(id: number, data: {
   title?: string;
   description?: string;
   classe?: string;
@@ -170,13 +168,12 @@ export async function updateCourse(id: string, data: {
   isDisabled?: boolean;
   themeChoice?: number;
 }) {
-  const courseId = parseInt(id, 10);
-  if (isNaN(courseId)) {
+  if (isNaN(id)) {
     throw new Error('Invalid course ID');
   }
 
   return await prisma.course.update({
-    where: { id: courseId },
+    where: { id },
     data,
     include: {
       activities: {
@@ -186,14 +183,13 @@ export async function updateCourse(id: string, data: {
   });
 }
 
-export async function deleteCourse(id: string) {
-  const courseId = parseInt(id, 10);
-  if (isNaN(courseId)) {
+export async function deleteCourse(id: number) {
+  if (isNaN(id)) {
     throw new Error('Invalid course ID');
   }
 
   return await prisma.course.delete({
-    where: { id: courseId }
+    where: { id }
   });
 }
 
@@ -216,14 +212,13 @@ export async function getActivityById(id: string) {
   });
 }
 
-export async function getActivitiesByCourseId(courseId: string) {
-  const courseIdNum = parseInt(courseId, 10);
-  if (isNaN(courseIdNum)) {
+export async function getActivitiesByCourseId(courseId: number) {
+  if (isNaN(courseId)) {
     return [];
   }
 
   return await prisma.activity.findMany({
-    where: { courseId: courseIdNum },
+    where: { courseId },
     include: {
       course: true
     }
@@ -235,18 +230,17 @@ export async function createActivity(data: {
   name: string;
   title: string;
   fileUrl: string;
-  courseId: string;
+  courseId: number;
   isFileDrop?: boolean;
   dropzoneConfig?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }) {
-  const courseIdNum = parseInt(data.courseId, 10);
-  if (isNaN(courseIdNum)) {
+  if (isNaN(data.courseId)) {
     throw new Error('Invalid course ID');
   }
 
   // Get the current max order for the course
   const maxOrder = await prisma.activity.aggregate({
-    where: { courseId: courseIdNum },
+    where: { courseId: data.courseId },
     _max: { order: true }
   });
   const order = (maxOrder._max?.order ?? -1) + 1;
@@ -256,7 +250,7 @@ export async function createActivity(data: {
   return await prisma.activity.create({
     data: {
       ...rest,
-      courseId: courseIdNum,
+      courseId: data.courseId,
       order,
       ...(dropzoneConfig !== undefined ? { dropzoneConfig } : {})
     },

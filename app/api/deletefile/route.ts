@@ -7,10 +7,15 @@ import path from 'path';
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { fileId, courseId, deleteActivity = true } = await req.json();
+    const { fileId, courseId: courseIdRaw, deleteActivity = true } = await req.json();
 
-    if (!courseId || !fileId) {
+    if (!courseIdRaw || !fileId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const courseId = typeof courseIdRaw === 'string' ? parseInt(courseIdRaw, 10) : courseIdRaw;
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     }
 
     // Vérifier si le cours existe
