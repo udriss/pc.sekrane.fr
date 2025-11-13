@@ -26,8 +26,11 @@ export async function PUT(req: NextRequest) {
     // car il semble être géré côté client. Si vous voulez persister l'ordre,
     // il faudrait ajouter un champ `order` ou `position` au modèle Course.
 
+    // Convertir activeCourseId en entier
+    const activeCourseIdInt = typeof activeCourseId === 'string' ? parseInt(activeCourseId, 10) : activeCourseId;
+
     // Récupérer le titre de la classe du cours actif
-    const activeCourse = await getCourseById(activeCourseId);
+    const activeCourse = await getCourseById(activeCourseIdInt);
     const titleOfChosenClass = activeCourse?.classe;
 
     return NextResponse.json({ titleOfChosenClass: titleOfChosenClass }, { status: 200 });

@@ -17,8 +17,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Convertir courseId en entier pour Prisma
+    const courseIdInt = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+
     // Vérifier si le cours existe
-    const course = await getCourseById(courseId);
+    const course = await getCourseById(courseIdInt);
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
@@ -79,7 +82,7 @@ export async function POST(req: Request) {
       name: path.basename(filePath),
       title: ActivityTitle,
       fileUrl: `/${courseId}/${file.name.endsWith('.ipynb') ? 'notebook' : file.name.endsWith('.pdf') ? 'pdf' : 'autre'}/${path.basename(filePath)}`,
-      courseId: courseId
+      courseId: courseIdInt
     });
 
     // Récupérer les données mises à jour

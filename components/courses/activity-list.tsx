@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast, Id } from 'react-toastify';
 import { downloadFileWithProgress } from '@/components/courses/donwload-track';
 import { RATE_LIMIT } from '@/lib/rateLimit';
-import { Tooltip } from "@nextui-org/react";
-import { ExpandMore } from '@mui/icons-material';
+import { ExpandMore, RemoveCircleOutline } from '@mui/icons-material';
+import { Box, Typography, Stack } from '@mui/material';
 import { getFileIcon } from "@/components/utils/fileUtils"; // Assurez-vous d'avoir ces fonctions disponibles
 
 
@@ -162,6 +162,21 @@ export function ActivityList({
     toast.clearWaitingQueue();
     const fileExtension = fileUrl.split('.').pop();
     if (fileUrl.endsWith('.ipynb')) {
+      // Vérifier si l'activité est désactivée
+      if (activity.isDisabled) {
+        toast.error('Cette activité est actuellement désactivée', {
+          autoClose: 5000,
+          closeOnClick: true,
+          style: {
+            width: '400px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }
+        });
+        return;
+      }
+
       if (!userName) {
         const id = toast.error('Entrez un nom pour utiliser ce notebook !', {
           autoClose: false,
@@ -393,132 +408,138 @@ export function ActivityList({
   // Affichage horizontal (themeChoice = 0, par défaut)
   if (themeChoice === 0) {
     return (
-      <div className="flex flex-wrap flex-row gap-4 px-2">
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, px: 1 }}>
         {activities.map((activity) => {
           const isAlreadyDisplayed = shouldDisableActivity(activity);
           return (
-            <Tooltip 
-              key={activity.id}
-              content={activity.title}
-              closeDelay={550}
-              className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
-                rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
-                transition-opacity duration-300"
-            >
               <Button
+                key={activity.id}
                 variant="outline"
-                className="inline-flex items-center justify-start w-auto min-w-[100px] max-w-[300px] truncate"
+                className="inline-flex items-center justify-between w-auto min-w-[100px] max-w-[300px]"
                 onClick={() => handleActivityClick(activity.fileUrl, activity)}
                 disabled={isAlreadyDisplayed}
                 style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
               >
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-                  <span className="truncate">{activity.title}</span>
-                </div>
+                <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Box sx={{ flexShrink: 0, mr: 1 }}>{getFileIcon(activity.name)}</Box>
+                  <Typography noWrap>{activity.title}</Typography>
+                </Box>
+                {activity.isDisabled && (
+                  <RemoveCircleOutline sx={{ ml: 1, fontSize: 20, color: 'error.light', flexShrink: 0 }} />
+                )}
               </Button>
-            </Tooltip>
           );
         })}
-      </div>
+      </Box>
     );
   }
   
   // Affichage accordéon (themeChoice = 2)
   if (themeChoice === 2) {
     return (
-      <div className={`w-full transition-all duration-300 ${isAccordionOpen ? 'mb-6' : 'mb-0'}`}>
-        <div 
-          className="flex items-center justify-between bg-gray-200 p-3 rounded-t-2xl cursor-pointer select-none"
+      <Box sx={{ width: '100%', transition: 'all 0.3s', mb: isAccordionOpen ? 3 : 0 }}>
+        <Box 
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: 'grey.200',
+            p: 1.5,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            cursor: 'pointer',
+            userSelect: 'none'
+          }}
           onClick={() => setIsAccordionOpen(!isAccordionOpen)}
         >
-          <h3 className="text-lg font-medium">Ressources du cours</h3>
-          <div className={`transform transition-transform ${isAccordionOpen ? 'rotate-180' : 'rotate-0'}`}>
+          <Typography variant="h6" fontWeight="medium">Ressources du cours</Typography>
+          <Box sx={{ transform: isAccordionOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
             <ExpandMore fontSize='medium' />
-          </div>
-        </div>
+          </Box>
+        </Box>
         
-        <div 
-          className={`transition-all duration-300 overflow-hidden bg-white border-x border-b border-gray-200 rounded-b-md
-          ${isAccordionOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
+        <Box 
+          sx={{
+            transition: 'all 0.3s',
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            borderLeft: 1,
+            borderRight: 1,
+            borderBottom: 1,
+            borderColor: 'grey.300',
+            borderBottomLeftRadius: 4,
+            borderBottomRightRadius: 4,
+            maxHeight: isAccordionOpen ? '600px' : 0,
+            opacity: isAccordionOpen ? 1 : 0
+          }}
         >
-          <div className="p-4 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-3">
+          <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: 1.5 }}>
             {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
-              <div key={groupName} className="mb-4">
-                <div className="space-y-2">
+              <Box key={groupName} sx={{ mb: 2 }}>
+                <Stack spacing={1}>
                   {groupActivities.map(activity => {
                     const isAlreadyDisplayed = shouldDisableActivity(activity);
                     return (
-                      <Tooltip 
-                        key={activity.id}
-                        content={activity.title}
-                        closeDelay={550}
-                        className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
-                          rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
-                          transition-opacity duration-300"
-                      >
                         <Button
+                          key={activity.id}
                           variant="outline"
-                          className="w-auto justify-start text-left h-auto mx-1"
+                          className="w-auto justify-between text-left h-auto mx-1"
                           onClick={() => handleActivityClick(activity.fileUrl, activity)}
                           disabled={isAlreadyDisplayed}
                           style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
                         >
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-                            <span className="truncate">{activity.title}</span>
-                          </div>
+                          <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <Box sx={{ flexShrink: 0, mr: 1 }}>{getFileIcon(activity.name)}</Box>
+                            <Typography noWrap>{activity.title}</Typography>
+                          </Box>
+                          {activity.isDisabled && (
+                            <RemoveCircleOutline sx={{ ml: 1, fontSize: 20, color: 'error.light', flexShrink: 0 }} />
+                          )}
                         </Button>
-                      </Tooltip>
                     );
                   })}
-                </div>
-              </div>
+                </Stack>
+              </Box>
             ))}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     );
   }
   
   // Affichage vertical groupé par type (themeChoice = 1)
   return (
-    <div className="w-full md:w-64 lg:w-72 flex-shrink-0 border-r border-gray-200 pr-4">
+    <Box sx={{ width: { xs: '100%', md: '256px', lg: '288px' }, flexShrink: 0, borderRight: 1, borderColor: 'grey.300', pr: 2 }}>
       {Object.entries(groupedActivities).map(([groupName, groupActivities]) => (
-        <div key={groupName} className="mb-6">
-          <h3 className="text-md font-medium text-gray-700 mb-2">{groupName}</h3>
-          <div className="space-y-2">
+        <Box key={groupName} sx={{ mb: 3 }}>
+          <Typography variant="body1" fontWeight="medium" color="text.secondary" sx={{ mb: 1 }}>{groupName}</Typography>
+          <Stack spacing={1}>
             {groupActivities.map(activity => {
               const isAlreadyDisplayed = shouldDisableActivity(activity);
               return (
-                <Tooltip 
-                  key={activity.id}
-                  content={activity.title}
-                  closeDelay={550}
-                  className="z-50 px-3 py-2 text-sm font-medium text-white bg-zinc-800/95 \
-                    rounded-lg shadow-lg backdrop-blur-sm border border-zinc-700/50 \
-                    transition-opacity duration-300"
-                >
                   <Button
+                    key={activity.id}
                     variant="outline"
-                    className="w-full justify-start text-left pl-2 py-1.5 h-auto"
+                    className="w-full justify-between text-left pl-2 py-1.5 h-auto"
                     onClick={() => handleActivityClick(activity.fileUrl, activity)}
                     disabled={isAlreadyDisplayed}
                     style={isAlreadyDisplayed ? { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
                   >
-                    <div className="flex items-center w-full">
-                      <div className="flex-shrink-0 mr-2">{getFileIcon(activity.name)}</div>
-                      <span className="truncate block w-[calc(100%-32px)]" title={activity.title}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <Box sx={{ flexShrink: 0, mr: 1 }}>{getFileIcon(activity.name)}</Box>
+                      <Typography noWrap title={activity.title}>
                         {activity.title}
-                      </span>
-                    </div>
+                      </Typography>
+                    </Box>
+                    {activity.isDisabled && (
+                      <RemoveCircleOutline sx={{ ml: 1, fontSize: 20, color: 'error.light', flexShrink: 0 }} />
+                    )}
                   </Button>
-                </Tooltip>
               );
             })}
-          </div>
-        </div>
+          </Stack>
+        </Box>
       ))}
-    </div>
+    </Box>
   );
 }

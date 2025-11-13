@@ -10,8 +10,11 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Convertir courseId en entier
+    const courseIdInt = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+
     // Vérifier si le cours existe
-    const course = await getCourseById(courseId);
+    const course = await getCourseById(courseIdInt);
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }

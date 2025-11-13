@@ -15,8 +15,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
     }
 
+    // Convertir courseId en entier
+    const courseIdInt = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+
     // Récupération directe depuis la base de données
-    const courseData = await getCourseById(courseId);
+    const courseData = await getCourseById(courseIdInt);
     if (courseData) {
       // Transformation vers le format attendu
       const course: Course = {

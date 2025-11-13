@@ -5,59 +5,48 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { getCourseById } from '@/lib/data-prisma-utils';
+import { PrismaClient } from '@prisma/client';
 
-const filePath = path.join('public', 'jupyterServerWork', 'uniqueIds.json');
-
+const prisma = new PrismaClient();
+ 
 async function generateUniqueId() {
   let uniqueId;
-  let uniqueIds = [];
-
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
-    uniqueIds = JSON.parse(data);
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') throw error;
-  }
+  let exists = true;
 
   do {
     uniqueId = uuidv4().replace(/-/g, '').substring(0, 6).toUpperCase();
-  } while (uniqueIds.includes(uniqueId));
+    // Vérifier si l'uniqueId existe déjà dans la base de données
+    const existingSession = await prisma.notebookSession.findUnique({
+      where: { uniqueId }
+    });
+    exists = !!existingSession;
+  } while (exists);
 
   return uniqueId;
 }
 
-const getFrenchDayAbbrev = (date: Date): string => {
-  const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-  const months = ['JANV', 'FÉVR', 'MARS', 'AVRI', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCTO', 'NOVE', 'DÉCE'];
-  return `${days[date.getDay()]}-${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
-};
-
-async function storeUniqueId(uniqueId: string, dirPath: string, orginalFileName: string, userName: string) {
+async function storeNotebookSession(
+  uniqueId: string, 
+  dirPath: string, 
+  originalFileName: string, 
+  userName: string,
+  courseId: number,
+  activityId: string
+) {
   try {
-    let storedData = [];
-    try {
-      const data = await fs.readFile(filePath, 'utf8');
-      storedData = JSON.parse(data);
-    } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') throw error;
-    }
-
-    const currentDate = new Date();
-    const formattedDate = getFrenchDayAbbrev(currentDate);
-
-
-    storedData.push({
-      uniqueId: uniqueId,
-      dirPath: dirPath,
-      orginalFileName: orginalFileName,
-      userName: userName,
-      date: formattedDate
+    await prisma.notebookSession.create({
+      data: {
+        uniqueId,
+        dirPath,
+        originalFileName,
+        userName,
+        courseId,
+        activityId
+      }
     });
-
-    await fs.writeFile(filePath, JSON.stringify(storedData, null, 2), 'utf8');
-    
   } catch (error) {
-    console.error('Error storing data:', error);
+    console.error('Error storing notebook session:', error);
+    throw error;
   }
 }
 
@@ -65,10 +54,14 @@ async function storeUniqueId(uniqueId: string, dirPath: string, orginalFileName:
 export async function POST(req: Request) {
   try {
     const { courseId, userName, sendFileUrl } = await req.json();
+    
+    // Convertir courseId en entier
+    const courseIdInt = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+    
     const jupyterServerWork = join(process.cwd(), 'jupyterServerWork');
 
     // Récupérer le cours depuis la base de données
-    const course = await getCourseById(courseId);
+    const course = await getCourseById(courseIdInt);
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
@@ -122,7 +115,16 @@ export async function POST(req: Request) {
         console.error(`stderr: ${stderr}`);
       }
     });
-    await storeUniqueId(uniqueId, newDirName, originalFileName+".ipynb", userName);
+    
+    // Stocker la session dans la base de données
+    await storeNotebookSession(
+      uniqueId, 
+      newDirName, 
+      originalFileName+".ipynb", 
+      userName,
+      courseIdInt,
+      activity.id
+    );
 
     // Return the directory path for Jupyter server
     return NextResponse.json({ 
@@ -133,5 +135,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error generating notebook:', error);
     return NextResponse.json({ error: 'Error generating notebook' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

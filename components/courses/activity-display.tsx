@@ -23,6 +23,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
+import { RemoveCircleOutline } from '@mui/icons-material';
 import { getFileIcon } from "@/components/utils/fileUtils"; 
 import { downloadFileWithProgress } from '@/components/courses/donwload-track'; 
 
@@ -129,6 +130,20 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
 
   // Dans le composant CoursePage, ajouter cette fonction
 const handleActivityClick = async (fileUrl: string, activity: Activity) => {
+  // Vérifier si l'activité est désactivée ou masquée
+  if (activity.isDisabled || activity.isHidden) {
+    toast.error('Cette activité est actuellement désactivée', {
+      autoClose: 5000,
+      style: {
+        width: '380px',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      }
+    });
+    return;
+  }
+
   // Déterminer le type de fichier AVANT toute action
   const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
   let type = 'other';
@@ -458,20 +473,21 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
           toast.dismiss();
           toast.clearWaitingQueue();
           toast.error(
-            'Code introuvable...', 
+            data.message || 'Code introuvable...', 
             {
-              className: "toast-centered",
+            className: "toast-centered",
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
               style: {
-                width: '230px',
+                width: '380px',
                 borderRadius: '8px',
                 fontWeight: 'bold',
                 textAlign: 'center',
                 alignItems: 'center',
               },
-              autoClose: false,
             }
           );
-      }
+      } 
     } catch (error) {
       console.error('Verification error:', error);
       toast.dismiss();
@@ -479,7 +495,9 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
       toast.error(
         `Erreur lors de la vérification: ${error}`, 
         {
-          className: "toast-centered",
+            className: "toast-centered",
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
           style: {
             width: '400px',
             borderRadius: '8px',
@@ -487,7 +505,6 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
             textAlign: 'center',
             alignItems: 'center',
           },
-          autoClose: false,
         }
       );
     } finally {
@@ -641,7 +658,18 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
           });
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
-        toast.error('Erreur lors du téléchargement du fichier');
+          toast.error('Erreur lors du téléchargement du fichier', {
+            className: "toast-centered",
+            autoClose: 5000,  // 5 seconds
+            hideProgressBar: false, // Show progress bar
+            style: {
+              width: '400px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              alignItems: 'center',
+            }
+          });
       }
     };
 
@@ -975,7 +1003,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                                 disabled={isAlreadyDisplayed}
                                 sx={{ 
                                   width: '100%',
-                                  justifyContent: 'flex-start', 
+                                  justifyContent: 'space-between', 
                                   textTransform: 'none',
                                   textAlign: 'left',
                                   pl: 1,
@@ -985,14 +1013,13 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                                   ...(isAlreadyDisplayed && { opacity: 0.6, pointerEvents: 'none', cursor: 'not-allowed' })
                                 }}
                               >
-                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                                   <Box sx={{ flexShrink: 0, mr: 1 }}>
                                     {getFileIcon(activity.name)}
                                   </Box>
                                   <Typography 
                                     noWrap 
                                     sx={{ 
-                                      maxWidth: 'calc(100% - 24px)',
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis'
                                     }}
@@ -1001,6 +1028,9 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
                                     {activity.title}
                                   </Typography>
                                 </Box>
+                                {activity.isDisabled && (
+                                  <RemoveCircleOutline sx={{ ml: 1, fontSize: 20, color: '#ef4444', flexShrink: 0 }} />
+                                )}
                               </Button>
                             );
                           })}
