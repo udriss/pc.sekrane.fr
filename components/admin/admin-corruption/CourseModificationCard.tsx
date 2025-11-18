@@ -11,7 +11,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Box, Typography, FormLabel, Button, TextField, FormControl,
-   InputLabel, Select as MuiSelect, MenuItem, Checkbox, FormControlLabel, Switch, Tooltip, IconButton, Stack } from '@mui/material';
+   InputLabel, Select as MuiSelect, MenuItem, Switch, Tooltip, IconButton, Stack } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Block as BlockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
@@ -20,7 +20,7 @@ interface CourseModificationCardProps {
   setCourses: (courses: Course[]) => void;
   classes: Classe[];
   setClasses: (classes: Classe[]) => void;
-  showSnackbar: (message: string, type: 'success' | 'error' | 'warning') => void;
+  showSnackbar: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   selectedClass: string;
   setSelectedClass: (value: string) => void;
   selectedCourse: string;
@@ -719,6 +719,8 @@ export const CourseModificationCard: React.FC<CourseModificationCardProps> = ({
                       isDisabled={activity.isDisabled}
                       onToggleHidden={handleToggleHidden}
                       onToggleDisabled={handleToggleDisabled}
+                      courseId={selectedCourse}
+                      showSnackbar={showSnackbar}
                     />
                   ))}
                 </ul>

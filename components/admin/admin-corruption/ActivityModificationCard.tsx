@@ -8,6 +8,7 @@ import { Typography, Box, Button, TextField, FormControl, InputLabel, Select as 
 import { FileUploader } from '@/components/ui/file-uploader';
 import { SuccessMessage, ErrorMessage, WarningMessage } from '@/components/message-display';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { 
   VisibilityOff as VisibilityOffIcon,
   Visibility as VisibilityIcon,
@@ -352,14 +353,40 @@ export const ActivityModificationCard: React.FC<BaseCardProps & {
                     </IconButton>
                   </Tooltip>
                   {fileUrl && (
-                    <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
-                      <IconButton
-                        size="small"
-                        onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
-                      >
-                        <OpenInNewIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
+                      <Tooltip title="Copier le lien de cette activité">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            const activityUrl = selectedActivityObj?.fileUrl && selectedActivityObj.fileUrl.endsWith('.ipynb')
+                              ? `${window.location.origin}/courses/${selectedCourse}?activityFileUrl=${encodeURIComponent(selectedActivityObj.fileUrl)}`
+                              : `${window.location.origin}${fileUrl}`;
+                            navigator.clipboard.writeText(activityUrl);
+                            showSnackbar('Lien copié dans le presse-papiers', 'success');
+                          }}
+                        >
+                          <ContentCopyIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
+                  )}
+                  {fileUrl && (
+                      <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            // Check if it's a notebook file
+                            if (selectedActivityObj?.fileUrl && selectedActivityObj.fileUrl.endsWith('.ipynb')) {
+                              // Open the course page with the activity parameter
+                              const courseUrl = `/courses/${selectedCourse}?activityFileUrl=${encodeURIComponent(selectedActivityObj.fileUrl)}`;
+                              window.open(courseUrl, '_blank', 'noopener,noreferrer');
+                            } else {
+                              // For non-notebook files, open the file directly
+                              window.open(fileUrl, '_blank', 'noopener,noreferrer');
+                            }
+                          }}
+                        >
+                          <OpenInNewIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
                   )}
                 </Box>
               </Box>

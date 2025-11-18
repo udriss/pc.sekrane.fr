@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { 
   DragIndicator, 
   OpenInNew as OpenInNewIcon,
+  ContentCopy as ContentCopyIcon,
   VisibilityOff as VisibilityOffIcon,
   Visibility as VisibilityIcon,
   Block as BlockIcon,
@@ -23,6 +24,8 @@ interface PropsSortableFile {
   isDisabled?: boolean;
   onToggleHidden?: (fileId: string) => void;
   onToggleDisabled?: (fileId: string) => void;
+  courseId?: string;
+  showSnackbar?: (message: string, severity: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 export function SortableFile({
@@ -33,7 +36,9 @@ export function SortableFile({
   isHidden = false,
   isDisabled = false,
   onToggleHidden,
-  onToggleDisabled
+  onToggleDisabled,
+  courseId,
+  showSnackbar
 }: PropsSortableFile) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -94,14 +99,43 @@ export function SortableFile({
         }}
         >
         {fileUrl && (
-          <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
-            <IconButton
-              size="small"
-              onClick={() => window.open(`/api/files${fileUrl}`, '_blank', 'noopener,noreferrer')}
-            >
-              <OpenInNewIcon fontSize="inherit" />
-            </IconButton>
-          </Tooltip>
+            <Tooltip title="Copier le lien de cette activité">
+              <IconButton
+                size="small"
+                onClick={() => {
+                  const activityUrl = fileUrl.endsWith('.ipynb') && courseId
+                    ? `${window.location.origin}/courses/${courseId}?activityFileUrl=${encodeURIComponent(fileUrl)}`
+                    : `${window.location.origin}/api/files${fileUrl}`;
+                  navigator.clipboard.writeText(activityUrl);
+                  if (showSnackbar) {
+                    showSnackbar('Lien copié dans le presse-papiers', 'success');
+                  }
+                }}
+              >
+                <ContentCopyIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+        )}
+
+        {fileUrl && (
+            <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+              <IconButton
+                size="small"
+                onClick={() => {
+                  // Check if it's a notebook file
+                  if (fileUrl.endsWith('.ipynb') && courseId) {
+                    // Open the course page with the activity parameter
+                    const courseUrl = `/courses/${courseId}?activityFileUrl=${encodeURIComponent(fileUrl)}`;
+                    window.open(courseUrl, '_blank', 'noopener,noreferrer');
+                  } else {
+                    // For non-notebook files, open the file directly
+                    window.open(`/api/files${fileUrl}`, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+              >
+                <OpenInNewIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
         )}
         {onToggleHidden && (
           <Tooltip title={isHidden ? "Afficher l'activité" : "Masquer l'activité"}>

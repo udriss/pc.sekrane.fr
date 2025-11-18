@@ -1497,6 +1497,7 @@ export const ProgressionModificationCard: React.FC<
                               (course.activities || []).map((activity) => ({
                                 ...activity,
                                 courseName: course.title,
+                                courseId: course.id,
                               }))
                             )
                             .filter(
@@ -1519,17 +1520,42 @@ export const ProgressionModificationCard: React.FC<
                                         `(${activity.courseName})`}
                                     </span>
                                     {fileUrl && (
-                                      <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
-                                        <IconButton
-                                          size="small"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.open(fileUrl, '_blank', 'noopener,noreferrer');
-                                          }}
-                                        >
-                                          <OpenInNewIcon fontSize="inherit" />
-                                        </IconButton>
-                                      </Tooltip>
+                                        <Tooltip title="Copier le lien de cette activité">
+                                          <IconButton
+                                            size="small"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const activityUrl = activity.fileUrl && activity.fileUrl.endsWith('.ipynb')
+                                                ? `${window.location.origin}/courses/${activity.courseId}?activityFileUrl=${encodeURIComponent(activity.fileUrl)}`
+                                                : `${window.location.origin}${fileUrl}`;
+                                              navigator.clipboard.writeText(activityUrl);
+                                              showSnackbar('Lien copié dans le presse-papiers', 'success');
+                                            }}
+                                          >
+                                            <ContentCopyIcon fontSize="inherit" />
+                                          </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {fileUrl && (
+                                        <Tooltip title="Ouvrir le fichier dans un nouvel onglet">
+                                          <IconButton
+                                            size="small"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // Check if it's a notebook file
+                                              if (activity.fileUrl && activity.fileUrl.endsWith('.ipynb')) {
+                                                // Open the course page with the activity parameter
+                                                const courseUrl = `/courses/${activity.courseId}?activityFileUrl=${encodeURIComponent(activity.fileUrl)}`;
+                                                window.open(courseUrl, '_blank', 'noopener,noreferrer');
+                                              } else {
+                                                // For non-notebook files, open the file directly
+                                                window.open(fileUrl, '_blank', 'noopener,noreferrer');
+                                              }
+                                            }}
+                                          >
+                                            <OpenInNewIcon fontSize="inherit" />
+                                          </IconButton>
+                                        </Tooltip>
                                     )}
                                   </Box>
                                 </MenuItem>

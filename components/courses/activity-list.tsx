@@ -26,6 +26,7 @@ interface ActivityListProps {
   selectedFileRightOrigin?: string | null;
   showSideBySide?: boolean;
   lastClickedType?: string | null;
+  autoOpenActivityFileUrl?: string | null; // For auto-opening from URL parameter
 }
 
 export function ActivityList({
@@ -41,7 +42,8 @@ export function ActivityList({
   selectedFileRight,
   selectedFileRightOrigin,
   showSideBySide,
-  lastClickedType
+  lastClickedType,
+  autoOpenActivityFileUrl
 }: ActivityListProps) {
 
   const [toastId, setToastId] = useState<Id | null>(null);
@@ -49,6 +51,7 @@ export function ActivityList({
   const startTimeRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
+  const hasAutoOpenedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!userName) {
@@ -63,6 +66,21 @@ export function ActivityList({
       }
     }
   }, [userName, setUserName]);
+
+  // Auto-open notebook from URL parameter
+  useEffect(() => {
+    if (autoOpenActivityFileUrl && !hasAutoOpenedRef.current && activities.length > 0) {
+      const activity = activities.find(act => act.fileUrl === autoOpenActivityFileUrl);
+      if (activity && activity.fileUrl.endsWith('.ipynb')) {
+        hasAutoOpenedRef.current = true;
+        // Trigger the click after a short delay to ensure everything is ready
+        setTimeout(() => {
+          handleActivityClick(activity.fileUrl, activity);
+        }, 500);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenActivityFileUrl, activities]);
 
   // Function to determine if an activity button should be disabled
   const shouldDisableActivity = (activity: Activity) => {

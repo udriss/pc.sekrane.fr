@@ -16,7 +16,7 @@ import LoadingPage from "@/app/loading";
 import Split from 'react-split';
 import ImageZoom from "@/components/courses/image-zoom";
 import { VideoActions } from "@/components/courses/video-player";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, Id } from 'react-toastify';
 import OtpInput from 'react-otp-input';
 import Divider from '@mui/material/Divider';
@@ -63,12 +63,15 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
   const ipynbDivRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeRightRef = useRef<HTMLIFrameElement>(null); // Add new ref
+  const hasAutoOpenedRef = useRef<boolean>(false); // Track if we've auto-opened from URL
   const [splitSizes, setSplitSizes] = useState([50, 50]);
   const [leftFileType, setLeftFileType] = useState<string | null>(null);
   const [iframeKeyLeft, setIframeKeyLeft] = useState(0);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentUniqueId, setCurrentUniqueId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [autoOpenActivityFileUrl, setAutoOpenActivityFileUrl] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenOverlay, setShowFullscreenOverlay] = useState(false);
@@ -80,8 +83,21 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
     if (!course) {
       return [] as Activity[];
     }
-    return course.activities.filter((activity) => !activity.isFileDrop && !activity.isHidden);
-  }, [course]);
+    // Get activityFileUrl from URL params to check if we need to include a hidden activity
+    const activityFileUrlFromParams = searchParams.get('activityFileUrl');
+    
+    return course.activities.filter((activity) => {
+      // Exclude file drop activities
+      if (activity.isFileDrop) return false;
+      
+      // If activity is hidden, only include it if it's the one being accessed via URL
+      if (activity.isHidden) {
+        return activityFileUrlFromParams === activity.fileUrl;
+      }
+      
+      return true;
+    });
+  }, [course, searchParams]);
 
   const fileDropActivities = useMemo(() => {
     if (!course) {
@@ -319,6 +335,21 @@ const handleActivityClick = async (fileUrl: string, activity: Activity) => {
     }
     fetchCourse();
   }, [courseId, router]);
+
+  // Auto-open notebook from URL parameters
+  useEffect(() => {
+    const activityFileUrl = searchParams.get('activityFileUrl');
+    if (activityFileUrl && course && !hasAutoOpenedRef.current) {
+      // Find the activity with matching fileUrl
+      const activity = course.activities.find(act => act.fileUrl === activityFileUrl);
+      if (activity && activity.fileUrl.endsWith('.ipynb')) {
+        // Mark as auto-opened to prevent infinite loops
+        hasAutoOpenedRef.current = true;
+        // Pass the fileUrl to ActivityList to handle the opening
+        setAutoOpenActivityFileUrl(activityFileUrl);
+      }
+    }
+  }, [course, searchParams]);
 
   const handleSelectActivity = (fileUrl: string, type: string, activity: Activity) => {
     if (type === 'ipynb') {
@@ -883,6 +914,7 @@ const FileMetadata = ({ activity, url }: { activity: Activity, url: string }) =>
             selectedFileRightOrigin={selectedFileRightOrigin}
             showSideBySide={showSideBySide}
             lastClickedType={lastClickedType}
+            autoOpenActivityFileUrl={autoOpenActivityFileUrl}
           />
         )}
 
